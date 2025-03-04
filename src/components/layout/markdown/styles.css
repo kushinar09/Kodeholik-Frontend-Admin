@@ -1,0 +1,198 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.markdown {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.markdown img,
+.markdown video {
+  @apply mb-4;
+}
+
+.markdown > *:last-child {
+  margin-bottom: 0;
+}
+
+.markdown > *:first-child {
+  margin-top: 0;
+}
+
+.markdown > div:first-child {
+  margin-top: 5px;
+}
+
+.markdown iframe {
+  max-width: 100%;
+  @apply mb-4;
+}
+
+.markdown h1 {
+  @apply mb-4 mt-6 text-2xl font-bold;
+}
+
+.markdown h2 {
+  @apply mb-4 mt-6 text-xl font-bold;
+}
+
+.markdown h3 {
+  @apply mb-4 mt-6 text-lg font-bold;
+}
+
+.markdown h4 {
+  @apply mb-4 mt-6 text-[17px] font-bold;
+}
+
+.markdown h5 {
+  @apply mb-4 mt-6 text-base font-bold;
+}
+
+.markdown h6 {
+  @apply mb-4 mt-6 text-base;
+}
+
+.markdown p {
+  @apply mb-4 overflow-x-auto overflow-y-hidden text-sm leading-[22px];
+}
+
+.markdown p:first-child {
+  @apply mt-0;
+}
+
+.markdown a {
+  @apply text-blue-600 mb-4;
+}
+
+.markdown a:hover {
+  @apply underline;
+}
+
+:global(.dark) .markdown a {
+  @apply text-blue-800;
+}
+
+.markdown blockquote {
+  @apply text-gray-500 mb-4 border-l-[6px];
+}
+
+.markdown blockquote > * {
+  @apply ml-4;
+}
+
+.markdown hr {
+  @apply my-6 border-b-2;
+}
+
+.markdown ul {
+  @apply mb-4 list-disc text-base;
+}
+
+.markdown ul ul,
+.markdown ol ol {
+  @apply mb-0 mt-1;
+}
+
+.markdown ul ul {
+  list-style-type: circle;
+}
+
+.markdown ol ol {
+  list-style-type: lower-alpha;
+}
+
+.markdown li {
+  @apply mb-1 ml-8;
+}
+
+.markdown li:last-child {
+  @apply mb-0;
+}
+
+.markdown li p:first-child {
+  @apply overflow-visible;
+}
+
+.markdown ol {
+  @apply mb-4 list-decimal text-base;
+}
+
+.markdown code,
+.markdown pre {
+  @apply bg-red-100 rounded-lg text-xs leading-6;
+}
+
+.markdown pre {
+  @apply mb-4 rounded-none px-3 py-2.5;
+}
+
+.markdown > pre {
+  @apply rounded-lg;
+}
+
+.markdown code {
+  @apply mx-1 my-4 p-1;
+}
+
+.markdown pre code {
+  @apply m-0 rounded-none bg-transparent px-0 py-0;
+}
+
+:global(.dark) .markdown pre code {
+  @apply bg-transparent;
+}
+
+.markdown table {
+  box-shadow: 0 0 0 1px #e5e5e5;
+  @apply mb-6 rounded-lg border-hidden;
+}
+
+.markdown table th {
+  @apply border-[1px] px-5 py-4 text-base font-medium;
+}
+
+.markdown table th:first-child {
+  @apply rounded-tl-lg;
+}
+
+.markdown table th:last-child {
+  @apply rounded-tr-lg;
+}
+
+.markdown table td {
+  @apply border-[1px] px-5 py-4 text-base;
+}
+
+.markdown :global(.language-md .table) {
+  /*
+    FIXME: tailwind-css `.table` conflict with highlight.js `.table`,
+           which just have different meanings but with the same name
+     */
+  display: inline !important;
+}
+
+.markdown :global(.katex-html) {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.markdown :global(.katex) {
+  @apply mx-[2px] !text-base;
+}
+
+.markdown :global(.video-container) {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  margin-bottom: 10px;
+}
+
+.markdown :global(.video-container) iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}

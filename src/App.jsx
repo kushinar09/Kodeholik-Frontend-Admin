@@ -1,34 +1,36 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import { Toaster } from "sonner"
+import Dashboard from "./features/dashboard"
+import UnauthorisedError from "./features/errors/unauthorized-error"
+import ForbiddenError from "./features/errors/forbidden"
+import NotFoundError from "./features/errors/not-found-error"
+import GeneralError from "./features/errors/general-error"
+import MaintenanceError from "./features/errors/maintenance-error"
+import { AuthProvider } from "./provider/AuthProvider"
+import ProblemCreator from "./features/problem/ProblemCreate"
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Router>
+      <AuthProvider>
+        <div className="mx-auto">
+          <Routes>
+            {/* Error Pages */}
+            <Route path="/401" element={<UnauthorisedError />} />
+            <Route path="/403" element={<ForbiddenError />} />
+            <Route path="/404" element={<NotFoundError />} />
+            <Route path="/500" element={<GeneralError />} />
+            <Route path="/503" element={<MaintenanceError />} />
+
+            {/* Protected Routes */}
+            <Route path="/" element={<Dashboard />}>
+              <Route path="/problem/create" element={<ProblemCreator />} />
+            </Route>
+          </Routes>
+        </div>
+      </AuthProvider>
+      <Toaster />
+    </Router>
   )
 }
 
