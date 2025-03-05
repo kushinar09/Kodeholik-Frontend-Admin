@@ -1,4 +1,9 @@
 import React from "react"
+import logo from "@/assets/images/logo/kodeholik_logo.png"
+
+const LOGO = React.forwardRef(({ className, ...props }, ref) => {
+  return <img src={logo} className={className} alt="Kodeholik" ref={ref} {...props} />
+})
 
 const GLOBALS = {
   APPLICATION_NAME: import.meta.env.VITE_APP_NAME,
@@ -77,6 +82,7 @@ const CONSTANTS = {
 }
 
 export {
+  LOGO,
   GLOBALS,
   ENDPOINTS,
   CONSTANTS

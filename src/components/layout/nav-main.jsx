@@ -17,10 +17,14 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem
 } from "@/components/ui/sidebar"
+import { useLocation } from "react-router-dom"
 
 export function NavMain({
-  items
+  items,
+  onNavigate
 }) {
+  const location = useLocation()
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -43,11 +47,9 @@ export function NavMain({
               <CollapsibleContent>
                 <SidebarMenuSub>
                   {item.items?.map((subItem) => (
-                    <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild>
-                        <a href={subItem.url}>
-                          <span>{subItem.title}</span>
-                        </a>
+                    <SidebarMenuSubItem key={subItem.title} className="cursor-pointer">
+                      <SidebarMenuSubButton asChild isActive={location.pathname.startsWith(subItem.url)}>
+                        <span onClick={() => onNavigate(subItem.url)}>{subItem.title}</span>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                   ))}

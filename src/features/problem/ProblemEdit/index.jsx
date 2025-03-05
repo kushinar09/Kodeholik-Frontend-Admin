@@ -11,8 +11,11 @@ import { Editorial } from "./components/editorial"
 import { TestCases } from "./components/test-cases"
 import { ENDPOINTS } from "@/lib/constants"
 import { useAuth } from "@/provider/AuthProvider"
+import { useParams } from "react-router-dom"
 
-export default function ProblemCreator() {
+export default function ProblemEdit({ onNavigate }) {
+  console.log("Edit page")
+  const { id } = useParams()
   const { apiCall } = useAuth()
 
   const [activeStep, setActiveStep] = useState("details")
@@ -276,11 +279,11 @@ function StepIndicator({ step, label, active, completed, onClick, disabled = fal
       <div
         className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors
           ${active
-      ? "bg-primary text-primary-foreground"
-      : completed
-        ? "bg-green-500 text-white"
-        : "bg-muted text-muted-foreground"
-    }`}
+            ? "bg-primary text-primary-foreground"
+            : completed
+              ? "bg-green-500 text-white"
+              : "bg-muted text-muted-foreground"
+          }`}
       >
         {completed ? <Check className="h-5 w-5" /> : step.charAt(0).toUpperCase()}
       </div>

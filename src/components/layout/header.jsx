@@ -3,7 +3,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Separator } from "../ui/separator"
 import { SidebarTrigger } from "../ui/sidebar"
 
-export default function Header({ headerData = [] }) {
+export default function Header({ headerData = [], onNavigate }) {
   const data = Array.isArray(headerData) ? headerData : []
 
   return (
@@ -16,17 +16,21 @@ export default function Header({ headerData = [] }) {
             {data.map((item, index) => {
               const isLast = index === data.length - 1
 
-              return isLast ? (
-                <BreadcrumbItem key={item.title} className="hidden md:block">
-                  <BreadcrumbPage className="font-semibold">{item.title}</BreadcrumbPage>
-                </BreadcrumbItem>
-              ) : (
-                <>
-                  <BreadcrumbItem className="hidden md:block">
-                    <BreadcrumbLink href={item.url}>{item.title}</BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator className="hidden md:block" />
-                </>
+              return (
+                <div key={index} className="flex items-center gap-2">
+                  {isLast ? (
+                    <BreadcrumbItem className="hidden md:block">
+                      <BreadcrumbPage className="font-semibold">{item.title}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  ) : (
+                    <>
+                      <BreadcrumbItem className="hidden md:block">
+                        <BreadcrumbLink className="cursor-pointer" onClick={() => onNavigate(item.url)}>{item.title}</BreadcrumbLink>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator className="hidden md:block" />
+                    </>
+                  )}
+                </div>
               )
             })}
           </BreadcrumbList>

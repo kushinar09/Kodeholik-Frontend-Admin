@@ -8,6 +8,12 @@ import GeneralError from "./features/errors/general-error"
 import MaintenanceError from "./features/errors/maintenance-error"
 import { AuthProvider } from "./provider/AuthProvider"
 import ProblemCreator from "./features/problem/ProblemCreate"
+import ProtectedRoute from "./provider/ProtectedRoute"
+import LoginPage from "./features/auth/login"
+import ForgotPassword from "./features/auth/forgot"
+import ResetPassword from "./features/auth/reset"
+import ProblemEdit from "./features/problem/ProblemEdit"
+import { ExamList } from "./features/exam/list"
 
 function App() {
   return (
@@ -22,10 +28,20 @@ function App() {
             <Route path="/500" element={<GeneralError />} />
             <Route path="/503" element={<MaintenanceError />} />
 
+            {/* Auth Pages */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot" element={<ForgotPassword />} />
+            <Route path="/reset" element={<ResetPassword />} />
+
             {/* Protected Routes */}
             <Route path="/" element={<Dashboard />}>
+              <Route path="/problem" element={<ProblemCreator />} />
               <Route path="/problem/create" element={<ProblemCreator />} />
+              <Route path="/problem/:id" element={<ProblemEdit />} />
+              <Route path="/exam" element={<ExamList />} />
             </Route>
+            {/* <Route element={<ProtectedRoute />}>
+            </Route> */}
           </Routes>
         </div>
       </AuthProvider>

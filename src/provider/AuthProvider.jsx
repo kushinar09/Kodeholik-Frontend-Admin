@@ -17,6 +17,7 @@ const notCallRotateTokenEndpoints = [
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -81,7 +82,8 @@ export const AuthProvider = ({ children }) => {
     return promise
   }
 
-  const apiCall = async (url, options = {}, redirect = false) => {
+  const apiCall = async (url, options = {}) => {
+    setLoading(true)
     // console.log(window.location.pathname)
     if (!options.headers) {
       options.headers = {}
@@ -101,7 +103,7 @@ export const AuthProvider = ({ children }) => {
       if (response.status === 401 && !notCallRotateTokenEndpoints.includes(url)) {
         console.warn("Access token expired. Attempting refresh...")
 
-        const success = await refreshAccessToken(redirect)
+        const success = await refreshAccessToken(true)
 
         if (success) {
           response = await fetch(url, options)
@@ -114,12 +116,14 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.warn("API call error:", error)
       throw error
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <AuthContext.Provider value={{ apiCall, logout, isAuthenticated, user, setIsAuthenticated }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   )
 }
