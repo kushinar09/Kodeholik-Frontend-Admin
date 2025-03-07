@@ -12,12 +12,16 @@ import ProblemCreator from "../problem/ProblemCreate"
 import ProblemEdit from "../problem/ProblemEdit"
 import Overview from "../overview"
 import { ExamList } from "../exam/list"
+import CourseList from "../course/CourseList/ViewListCourse"
+import CreateCourse from "../course/CourseCreate/CreateCourse"
+import UpdateCourse from "../course/CourseUpdate/UpdateCourse"
 
 export default function Dashboard() {
   const location = useLocation()
   const navigate = useNavigate()
   const [activeState, setActiveState] = useState("")
   const [currentTitleProblem, setCurrentTitleProblem] = useState("")
+  const [currentTitleCourse, setCurrentTitleCourse] = useState("")
 
   useEffect(() => {
     if (location.pathname === "/problem") {
@@ -31,6 +35,13 @@ export default function Dashboard() {
       setCurrentTitleProblem("Two Sum")
     } else if (location.pathname === "/exam") {
       setActiveState("examList")
+    }else if (location.pathname === "/course"){
+      setActiveState("courseList")
+    }else if (location.pathname === "/course/add"){
+      setActiveState("createCourse")
+    }else if (/^\/course\/[\w-]+$/.test(location.pathname)){
+      setActiveState("updateCourse")
+      setCurrentTitleCourse("Java Beginner")
     } else {
       setActiveState("")
     }
@@ -40,6 +51,11 @@ export default function Dashboard() {
     const headerMap = {
       "/problem": [{ title: "Problem", url: "/" }],
       "/exam": [{ title: "Examination", url: "/" }],
+      "/course": [{title: "Course", url: "/"}],
+      "/course/add": [
+        {title: "Course", url: "/course"},
+        {title: "Create Course", url: "#"}
+      ],
       "/problem/create": [
         { title: "Problem", url: "/problem" },
         { title: "Create Problem", url: "#" }
@@ -47,10 +63,19 @@ export default function Dashboard() {
     }
 
     const match = location.pathname.match(/^\/problem\/[\w-]+$/)
+    const courseMatch = location.pathname.match(/^\/course\/[\w-]+$/)
+
     if (location.pathname !== "/problem/create" && match) {
       headerMap[location.pathname] = [
         { title: "Problem", url: "/problem" },
         { title: currentTitleProblem, url: "#" }
+      ]
+    }
+
+    if (location.pathname !== "/course/add" && courseMatch) {
+      headerMap[location.pathname] = [
+        { title: "Course", url: "/course" },
+        { title: currentTitleCourse, url: "#" }
       ]
     }
 
@@ -80,6 +105,9 @@ export default function Dashboard() {
           {activeState === "problemCreate" && <ProblemCreator />}
           {activeState === "problemEdit" && <ProblemEdit onNavigate={handleNavigation} />}
           {activeState === "examList" && <ExamList onNavigate={handleNavigation} />}
+          {activeState === "courseList" && <CourseList onNavigate={handleNavigation} />}
+          {activeState === "createCourse" && <CreateCourse onNavigate={handleNavigation} />}
+          {activeState === "updateCourse" && <UpdateCourse onNavigate={handleNavigation} />}
         </div>
       </SidebarInset>
     </SidebarProvider>

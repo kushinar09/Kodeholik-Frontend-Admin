@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -18,6 +18,8 @@ import { Plus, MoreHorizontal, Pencil, Trash } from "lucide-react"
 import { CreateExamDialog } from "../create"
 import { EditExamDialog } from "../edit"
 import { format } from "date-fns"
+import { useAuth } from "@/provider/AuthProvider"
+import { getListExamForExaminer } from "@/lib/api/exam_api"
 
 const ExamStatus = {
   DRAFT: "DRAFT",
@@ -25,6 +27,17 @@ const ExamStatus = {
   ONGOING: "ONGOING",
   COMPLETED: "COMPLETED",
   CANCELLED: "CANCELLED"
+}
+
+const requestData = {
+  page: 0,
+  size: 5,
+  title: "",
+  status: null,
+  start: null,
+  end: null,
+  sortBy: null,
+  ascending: null
 }
 
 const mockExams = [
@@ -48,6 +61,10 @@ export function ExamList({ onNavigate }) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [currentExam, setCurrentExam] = useState(null)
+  const { apiCall } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
+
+
 
   const handleCreateExam = (exam) => {
     // In a real application, you would send this to your backend
@@ -65,6 +82,21 @@ export function ExamList({ onNavigate }) {
     setExams([...exams, newExam])
     setIsCreateDialogOpen(false)
   }
+  const fetchExamList = async () => {
+    setIsLoading(true)
+    try {
+      const data = await getListExamForExaminer(apiCall, requestData)
+      console.log("API Response:", data)
+    } catch (error) {
+      console.error("Error fetching exams:", error)
+    } finally {
+     setIsLoading(false)
+    }
+  }
+  useEffect(() => {
+    console.log("Fetching exam list...");
+    fetchExamList()
+  }, [])
 
   const handleEditExam = (exam) => {
     if (currentExam) {
