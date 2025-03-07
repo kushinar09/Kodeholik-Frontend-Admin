@@ -25,6 +25,17 @@ export async function getTopicList() {
     return response.json()
 }
 
+export async function getTopicsWithId() {
+  const response = await fetch(ENDPOINTS.GET_tOPICWITHID, {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch topic")
+  }
+  return response.json()
+}
+
 
 export async function getCourseList() {
     const response = await fetch(ENDPOINTS.GET_COURSES)

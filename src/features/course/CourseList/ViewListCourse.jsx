@@ -1,11 +1,7 @@
-"use client"
-
 import { useState, useEffect } from "react"
-import { getCourseList, getTopicList } from "@/lib/api/course_api"
+import { getCourseList, getTopicsWithId } from "@/lib/api/course_api"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import Header from "@/components/layout/header"
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { GLOBALS } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
@@ -52,7 +48,7 @@ function CourseList() {
   useEffect(() => {
     const fetchTopics = async () => {
       try {
-        const data = await getTopicList()
+        const data = await getTopicsWithId()
         console.log("Fetched topics:", data)
         setTopics(data || [])
       } catch (error) {
@@ -64,22 +60,24 @@ function CourseList() {
   }, [])
 
   // Filter and paginate courses client-side
+  const getFilteredCourses = () => {
+    return allCourses.filter((course) => {
+      const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase())
+  
+      if (selectedTopic === "All") return matchesSearch
+  
+      // Check if course.topics includes the selected topic
+      return matchesSearch && course.topics.includes(selectedTopic)
+    })
+  }
+
   useEffect(() => {
-    const filteredCourses = allCourses.filter(
-      (course) =>
-        course.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        (selectedTopic === "All" || course.topic === selectedTopic),
-    )
+    const filteredCourses = getFilteredCourses()
     setTotalPages(Math.ceil(filteredCourses.length / ITEMS_PER_PAGE))
     setCurrentPage(1) // Reset to first page when filters change
-  }, [allCourses, searchQuery, selectedTopic])
+  }, [allCourses, searchQuery, selectedTopic, topics])
 
-  const paginatedCourses = allCourses
-    .filter(
-      (course) =>
-        course.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        (selectedTopic === "All" || course.topic === selectedTopic),
-    )
+  const paginatedCourses = getFilteredCourses()
     .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
   const handlePageChange = (page) => {
@@ -159,8 +157,8 @@ function CourseList() {
                       className={cn(
                         "text-sm",
                         selectedTopic === "All"
-                          ? "bg-primary text-black hover:bg-primary/90"
-                          : "text-primary border-primary hover:bg-primary/10",
+                          ? "bg-primary text-white hover:bg-primary/90"
+                          : "text-primary border-primary hover:bg-primary/10 hover:text",
                       )}
                     >
                       All
@@ -174,7 +172,7 @@ function CourseList() {
                         className={cn(
                           "text-sm",
                           selectedTopic === (topic.name || topic)
-                            ? "bg-primary text-black hover:bg-primary/90"
+                            ? "bg-primary text-white hover:bg-primary/90"
                             : "text-primary border-primary hover:bg-primary/10",
                         )}
                       >
