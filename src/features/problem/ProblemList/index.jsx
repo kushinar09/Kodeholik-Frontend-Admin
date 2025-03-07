@@ -1,128 +1,115 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { AlertDialog } from "./components/alert-dialog"
 import { ProblemItem } from "./components/problem-item"
-import { FilterBar } from "./components/filter-list"
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
+  PaginationPrevious
 } from "@/components/ui/pagination"
-
-const ITEMS_PER_PAGE = 10
+import { useAuth } from "@/provider/AuthProvider"
+import { FilterBar } from "./components/filter-list"
+import { ENDPOINTS } from "@/lib/constants"
+import { toast } from "sonner"
 
 export default function ProblemList({ onNavigate }) {
   const [problemData, setProblemData] = useState({
-    content: [
-      {
-        title: "Keep Multiplying Found Values by Two",
-        description:
-          "You are given an array of integers nums. You are also given an integer original which is the first number that needs to be searched for in nums.\n\nYou then do the following steps:\n\nIf original is found in nums, multiply it by two (i.e., set original = 2 * original).\nOtherwise, stop the process.\nRepeat this process with the new number as long as you keep finding the number.\nReturn the final value of original.",
-        link: "keep-multiplying-found-values-by-two",
-        difficulty: "EASY",
-        acceptanceRate: 0.0,
-        noSubmission: 0.0,
-        status: "PUBLIC",
-        active: true,
-      },
-      {
-        title: "Sum of Two Integers",
-        description:
-          "Given two integers a and b, return the sum of the two integers without using the operators + and -.",
-        link: "sum-of-two-integers",
-        difficulty: "EASY",
-        acceptanceRate: 0.0,
-        noSubmission: 0.0,
-        status: "PUBLIC",
-        active: true,
-      },
-      {
-        title: "Power of Two",
-        description:
-          "Given an integer n, return true if it is a power of two. Otherwise, return false.\n\nAn integer n is a power of two, if there exists an integer x such that n == 2x.",
-        link: "power-of-two",
-        difficulty: "EASY",
-        acceptanceRate: 0.0,
-        noSubmission: 0.0,
-        status: "PUBLIC",
-        active: true,
-      },
-      {
-        title: "Intersection of Two Arrays II",
-        description:
-          "Given two integer arrays nums1 and nums2, return an array of their intersection. Each element in the result must appear as many times as it shows in both arrays and you may return the result in any order.",
-        link: "intersection-of-two-arrays-ii",
-        difficulty: "EASY",
-        acceptanceRate: 0.0,
-        noSubmission: 0.0,
-        status: "PUBLIC",
-        active: true,
-      },
-      {
-        title: "Number of Days Between Two Dates",
-        description:
-          "Write a program to count the number of days between two dates.\n\nThe two dates are given as strings, their format is YYYY-MM-DD as shown in the examples.",
-        link: "number-of-days-between-two-dates",
-        difficulty: "EASY",
-        acceptanceRate: 0.0,
-        noSubmission: 0.0,
-        status: "PUBLIC",
-        active: true,
-      },
-    ],
+    content: [],
     pageable: {
       pageNumber: 0,
       pageSize: 5,
       sort: {
         empty: false,
         unsorted: false,
-        sorted: true,
+        sorted: true
       },
       offset: 0,
       unpaged: false,
-      paged: true,
+      paged: true
     },
     last: false,
-    totalElements: 10,
-    totalPages: 2,
+    totalElements: 0,
+    totalPages: 0,
     size: 5,
     number: 0,
     sort: {
       empty: false,
       unsorted: false,
-      sorted: true,
+      sorted: true
     },
     first: true,
-    numberOfElements: 5,
-    empty: false,
+    numberOfElements: 0,
+    empty: false
   })
+  const pageSize = 10
 
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false)
   const [currentProblem, setCurrentProblem] = useState(null)
   const [alertAction, setAlertAction] = useState(null)
   const [filters, setFilters] = useState({
     page: 0,
-    size: 5,
+    size: pageSize,
     title: "",
-    difficulty: "EASY",
-    status: "PUBLIC",
+    difficulty: null,
+    status: null,
     isActive: true,
-    sortBy: "noSubmission",
-    ascending: true,
+    sortBy: null,
+    ascending: null
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const { apiCall } = useAuth()
+
+  useEffect(() => {
+    const message = localStorage.getItem("toastMessage")
+    if (message) {
+      toast.success(message)
+      localStorage.removeItem("toastMessage")
+    }
+  }, [])
+
+  // Fetch problems when filters change
+  useEffect(() => {
+    fetchProblems()
+  }, [filters])
+
+  const fetchProblems = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await apiCall(ENDPOINTS.POST_TEACHER_PROBLEMS_LIST, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(filters)
+      })
+
+      if (!response.ok) {
+        setError("Failed to load problems. Please try again.")
+      }
+
+      const data = await response.json()
+      setProblemData(data)
+    } catch (err) {
+      setProblemData(null)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handlePageChange = (newPage) => {
     setFilters((prev) => ({
       ...prev,
-      page: newPage,
+      page: newPage
     }))
   }
 
@@ -130,7 +117,7 @@ export default function ProblemList({ onNavigate }) {
     setFilters((prev) => ({
       ...prev,
       ...newFilters,
-      page: 0, // Reset to first page when filters change
+      page: 0
     }))
   }
 
@@ -140,15 +127,28 @@ export default function ProblemList({ onNavigate }) {
     setIsAlertDialogOpen(true)
   }
 
-  const confirmToggleActive = () => {
+  const confirmToggleActive = async () => {
     if (currentProblem) {
-      // In a real application, you would call an API to update the problem status
-      // For this example, we'll update the local state
-      setProblemData((prev) => ({
-        ...prev,
-        content: prev.content.map((p) => (p.link === currentProblem.link ? { ...p, active: !p.active } : p)),
-      }))
-      setIsAlertDialogOpen(false)
+      setIsLoading(true)
+      try {
+        const url = currentProblem.active ? ENDPOINTS.PUT_CHANGE_STATUS_PROBLEM_DEACTIVE : ENDPOINTS.PUT_CHANGE_STATUS_PROBLEM_ACTIVE
+        // Call API to toggle problem active status
+        const response = await apiCall(url.replace(":id", currentProblem.link), {
+          method: "PUT"
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to update problem status")
+        }
+        // Refresh problem list
+        fetchProblems()
+      } catch (err) {
+        console.error("Error updating problem status:", err)
+        setError("Failed to update problem status. Please try again.")
+      } finally {
+        setIsLoading(false)
+        setIsAlertDialogOpen(false)
+      }
     }
   }
 
@@ -164,53 +164,80 @@ export default function ProblemList({ onNavigate }) {
         </div>
       </div>
 
-      <FilterBar onFilterChange={handleFilterChange} filters={filters} />
+      <FilterBar onFilterChange={handleFilterChange} initialFilters={filters} pageSize={pageSize} />
 
-      <div className="grid gap-4">
-        {problemData.content.map((problem) => (
-          <ProblemItem
-            key={problem.link}
-            problem={{
-              ...problem,
-              difficulty: problem.difficulty,
-              link: problem.link,
-            }}
-            onEdit={() => onNavigate(`/problem/${problem.link}`)}
-            onToggleActive={() => handleToggleActive(problem)}
-          />
-        ))}
-      </div>
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
 
-      {problemData.totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={() => handlePageChange(Math.max(0, problemData.number - 1))}
-                disabled={problemData.first}
-              />
-            </PaginationItem>
-            {Array.from({ length: problemData.totalPages }).map((_, index) => (
-              <PaginationItem key={index}>
-                <PaginationLink
-                  href="#"
-                  isActive={problemData.number === index}
-                  onClick={() => handlePageChange(index)}
-                >
-                  {index + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={() => handlePageChange(Math.min(problemData.number + 1, problemData.totalPages - 1))}
-                disabled={problemData.last}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <>
+          {!problemData || problemData.content.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">No problems found. Try adjusting your filters.</div>
+          ) : (
+            <div className="grid gap-4">
+              {problemData.content.map((problem) => (
+                <ProblemItem
+                  key={problem.link}
+                  problem={{
+                    ...problem,
+                    difficulty: problem.difficulty,
+                    link: problem.link
+                  }}
+                  onEdit={() => onNavigate(`/problem/${problem.link}`)}
+                  onToggleActive={() => handleToggleActive(problem)}
+                />
+              ))}
+            </div>
+          )}
+
+          {problemData && problemData.totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handlePageChange(Math.max(0, problemData.number - 1))
+                    }}
+                    disabled={problemData.first}
+                  />
+                </PaginationItem>
+                {Array.from({ length: problemData.totalPages }).map((_, index) => (
+                  <PaginationItem key={index}>
+                    <PaginationLink
+                      href="#"
+                      isActive={problemData.number === index}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handlePageChange(index)
+                      }}
+                    >
+                      {index + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handlePageChange(Math.min(problemData.number + 1, problemData.totalPages - 1))
+                    }}
+                    disabled={problemData.last}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </>
       )}
 
       <AlertDialog

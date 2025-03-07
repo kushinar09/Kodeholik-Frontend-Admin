@@ -84,10 +84,17 @@ const ENDPOINTS = {
 
   // Teacher role
   // Problem
+  GET_TEACHER_PROBLEM_DETAILS: `${API_URL}/problem/basic-for-emp/:id`,
+  GET_TEACHER_PROBLEM_EDITORIAL: `${API_URL}/problem/editorial-for-emp/:id`,
+  GET_TEACHER_PROBLEM_TEMPLATE: `${API_URL}/problem/template-for-emp/:id`,
+  GET_TEACHER_PROBLEM_TESTCASE: `${API_URL}/problem/download-testcase/:id`,
+
   POST_TEACHER_PROBLEMS_LIST: `${API_URL}/problem/list-problem`,
   POST_CREATE_PROBLEM: `${API_URL}/problem/add-problem`,
   POST_UPDATE_PROBLEM: `${API_URL}/problem/edit-problem/:id`,
-  POST_DELETE_PROBLEM: `${API_URL}/problem/delete/:id`
+  POST_DELETE_PROBLEM: `${API_URL}/problem/delete/:id`,
+  PUT_CHANGE_STATUS_PROBLEM_ACTIVE: `${API_URL}/problem/activate-problem/:id`,
+  PUT_CHANGE_STATUS_PROBLEM_DEACTIVE: `${API_URL}/problem/deactivate-problem/:id`
 }
 
 

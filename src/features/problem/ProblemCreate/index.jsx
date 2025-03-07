@@ -4,15 +4,15 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Check } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
 import { ProblemDetails } from "./components/problem-details"
 import { InputParameters } from "./components/input-parameters"
 import { Editorial } from "./components/editorial"
 import { TestCases } from "./components/test-cases"
 import { ENDPOINTS } from "@/lib/constants"
 import { useAuth } from "@/provider/AuthProvider"
+import { toast } from "sonner"
 
-export default function ProblemCreator() {
+export default function ProblemCreator({ onNavigate }) {
   const { apiCall } = useAuth()
 
   const [activeStep, setActiveStep] = useState("details")
@@ -152,32 +152,14 @@ export default function ProblemCreator() {
         credentials: "include"
       }
 
-      const response = apiCall(ENDPOINTS.POST_CREATE_PROBLEM, requestOptions)
+      const response = await apiCall(ENDPOINTS.POST_CREATE_PROBLEM, requestOptions)
 
       if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Problem created successfully!",
-          variant: "success"
-        })
+        localStorage.setItem("toastMessage", "Create problem completely !!!")
+        onNavigate("/problem")
       } else throw new Error(response.message)
     } catch (error) {
-      console.error("Error creating problem:", error)
-
-      toast("Error", {
-        description: "Sunday, December 03, 2023 at 9:00 AM",
-        variant: "destructive",
-        action: {
-          label: "Undo",
-          onClick: () => console.log("Undo")
-        }
-      })
-
-      toast({
-        title: "Error",
-        description: error.message || "Error creating problem. Please try again.",
-        variant: "destructive"
-      })
+      toast.error("Error while creating problem: " + error.message, { duration: 2000 })
     }
   }
 
@@ -276,11 +258,11 @@ function StepIndicator({ step, label, active, completed, onClick, disabled = fal
       <div
         className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors
           ${active
-      ? "bg-primary text-primary-foreground"
-      : completed
-        ? "bg-green-500 text-white"
-        : "bg-muted text-muted-foreground"
-    }`}
+            ? "bg-primary text-primary-foreground"
+            : completed
+              ? "bg-green-500 text-white"
+              : "bg-muted text-muted-foreground"
+          }`}
       >
         {completed ? <Check className="h-5 w-5" /> : step.charAt(0).toUpperCase()}
       </div>

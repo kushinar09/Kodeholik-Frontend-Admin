@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Check } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
 import { ProblemDetails } from "./components/problem-details"
 import { InputParameters } from "./components/input-parameters"
 import { Editorial } from "./components/editorial"
@@ -14,7 +13,6 @@ import { useAuth } from "@/provider/AuthProvider"
 import { useParams } from "react-router-dom"
 
 export default function ProblemEdit({ onNavigate }) {
-  console.log("Edit page")
   const { id } = useParams()
   const { apiCall } = useAuth()
 
@@ -42,6 +40,36 @@ export default function ProblemEdit({ onNavigate }) {
       excelFile: null
     }
   })
+
+  const fetchDetails = async () => {
+    const response = await apiCall(ENDPOINTS.GET_TEACHER_PROBLEM_DETAILS.replace(":id", id))
+    const text = await response.text()
+    console.log(text ? JSON.parse(text) : null)
+  }
+
+  const fetchEditorial = async () => {
+    const response = await apiCall(ENDPOINTS.GET_TEACHER_PROBLEM_EDITORIAL.replace(":id", id))
+    const text = await response.text()
+    console.log(text ? JSON.parse(text) : null)
+  }
+
+  const fetchTemplate = async () => {
+    const response = await apiCall(ENDPOINTS.GET_TEACHER_PROBLEM_TEMPLATE.replace(":id", id))
+    const text = await response.text()
+    console.log(text ? JSON.parse(text) : null)
+  }
+
+  const fetchFileTestcase = async () => {
+    const response = await apiCall(ENDPOINTS.GET_TEACHER_PROBLEM_TESTCASE.replace(":id", id))
+    const text = await response.text()
+    console.log(text ? JSON.parse(text) : null)
+  }
+
+  useEffect(() => {
+    fetchDetails()
+    fetchEditorial()
+    fetchTemplate()
+  }, [])
 
   const [completedSteps, setCompletedSteps] = useState({
     details: false,
@@ -158,29 +186,29 @@ export default function ProblemEdit({ onNavigate }) {
       const response = apiCall(ENDPOINTS.POST_CREATE_PROBLEM, requestOptions)
 
       if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Problem created successfully!",
-          variant: "success"
-        })
+        // toast({
+        //   title: "Success",
+        //   description: "Problem created successfully!",
+        //   variant: "success"
+        // })
       } else throw new Error(response.message)
     } catch (error) {
       console.error("Error creating problem:", error)
 
-      toast("Error", {
-        description: "Sunday, December 03, 2023 at 9:00 AM",
-        variant: "destructive",
-        action: {
-          label: "Undo",
-          onClick: () => console.log("Undo")
-        }
-      })
+      // toast("Error", {
+      //   description: "Sunday, December 03, 2023 at 9:00 AM",
+      //   variant: "destructive",
+      //   action: {
+      //     label: "Undo",
+      //     onClick: () => console.log("Undo")
+      //   }
+      // })
 
-      toast({
-        title: "Error",
-        description: error.message || "Error creating problem. Please try again.",
-        variant: "destructive"
-      })
+      // toast({
+      //   title: "Error",
+      //   description: error.message || "Error creating problem. Please try again.",
+      //   variant: "destructive"
+      // })
     }
   }
 

@@ -10,7 +10,7 @@ import { X, ArrowUpDown, Search } from "lucide-react"
 import { useAuth } from "@/provider/AuthProvider"
 import { ENDPOINTS } from "@/lib/constants"
 
-export function FilterBar({ onFilterChange, filters: initialFilters }) {
+export function FilterBar({ onFilterChange, initialFilters, pageSize }) {
   const [suggestions, setSuggestions] = useState([])
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [tempSearch, setTempSearch] = useState("")
@@ -19,13 +19,13 @@ export function FilterBar({ onFilterChange, filters: initialFilters }) {
   const [filters, setFilters] = useState(
     initialFilters || {
       page: 0,
-      size: 5,
+      size: pageSize,
       title: "",
-      difficulty: "EASY",
-      status: "PUBLIC",
+      difficulty: null,
+      status: null,
       isActive: true,
-      sortBy: "noSubmission",
-      ascending: true
+      sortBy: null,
+      ascending: null
     }
   )
 
@@ -56,16 +56,16 @@ export function FilterBar({ onFilterChange, filters: initialFilters }) {
   useEffect(() => {
     if (initialFilters) {
       setFilters(initialFilters)
+      setTempSearch(initialFilters.title || "")
     }
   }, [initialFilters])
 
-  useEffect(() => {
-    onFilterChange(filters)
-  }, [filters])
-
   const handleFilterChange = (key, value) => {
+    if (value === "ALL" || value === "NONE") value = null
+    console.log(value)
     const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
+    onFilterChange(newFilters)
   }
 
   useEffect(() => {
@@ -86,8 +86,7 @@ export function FilterBar({ onFilterChange, filters: initialFilters }) {
     } else if (e.key === "Enter" && highlightedIndex >= 0) {
       const selectedSuggestion = suggestions[highlightedIndex]
       setTempSearch(selectedSuggestion)
-      // setSearch(selectedSuggestion)
-      // onSearchChange(selectedSuggestion)
+      handleFilterChange("title", selectedSuggestion)
       setSuggestions([])
     }
   }
@@ -95,27 +94,33 @@ export function FilterBar({ onFilterChange, filters: initialFilters }) {
   const clearFilters = () => {
     const clearedFilters = {
       page: 0,
-      size: 5,
+      size: pageSize,
       title: "",
-      difficulty: "EASY",
-      status: "PUBLIC",
+      difficulty: null,
+      status: null,
       isActive: true,
-      sortBy: "noSubmission",
-      ascending: true
+      sortBy: null,
+      ascending: null
     }
     setFilters(clearedFilters)
-    onFilterChange(clearedFilters)
     setTempSearch("")
+    onFilterChange(clearedFilters)
   }
 
   const toggleSortDirection = () => {
     const newFilters = { ...filters, ascending: !filters.ascending }
     setFilters(newFilters)
+    onFilterChange(newFilters)
+  }
+
+  const handleSearch = () => {
+    handleFilterChange("title", tempSearch)
+    setSuggestions([])
   }
 
   return (
     <>
-      <div className="flex flex-wrap gap-4 items-center mb-6">
+      <div className="flex flex-wrap gap-4 items-center mb-6" ref={containerRef}>
         <div className="flex-1 relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-input-border w-5 h-5 transition-colors group-focus-within:text-primary" />
           <Input
@@ -127,18 +132,16 @@ export function FilterBar({ onFilterChange, filters: initialFilters }) {
               setTempSearch(newSearch)
               setHighlightedIndex(-1) // Reset index when typing
             }}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(e) => {
+              handleKeyDown(e)
+              if (e.key === "Enter" && highlightedIndex === -1) {
+                handleSearch()
+              }
+            }}
           />
           {/* Search Button */}
           <div className="absolute right-0 top-0 p-2 h-full">
-            <Button
-              className="h-full"
-              onClick={() => {
-                // setSearch(tempSearch)
-                // onSearchChange(tempSearch)
-                setSuggestions([])
-              }}
-            >
+            <Button className="h-full" onClick={handleSearch}>
               Search
             </Button>
           </div>
@@ -149,13 +152,11 @@ export function FilterBar({ onFilterChange, filters: initialFilters }) {
               {suggestions.map((suggestion, index) => (
                 <li
                   key={index}
-                  className={`p-2 cursor-pointer ${index === highlightedIndex ? "bg-gray-200" : "hover:bg-gray-100"
-                    }`}
+                  className={`p-2 cursor-pointer ${index === highlightedIndex ? "bg-gray-200" : "hover:bg-gray-100"}`}
                   onMouseEnter={() => setHighlightedIndex(index)}
                   onMouseDown={() => {
                     setTempSearch(suggestion)
-                    // setSearch(suggestion)
-                    // onSearchChange(suggestion)
+                    handleFilterChange("title", suggestion)
                     setSuggestions([])
                   }}
                 >
@@ -166,27 +167,26 @@ export function FilterBar({ onFilterChange, filters: initialFilters }) {
           )}
         </div>
 
-
-        <Select value={filters.difficulty} onValueChange={(value) => handleFilterChange("difficulty", value)}>
+        <Select value={filters.difficulty ? filters.difficulty : "ALL"} onValueChange={(value) => handleFilterChange("difficulty", value)}>
           <SelectTrigger className="w-full md:w-40">
             <SelectValue placeholder="Difficulty" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="ALL">All Difficulties</SelectItem>
             <SelectItem value="EASY">Easy</SelectItem>
             <SelectItem value="MEDIUM">Medium</SelectItem>
             <SelectItem value="HARD">Hard</SelectItem>
           </SelectContent>
         </Select>
 
-        <Select value={filters.status} onValueChange={(value) => handleFilterChange("status", value)}>
+        <Select value={filters.status ? filters.status : "ALL"} onValueChange={(value) => handleFilterChange("status", value)}>
           <SelectTrigger className="w-full md:w-40">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="ALL">All Statuses</SelectItem>
             <SelectItem value="PUBLIC">Public</SelectItem>
             <SelectItem value="PRIVATE">Private</SelectItem>
-            <SelectItem value="DRAFT">Draft</SelectItem>
           </SelectContent>
         </Select>
 
@@ -205,13 +205,12 @@ export function FilterBar({ onFilterChange, filters: initialFilters }) {
         </Button>
       </div>
       <div className="flex gap-4">
-        <Select value={filters.sortBy} onValueChange={(value) => handleFilterChange("sortBy", value)}>
+        <Select value={filters.sortBy ? filters.sortBy : "NONE"} onValueChange={(value) => handleFilterChange("sortBy", value)}>
           <SelectTrigger className="w-full md:w-40">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="title">Title</SelectItem>
-            <SelectItem value="difficulty">Difficulty</SelectItem>
+            <SelectItem value="NONE">Select sort</SelectItem>
             <SelectItem value="acceptanceRate">Acceptance Rate</SelectItem>
             <SelectItem value="noSubmission">Submissions</SelectItem>
           </SelectContent>

@@ -16,6 +16,10 @@ export default function CodeEditor({ initialCode, onChange, className = "" }) {
   const [breakpoints, setBreakpoints] = useState(new Map()) // Track breakpoints
 
   useEffect(() => {
+    if (!initialCode || initialCode === "") {
+      onChange(INITIAL_CODE_DEFAULT)
+    }
+
     if (editorRef.current && !editor) {
       monaco.languages.register({ id: "java" })
 

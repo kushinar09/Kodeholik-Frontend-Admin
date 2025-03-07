@@ -18,9 +18,9 @@ export function ProblemItem({ problem, onEdit, onToggleActive }) {
 
   const difficultyColor =
     {
-      Easy: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
-      Medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
-      Hard: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+      Easy: "bg-green-300 text-green-800 dark:bg-green-900 dark:text-green-100",
+      Medium: "bg-yellow-300 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
+      Hard: "bg-red-300 text-red-800 dark:bg-red-900 dark:text-red-100"
     }[displayDifficulty] || "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100"
 
   return (
@@ -30,7 +30,7 @@ export function ProblemItem({ problem, onEdit, onToggleActive }) {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-semibold">{problem.title}</h3>
-              <Badge className={difficultyColor}>{displayDifficulty}</Badge>
+              <Badge variant="outline" className={difficultyColor}>{displayDifficulty}</Badge>
               <Badge variant="outline">{problem.status}</Badge>
             </div>
 

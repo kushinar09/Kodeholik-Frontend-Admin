@@ -19,7 +19,9 @@ import UpdateCourse from "../course/CourseUpdate/UpdateCourse"
 export default function Dashboard() {
   const location = useLocation()
   const navigate = useNavigate()
+
   const [activeState, setActiveState] = useState("")
+
   const [currentTitleProblem, setCurrentTitleProblem] = useState("")
   const [currentTitleCourse, setCurrentTitleCourse] = useState("")
 
@@ -35,11 +37,11 @@ export default function Dashboard() {
       setCurrentTitleProblem("Two Sum")
     } else if (location.pathname === "/exam") {
       setActiveState("examList")
-    }else if (location.pathname === "/course"){
+    } else if (location.pathname === "/course") {
       setActiveState("courseList")
-    }else if (location.pathname === "/course/add"){
+    } else if (location.pathname === "/course/add") {
       setActiveState("createCourse")
-    }else if (/^\/course\/[\w-]+$/.test(location.pathname)){
+    } else if (/^\/course\/[\w-]+$/.test(location.pathname)) {
       setActiveState("updateCourse")
       setCurrentTitleCourse("Java Beginner")
     } else {
@@ -51,10 +53,10 @@ export default function Dashboard() {
     const headerMap = {
       "/problem": [{ title: "Problem", url: "/" }],
       "/exam": [{ title: "Examination", url: "/" }],
-      "/course": [{title: "Course", url: "/"}],
+      "/course": [{ title: "Course", url: "/" }],
       "/course/add": [
-        {title: "Course", url: "/course"},
-        {title: "Create Course", url: "#"}
+        { title: "Course", url: "/course" },
+        { title: "Create Course", url: "#" }
       ],
       "/problem/create": [
         { title: "Problem", url: "/problem" },
@@ -89,9 +91,8 @@ export default function Dashboard() {
     return headerMap[location.pathname] || [{ title: "Dashboard", url: "/" }]
   }
 
-
-  const handleNavigation = (path) => {
-    navigate(path)
+  const handleNavigation = (newPath) => {
+    navigate(newPath)
   }
 
   return (
@@ -100,14 +101,14 @@ export default function Dashboard() {
       <SidebarInset>
         <Header headerData={getHeaderData() || []} onNavigate={handleNavigation} />
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {activeState === "" && <Overview onNavigate={handleNavigation} />}
+          {activeState === "" && <Overview />}
           {activeState === "problemList" && <ProblemList onNavigate={handleNavigation} />}
-          {activeState === "problemCreate" && <ProblemCreator />}
+          {activeState === "problemCreate" && <ProblemCreator onNavigate={handleNavigation} />}
           {activeState === "problemEdit" && <ProblemEdit onNavigate={handleNavigation} />}
           {activeState === "examList" && <ExamList onNavigate={handleNavigation} />}
-          {activeState === "courseList" && <CourseList onNavigate={handleNavigation} />}
-          {activeState === "createCourse" && <CreateCourse onNavigate={handleNavigation} />}
-          {activeState === "updateCourse" && <UpdateCourse onNavigate={handleNavigation} />}
+          {activeState === "courseList" && <CourseList />}
+          {activeState === "createCourse" && <CreateCourse />}
+          {activeState === "updateCourse" && <UpdateCourse />}
         </div>
       </SidebarInset>
     </SidebarProvider>

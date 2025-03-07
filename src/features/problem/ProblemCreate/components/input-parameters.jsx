@@ -22,17 +22,21 @@ const formSchema = z.object({
       parameters: z.array(
         z.object({
           inputName: z.string().min(1, "Parameter name is required"),
-          inputType: z.string().min(1, "Parameter type is required")
+          inputType: z.string().min(1, "Parameter type is required"),
+          otherInputType: z.string().optional(),
+          noDimension: z.number().optional()
         })
       ),
       templateCode: z.string().min(1, "Template code is required")
     })
   ),
   sharedFunctionSignature: z.string().min(1, "Function signature is required"),
-  sharedReturnType: z.string().min(1, "Return type is required")
+  sharedReturnType: z.string().min(1, "Return type is required"),
+  otherReturnType: z.string().optional(),
+  noDimension: z.number().optional()
 })
 
-export function InputParameters({ formData, updateFormData, onNext, onPrevious }) {
+export function InputParameters({ formData, updateFormData, onNext, otherType = false, onPrevious }) {
   // Find the first supported language or use the first one from inputParameter if it exists
   const initialLanguage =
     formData.inputParameter.length > 0 ? formData.inputParameter[0].language : formData.details.languageSupport[0] || ""
@@ -55,7 +59,7 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
     "ARR_OBJECT",
     "ARR_STRING",
     "OBJECT",
-    "UNKNOWN"
+    "OTHER"
   ])
 
   // Initialize form with existing data or create new entries for each language
@@ -74,7 +78,9 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
         })),
         // Add shared fields with values from the first item
         sharedFunctionSignature: firstItem.functionSignature || "",
-        sharedReturnType: firstItem.returnType || ""
+        sharedReturnType: firstItem.returnType || "",
+        otherReturnType: firstItem.otherReturnType || "",
+        noDimension: firstItem.noDimension || 1
       }
     }
 
@@ -86,7 +92,9 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
         templateCode: ""
       })),
       sharedFunctionSignature: "",
-      sharedReturnType: ""
+      sharedReturnType: "",
+      otherReturnType: "",
+      noDimension: 1
     }
   }
 
@@ -107,7 +115,9 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
           templateCode: param.templateCode || ""
         })),
         sharedFunctionSignature: firstItem.functionSignature || "",
-        sharedReturnType: firstItem.returnType || ""
+        sharedReturnType: firstItem.returnType || "",
+        otherReturnType: firstItem.otherReturnType || "",
+        noDimension: firstItem.noDimension || 1
       }
       form.reset(formattedData)
     }
@@ -138,7 +148,9 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
     const inputParameters = values.problemInputParameterDto.map((param) => ({
       language: param.language,
       functionSignature: values.sharedFunctionSignature,
-      returnType: values.sharedReturnType,
+      returnType: values.sharedReturnType === "OTHER" ? "UNKNOWN" : values.sharedReturnType,
+      otherReturnType: values.otherReturnType,
+      noDimension: values.sharedReturnType.startsWith("ARR_") ? values.noDimension : undefined,
       parameters: param.parameters || [],
       templateCode: param.templateCode
     }))
@@ -202,6 +214,49 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
                 </FormItem>
               )}
             />
+
+            {/* Other Return Type - only show if "OTHER" is selected */}
+            {form.watch("sharedReturnType") === "OTHER" && (
+              <FormField
+                control={form.control}
+                name="otherReturnType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Custom Return Type</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter custom return type"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Number of Dimensions - only show if return type starts with ARR_ */}
+            {form.watch("sharedReturnType")?.startsWith("ARR_") && (
+              <FormField
+                control={form.control}
+                name="noDimension"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Dimensions</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="Enter number of dimensions"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 1)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </CardContent>
         </Card>
 
@@ -242,7 +297,7 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
                           <Card key={paramIndex}>
                             <CardContent className="p-4">
                               <div className="flex items-center gap-4">
-                                <div className="flex-1">
+                                <div className="flex-1 self-start">
                                   <Label className="text-xs">Parameter Name</Label>
                                   <Input
                                     {...form.register(
@@ -253,14 +308,14 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
                                   {form.formState.errors.problemInputParameterDto?.[index]?.parameters?.[
                                     paramIndex
                                   ]?.inputName && (
-                                    <p className="text-sm text-destructive mt-1">
-                                      {
-                                        form.formState.errors.problemInputParameterDto[index].parameters[
-                                          paramIndex
-                                        ].inputName.message
-                                      }
-                                    </p>
-                                  )}
+                                      <p className="text-sm text-destructive mt-1">
+                                        {
+                                          form.formState.errors.problemInputParameterDto[index].parameters[
+                                            paramIndex
+                                          ].inputName.message
+                                        }
+                                      </p>
+                                    )}
                                 </div>
                                 <div className="flex-1">
                                   <Label className="text-xs">Parameter Type</Label>
@@ -285,13 +340,53 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
                                   {form.formState.errors.problemInputParameterDto?.[index]?.parameters?.[
                                     paramIndex
                                   ]?.inputType && (
-                                    <p className="text-sm text-destructive mt-1">
-                                      {
-                                        form.formState.errors.problemInputParameterDto[index].parameters[
-                                          paramIndex
-                                        ].inputType.message
-                                      }
-                                    </p>
+                                      <p className="text-sm text-destructive mt-1">
+                                        {
+                                          form.formState.errors.problemInputParameterDto[index].parameters[
+                                            paramIndex
+                                          ].inputType.message
+                                        }
+                                      </p>
+                                    )}
+                                  {/* Other Input Type - only show if "OTHER" is selected */}
+                                  {form.watch(`problemInputParameterDto.${index}.parameters.${paramIndex}.inputType`) === "OTHER" && (
+                                    <FormField
+                                      control={form.control}
+                                      name={`problemInputParameterDto.${index}.parameters.${paramIndex}.otherInputType`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>Custom Input Type</FormLabel>
+                                          <FormControl>
+                                            <Input
+                                              placeholder="Enter custom input type"
+                                              {...field}
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  )}
+                                  {form.watch(`problemInputParameterDto.${index}.parameters.${paramIndex}.inputType`)?.startsWith("ARR_") && (
+                                    <FormField
+                                      control={form.control}
+                                      name={`problemInputParameterDto.${index}.parameters.${paramIndex}.noDimension`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>Number of Dimensions</FormLabel>
+                                          <FormControl>
+                                            <Input
+                                              type="number"
+                                              min="1"
+                                              placeholder="Enter number of dimensions"
+                                              {...field}
+                                              onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 1)}
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
                                   )}
                                 </div>
                                 <Button
