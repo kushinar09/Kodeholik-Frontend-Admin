@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -55,7 +55,7 @@ const mockExams = [
   // Add more mock exams as needed
 ]
 
-export function ExamList({ onNavigate }) {
+export default function ExamList({ onNavigate }) {
   const [exams, setExams] = useState(mockExams)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -63,8 +63,6 @@ export function ExamList({ onNavigate }) {
   const [currentExam, setCurrentExam] = useState(null)
   const { apiCall } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
-
-
 
   const handleCreateExam = (exam) => {
     // In a real application, you would send this to your backend
@@ -82,21 +80,25 @@ export function ExamList({ onNavigate }) {
     setExams([...exams, newExam])
     setIsCreateDialogOpen(false)
   }
-  const fetchExamList = async () => {
-    setIsLoading(true)
-    try {
-      const data = await getListExamForExaminer(apiCall, requestData)
-      console.log("API Response:", data)
-    } catch (error) {
-      console.error("Error fetching exams:", error)
-    } finally {
-     setIsLoading(false)
-    }
-  }
+
   useEffect(() => {
-    console.log("Fetching exam list...");
+    console.log("Fetching exam list...")
+
+    const fetchExamList = async () => {
+      setIsLoading(true)
+      try {
+        const data = await getListExamForExaminer(apiCall, requestData)
+        console.log("API Response:", data)
+      } catch (error) {
+        console.error("Error fetching exams:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     fetchExamList()
   }, [])
+
 
   const handleEditExam = (exam) => {
     if (currentExam) {
@@ -119,101 +121,103 @@ export function ExamList({ onNavigate }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Exams</h2>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Create Exam
-        </Button>
-      </div>
+    <>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Exams</h2>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Create Exam
+          </Button>
+        </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Code</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Participants</TableHead>
-            <TableHead>Start Time</TableHead>
-            <TableHead>End Time</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Created By</TableHead>
-            <TableHead>Created At</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {exams.map((exam) => (
-            <TableRow key={exam.id}>
-              <TableCell>{exam.code}</TableCell>
-              <TableCell>{exam.title}</TableCell>
-              <TableCell>{exam.noParticipant}</TableCell>
-              <TableCell>{format(new Date(exam.startTime).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
-              <TableCell>{format(new Date(exam.endTime).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
-              <TableCell>{exam.status}</TableCell>
-              <TableCell>{exam.createdBy.name}</TableCell>
-              <TableCell>{new Date(exam.createdAt).toLocaleString()}</TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setCurrentExam(exam)
-                        setIsEditDialogOpen(true)
-                      }}
-                    >
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-red-500 hover:text-red-700 focus:text-red-700"
-                      onClick={() => {
-                        setCurrentExam(exam)
-                        setIsDeleteDialogOpen(true)
-                      }}
-                    >
-                      <Trash className="mr-2 h-4 w-4" />
-                      Cancel
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Code</TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead>Participants</TableHead>
+              <TableHead>Start Time</TableHead>
+              <TableHead>End Time</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created By</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {exams.map((exam) => (
+              <TableRow key={exam.id}>
+                <TableCell>{exam.code}</TableCell>
+                <TableCell>{exam.title}</TableCell>
+                <TableCell>{exam.noParticipant}</TableCell>
+                <TableCell>{format(new Date(exam.startTime).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
+                <TableCell>{format(new Date(exam.endTime).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
+                <TableCell>{exam.status}</TableCell>
+                <TableCell>{exam.createdBy.name}</TableCell>
+                <TableCell>{new Date(exam.createdAt).toLocaleString()}</TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setCurrentExam(exam)
+                          setIsEditDialogOpen(true)
+                        }}
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-500 hover:text-red-700 focus:text-red-700"
+                        onClick={() => {
+                          setCurrentExam(exam)
+                          setIsDeleteDialogOpen(true)
+                        }}
+                      >
+                        <Trash className="mr-2 h-4 w-4" />
+                        Cancel
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
 
-      <CreateExamDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onSubmit={handleCreateExam} />
+        <CreateExamDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onSubmit={handleCreateExam} />
 
-      {currentExam && (
-        <EditExamDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          exam={currentExam}
-          onSubmit={handleEditExam}
-        />
-      )}
+        {currentExam && (
+          <EditExamDialog
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            exam={currentExam}
+            onSubmit={handleEditExam}
+          />
+        )}
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to <span className="text-red-500">CANCEL</span> this exam?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently deactive the exam and remove all participants of this exam.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteExam}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to <span className="text-red-500">CANCEL</span> this exam?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently deactive the exam and remove all participants of this exam.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteExam}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </>
   )
 }
 

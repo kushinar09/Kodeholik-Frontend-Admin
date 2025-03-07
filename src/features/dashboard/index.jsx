@@ -11,10 +11,10 @@ import ProblemList from "../problem/ProblemList"
 import ProblemCreator from "../problem/ProblemCreate"
 import ProblemEdit from "../problem/ProblemEdit"
 import Overview from "../overview"
-import { ExamList } from "../exam/list"
 import CourseList from "../course/CourseList/ViewListCourse"
 import CreateCourse from "../course/CourseCreate/CreateCourse"
 import UpdateCourse from "../course/CourseUpdate/UpdateCourse"
+import ExamList from "../exam/list"
 
 export default function Dashboard() {
   const location = useLocation()
@@ -35,11 +35,11 @@ export default function Dashboard() {
       setCurrentTitleProblem("Two Sum")
     } else if (location.pathname === "/exam") {
       setActiveState("examList")
-    }else if (location.pathname === "/course"){
+    } else if (location.pathname === "/course") {
       setActiveState("courseList")
-    }else if (location.pathname === "/course/add"){
+    } else if (location.pathname === "/course/add") {
       setActiveState("createCourse")
-    }else if (/^\/course\/[\w-]+$/.test(location.pathname)){
+    } else if (/^\/course\/[\w-]+$/.test(location.pathname)) {
       setActiveState("updateCourse")
       setCurrentTitleCourse("Java Beginner")
     } else {
@@ -51,10 +51,10 @@ export default function Dashboard() {
     const headerMap = {
       "/problem": [{ title: "Problem", url: "/" }],
       "/exam": [{ title: "Examination", url: "/" }],
-      "/course": [{title: "Course", url: "/"}],
+      "/course": [{ title: "Course", url: "/" }],
       "/course/add": [
-        {title: "Course", url: "/course"},
-        {title: "Create Course", url: "#"}
+        { title: "Course", url: "/course" },
+        { title: "Create Course", url: "#" }
       ],
       "/problem/create": [
         { title: "Problem", url: "/problem" },
