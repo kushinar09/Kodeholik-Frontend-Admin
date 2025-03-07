@@ -22,8 +22,7 @@ import { useAuth } from "@/provider/AuthProvider"
 import { getListExamForExaminer } from "@/lib/api/exam_api"
 import { cn } from "@/lib/utils"
 import { FilterBar } from "./components/filter-list"
-import { toast } from "@/hooks/use-toast"
-import { ToastAction } from "@/components/ui/toast"
+import { toast } from "sonner"
 const ExamStatus = {
   DRAFT: "DRAFT",
   PUBLISHED: "PUBLISHED",
@@ -67,10 +66,10 @@ export default function ExamList({ onNavigate }) {
   const { apiCall } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalPages, setTotalPages] = useState(0)
   const [noContent, setNoContent] = useState(false)
-  const [sortBy, setSortBy] = useState('');
-  const [ascending, setAscending] = useState(true);
+  const [sortBy, setSortBy] = useState("")
+  const [ascending, setAscending] = useState(true)
   const [filters, setFilters] = useState({
     search: "",
     status: ""
@@ -89,26 +88,26 @@ export default function ExamList({ onNavigate }) {
       createdBy: { id: 1, name: "Current User", email: "user@example.com" },
       createdAt: Date.now()
     }
-    fetchExamList();
+    fetchExamList()
     setIsCreateDialogOpen(false)
   }
 
   const handleFilterChange = (newFilters) => {
-    console.log(newFilters);
+    console.log(newFilters)
     setFilters(newFilters)
-    requestData.title = newFilters.title;
-    if (newFilters.status === 'all') {
-      requestData.status = null;
+    requestData.title = newFilters.title
+    if (newFilters.status === "all") {
+      requestData.status = null
     }
     else {
-      requestData.status = newFilters.status;
+      requestData.status = newFilters.status
     }
-    requestData.title = newFilters.search;
-    requestData.start = newFilters.date.from.toISOString().slice(0, 16);
-    requestData.end = newFilters.date.to.toISOString().slice(0, 16);
-    requestData.page = 0;
+    requestData.title = newFilters.search
+    requestData.start = newFilters.date.from.toISOString().slice(0, 16)
+    requestData.end = newFilters.date.to.toISOString().slice(0, 16)
+    requestData.page = 0
     setCurrentPage(1)
-    fetchExamList();
+    fetchExamList()
   }
 
   const fetchExamList = async () => {
@@ -116,12 +115,12 @@ export default function ExamList({ onNavigate }) {
     try {
       const data = await getListExamForExaminer(apiCall, requestData)
       if (data == null) {
-        setNoContent(true);
+        setNoContent(true)
       }
       else {
-        setExams(data.content);
-        setTotalPages(data.totalPages);
-        setNoContent(false);
+        setExams(data.content)
+        setTotalPages(data.totalPages)
+        setNoContent(false)
       }
       console.log("API Response:", data)
     } catch (error) {
@@ -136,9 +135,9 @@ export default function ExamList({ onNavigate }) {
   }, [])
 
   const handlePageChange = (page) => {
-    setCurrentPage(page);
-    requestData.page = page - 1;
-    fetchExamList();
+    setCurrentPage(page)
+    requestData.page = page - 1
+    fetchExamList()
   }
   const allStatuses = Array.from(new Set("Not Started", "Inprogress", "End"))
 
@@ -154,32 +153,24 @@ export default function ExamList({ onNavigate }) {
       setIsEditDialogOpen(false)
     }
   }
-  toast({
-    title: "Success",
-    description: "Problem created successfully!",
-    variant: "success"
-  })
-  toast("Error", {
+  toast.success("Operation successful!", { duration: 3000 })
+
+  toast.error("Error", {
     description: "Sunday, December 03, 2023 at 9:00 AM",
     variant: "destructive",
     action: {
       label: "Undo",
-      onClick: () => console.log("Undo")
-    }
-  })
+      onClick: () => console.log("Undo"),
+    },
+  });
+
   const handleDeleteExam = async () => {
     try {
-      console.log(currentExam.code);
+      console.log(currentExam.code)
       //await deleteExamForExaminer(apiCall, code)
       //fetchExamList();
       //if (response.ok) {
-        toast({
-          title: "Scheduled: Catch up ",
-          description: "Friday, February 10, 2023 at 5:57 PM",
-          action: (
-            <ToastAction altText="Goto schedule to undo">Undo</ToastAction>
-          ),
-        })
+      toast.success("Delete successful!", { duration: 2000 })
       //}
     } catch (error) {
       console.error("Error delete exams:", error)
@@ -189,242 +180,243 @@ export default function ExamList({ onNavigate }) {
   }
 
 
-const handleSort = (sort) => {
-  if (sortBy == sort) {
-    setAscending(!ascending);
-    requestData.ascending = !ascending;
+  const handleSort = (sort) => {
+    if (sortBy == sort) {
+      setAscending(!ascending)
+      requestData.ascending = !ascending
+    }
+    else {
+      setSortBy(sort)
+      setAscending(true)
+      requestData.ascending = true
+    }
+    requestData.sortBy = sort
+    requestData.page = 0
+    setCurrentPage(1)
+    fetchExamList()
+
   }
-  else {
-    setSortBy(sort);
-    setAscending(true);
-    requestData.ascending = true;
-  }
-  requestData.sortBy = sort;
-  requestData.page = 0;
-  setCurrentPage(1)
-  fetchExamList();
 
-}
-
-return (
-  <div className="space-y-4">
-    <div className="flex justify-between items-center">
-      <h2 className="text-2xl font-bold">Exams</h2>
-      <FilterBar
-        onFilterChange={handleFilterChange}
-        status={allStatuses}
-      />
-      <Button onClick={() => setIsCreateDialogOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" /> Create Exam
-      </Button>
-    </div>
-    {!noContent &&
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Code</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead onClick={() => { handleSort('noParticipant') }}>
-              <p className="cursor-pointer">Participants
-                {sortBy == 'noParticipant' && ascending &&
-                  <ArrowUp className="ml-2 h-4 w-4 inline" />
-                }
-                {sortBy == 'noParticipant' && !ascending &&
-                  <ArrowDown className=" ml-2 h-4 w-4 inline" />
-                }
-              </p>
-            </TableHead>
-            <TableHead onClick={() => { handleSort('startTime') }}>
-              <p className="cursor-pointer">Start Time
-                {sortBy == 'startTime' && ascending &&
-                  <ArrowUp className="ml-2 h-4 w-4 inline" />
-                }
-                {sortBy == 'startTime' && !ascending &&
-                  <ArrowDown className=" ml-2 h-4 w-4 inline" />
-                }
-              </p>
-            </TableHead>
-            <TableHead onClick={() => { handleSort('endTime') }}>
-              <p className="cursor-pointer">End Time
-                {sortBy == 'endTime' && ascending &&
-                  <ArrowUp className="ml-2 h-4 w-4 inline" />
-                }
-                {sortBy == 'endTime' && !ascending &&
-                  <ArrowDown className=" ml-2 h-4 w-4 inline" />
-                }
-              </p>
-            </TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Created By</TableHead>
-            <TableHead onClick={() => { handleSort('createdAt') }}>
-              <p className="cursor-pointer">Created At
-                {sortBy == 'createdAt' && ascending &&
-                  <ArrowUp className="ml-2 h-4 w-4 inline" />
-                }
-                {sortBy == 'createdAt' && !ascending &&
-                  <ArrowDown className=" ml-2 h-4 w-4 inline" />
-                }
-              </p>
-            </TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {exams.map((exam) => (
-            <TableRow key={exam.id}>
-              <TableCell>{exam.code}</TableCell>
-              <TableCell>{exam.title}</TableCell>
-              <TableCell>
-                {exam.noParticipant}
-              </TableCell>
-              <TableCell>{format(new Date(exam.startTime).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
-              <TableCell>{format(new Date(exam.endTime).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
-              <TableCell>
-                {exam.status === "NOT_STARTED" && "Not Started"}
-                {exam.status === "IN_PROGRESS" && "In Progress"}
-                {exam.status === "END" && "End"}
-              </TableCell>
-
-              <TableCell>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <img
-                    src={exam.createdBy.avatar}
-                    alt="avatar"
-                    style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
-                  />
-                  <span>{exam.createdBy.username}</span>
-                </div>
-              </TableCell>
-
-              <TableCell>{format(new Date(exam.createdAt).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setCurrentExam(exam)
-                        setIsEditDialogOpen(true)
-                      }}
-                    >
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    {exam.status === "NOT_STARTED" && <DropdownMenuItem
-                      className="text-red-500 hover:text-red-700 focus:text-red-700"
-                      onClick={() => {
-                        setCurrentExam(exam)
-                        setIsDeleteDialogOpen(true)
-                      }}
-                    >
-                      <Trash className="mr-2 h-4 w-4" onClick={() => {handleDeleteExam(exam)}} />Delete
-                    </DropdownMenuItem>
-                    }
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    }
-    {noContent &&
-      <div className="flex justify-center mt-6 gap-2">
-        <p>No exams found.</p>
-      </div>
-    }
-
-    {
-      !isLoading && totalPages > 1 && !noContent && (
-        <div className="flex justify-center mt-6 gap-2">
-          <Button
-            variant="ghost"
-            className="text-primary font-bold hover:bg-primary transition hover:text-white"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <div className="flex gap-1">
-            {[...Array(totalPages)].map((_, index) => {
-              // Show limited page numbers with ellipsis for better UX
-              if (
-                totalPages <= 5 ||
-                index === 0 ||
-                index === totalPages - 1 ||
-                (index >= currentPage - 1 && index <= currentPage + 1)
-              ) {
-                return (
-                  <Button
-                    variant="ghost"
-                    key={index}
-                    onClick={() => handlePageChange(index + 1)}
-                    className={cn(
-                      "text-primary font-bold hover:bg-primary transition hover:text-white",
-                      currentPage === index + 1 && "bg-button-primary text-white bg-primary hover:bg-button-hover",
-                    )}
-                  >
-                    {index + 1}
-                  </Button>
-                )
-              } else if (
-                (index === 1 && currentPage > 3) ||
-                (index === totalPages - 2 && currentPage < totalPages - 2)
-              ) {
-                return (
-                  <Button key={index} variant="ghost" disabled className="text-primary font-bold">
-                    ...
-                  </Button>
-                )
-              }
-              return null
-            })}
-          </div>
-          <Button
-            variant="ghost"
-            className="text-primary font-bold hover:bg-primary transition hover:text-white"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
-        </div>
-      )
-    }
-
-    <CreateExamDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onSubmit={handleCreateExam} />
-
-    {
-      currentExam && (
-        <EditExamDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          exam={currentExam}
-          onSubmit={handleEditExam}
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Exams</h2>
+        <FilterBar
+          onFilterChange={handleFilterChange}
+          status={allStatuses}
         />
-      )
-    }
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Create Exam
+        </Button>
+      </div>
+      {!noContent &&
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Code</TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead onClick={() => { handleSort("noParticipant") }}>
+                <p className="cursor-pointer">Participants
+                  {sortBy == "noParticipant" && ascending &&
+                    <ArrowUp className="ml-2 h-4 w-4 inline" />
+                  }
+                  {sortBy == "noParticipant" && !ascending &&
+                    <ArrowDown className=" ml-2 h-4 w-4 inline" />
+                  }
+                </p>
+              </TableHead>
+              <TableHead onClick={() => { handleSort("startTime") }}>
+                <p className="cursor-pointer">Start Time
+                  {sortBy == "startTime" && ascending &&
+                    <ArrowUp className="ml-2 h-4 w-4 inline" />
+                  }
+                  {sortBy == "startTime" && !ascending &&
+                    <ArrowDown className=" ml-2 h-4 w-4 inline" />
+                  }
+                </p>
+              </TableHead>
+              <TableHead onClick={() => { handleSort("endTime") }}>
+                <p className="cursor-pointer">End Time
+                  {sortBy == "endTime" && ascending &&
+                    <ArrowUp className="ml-2 h-4 w-4 inline" />
+                  }
+                  {sortBy == "endTime" && !ascending &&
+                    <ArrowDown className=" ml-2 h-4 w-4 inline" />
+                  }
+                </p>
+              </TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created By</TableHead>
+              <TableHead onClick={() => { handleSort("createdAt") }}>
+                <p className="cursor-pointer">Created At
+                  {sortBy == "createdAt" && ascending &&
+                    <ArrowUp className="ml-2 h-4 w-4 inline" />
+                  }
+                  {sortBy == "createdAt" && !ascending &&
+                    <ArrowDown className=" ml-2 h-4 w-4 inline" />
+                  }
+                </p>
+              </TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {exams.map((exam) => (
+              <TableRow key={exam.id}>
+                <TableCell>{exam.code}</TableCell>
+                <TableCell>{exam.title}</TableCell>
+                <TableCell>
+                  {exam.noParticipant}
+                </TableCell>
+                <TableCell>{format(new Date(exam.startTime).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
+                <TableCell>{format(new Date(exam.endTime).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
+                <TableCell>
+                  {exam.status === "NOT_STARTED" && "Not Started"}
+                  {exam.status === "IN_PROGRESS" && "In Progress"}
+                  {exam.status === "END" && "End"}
+                </TableCell>
 
-    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure you want to <span className="text-red-500">DELETE</span> this exam?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently deactive the exam and remove all participants of this exam.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => {handleDeleteExam()}}>Delete</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  </div >
-)
+                <TableCell>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <img
+                      src={exam.createdBy.avatar}
+                      alt="avatar"
+                      style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
+                    />
+                    <span>{exam.createdBy.username}</span>
+                  </div>
+                </TableCell>
+
+                <TableCell>{format(new Date(exam.createdAt).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setCurrentExam(exam)
+                          setIsEditDialogOpen(true)
+                        }}
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      {exam.status === "NOT_STARTED" &&
+                        <DropdownMenuItem
+                          className="text-red-500 hover:text-red-700 focus:text-red-700"
+                          onClick={() => {
+                            setCurrentExam(exam)
+                            setIsDeleteDialogOpen(true)
+                          }}
+                        >
+                          <Trash className="mr-2 h-4 w-4" onClick={() => { handleDeleteExam(exam) }} />Delete
+                        </DropdownMenuItem>
+                      }
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      }
+      {noContent &&
+        <div className="flex justify-center mt-6 gap-2">
+          <p>No exams found.</p>
+        </div>
+      }
+
+      {
+        !isLoading && totalPages > 1 && !noContent && (
+          <div className="flex justify-center mt-6 gap-2">
+            <Button
+              variant="ghost"
+              className="text-primary font-bold hover:bg-primary transition hover:text-white"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <div className="flex gap-1">
+              {[...Array(totalPages)].map((_, index) => {
+                // Show limited page numbers with ellipsis for better UX
+                if (
+                  totalPages <= 5 ||
+                  index === 0 ||
+                  index === totalPages - 1 ||
+                  (index >= currentPage - 1 && index <= currentPage + 1)
+                ) {
+                  return (
+                    <Button
+                      variant="ghost"
+                      key={index}
+                      onClick={() => handlePageChange(index + 1)}
+                      className={cn(
+                        "text-primary font-bold hover:bg-primary transition hover:text-white",
+                        currentPage === index + 1 && "bg-button-primary text-white bg-primary hover:bg-button-hover"
+                      )}
+                    >
+                      {index + 1}
+                    </Button>
+                  )
+                } else if (
+                  (index === 1 && currentPage > 3) ||
+                  (index === totalPages - 2 && currentPage < totalPages - 2)
+                ) {
+                  return (
+                    <Button key={index} variant="ghost" disabled className="text-primary font-bold">
+                      ...
+                    </Button>
+                  )
+                }
+                return null
+              })}
+            </div>
+            <Button
+              variant="ghost"
+              className="text-primary font-bold hover:bg-primary transition hover:text-white"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        )
+      }
+
+      <CreateExamDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onSubmit={handleCreateExam} />
+
+      {
+        currentExam && (
+          <EditExamDialog
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            exam={currentExam}
+            onSubmit={handleEditExam}
+          />
+        )
+      }
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to <span className="text-red-500">DELETE</span> this exam?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently deactive the exam and remove all participants of this exam.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { handleDeleteExam() }}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div >
+  )
 }
 

@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route} from "react-router-dom"
-import { Toaster } from "sonner"
 import Dashboard from "./features/dashboard"
 import UnauthorisedError from "./features/errors/unauthorized-error"
 import ForbiddenError from "./features/errors/forbidden"
@@ -17,6 +16,7 @@ import ViewListCourse from "./features/course/CourseList/ViewListCourse"
 import CreateCourse from "./features/course/CourseCreate/CreateCourse"
 import UpdateCourse from "./features/course/CourseUpdate/UpdateCourse"
 import ExamList from "./features/exam/list"
+import { Toaster } from "sonner"
 
 function App() {
   return (
