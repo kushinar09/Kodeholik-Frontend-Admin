@@ -83,7 +83,8 @@ const ENDPOINTS = {
 
   //Exam
   POST_EXAM_LIST_FOR_EXAMINER: `${API_URL}/examiner/list`,
-  GET_EXAM_DETAIL_FOR_EXAMINER: `${API_URL}/examiner/detail/`
+  GET_EXAM_DETAIL_FOR_EXAMINER: `${API_URL}/examiner/detail/`,
+  DELETE_EXAM: `${API_URL}/examiner/delete/`
 }
 
 
