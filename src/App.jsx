@@ -42,7 +42,7 @@ function App() {
               <Route path="/problem/create" element={<ProblemCreator />} />
               <Route path="/problem/:id" element={<ProblemEdit />} />
               <Route path="/exam" element={<ExamList />} />
-              
+
               {/* Course Page*/}
               <Route path="/course" element={<ViewListCourse/>}/>
               <Route path="/course/add" element={<CreateCourse/>}/>

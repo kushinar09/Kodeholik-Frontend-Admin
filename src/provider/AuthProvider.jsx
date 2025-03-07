@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import { CONSTANTS, ENDPOINTS } from "@/lib/constants"
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
@@ -12,7 +13,8 @@ const authenticatedEndpoints = [
 
 const notCallRotateTokenEndpoints = [
   ENDPOINTS.ROTATE_TOKEN,
-  ENDPOINTS.POST_LOGOUT
+  ENDPOINTS.POST_LOGOUT,
+  ENDPOINTS.POST_LOGIN
 ]
 
 export const AuthProvider = ({ children }) => {
@@ -64,14 +66,14 @@ export const AuthProvider = ({ children }) => {
     })
       .then(response => {
         if (!response.ok) {
-          throw new Error("Failed to refresh token")
+          return response.status
         }
-        return true
+        return 200
       })
       .catch(error => {
         console.error("Refresh token failed:", error)
         logout(redirect)
-        return false
+        return 500
       })
       .finally(() => {
         setIsRefreshing(false)
@@ -79,10 +81,10 @@ export const AuthProvider = ({ children }) => {
       })
 
     setRefreshPromise(promise)
-    return promise
+    return 200
   }
 
-  const apiCall = async (url, options = {}) => {
+  const apiCall = async (url, options = {}, redirect = false) => {
     setLoading(true)
     // console.log(window.location.pathname)
     if (!options.headers) {
@@ -103,12 +105,41 @@ export const AuthProvider = ({ children }) => {
       if (response.status === 401 && !notCallRotateTokenEndpoints.includes(url)) {
         console.warn("Access token expired. Attempting refresh...")
 
-        const success = await refreshAccessToken(true)
+        const status = await refreshAccessToken(redirect)
 
-        if (success) {
+        if (status == 200) {
           response = await fetch(url, options)
         } else {
-          throw new Error("Authentication failed")
+          switch (status) {
+            case 500:
+              navigate("/500")
+              break
+            case 401:
+              navigate("/401")
+              break
+            case 403:
+              navigate("/403")
+              break
+            case 404:
+              navigate("/404")
+              break
+            default:
+              throw new Error("Authentication failed")
+          }
+        }
+      }
+
+      else {
+        switch (response.status) {
+          case 500:
+            navigate("/500")
+            break
+          case 403:
+            navigate("/403")
+            break
+          case 404:
+            navigate("/404")
+            break
         }
       }
 
@@ -123,7 +154,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ apiCall, logout, isAuthenticated, user, setIsAuthenticated }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   )
 }
