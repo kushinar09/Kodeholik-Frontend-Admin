@@ -79,7 +79,11 @@ const ENDPOINTS = {
 
   // code
   POST_RUN_CODE: `${API_URL}/problem-submission/run/:id`,
-  POST_SUBMIT_CODE: `${API_URL}/problem-submission/submit/:id`
+  POST_SUBMIT_CODE: `${API_URL}/problem-submission/submit/:id`,
+
+  //Exam
+  POST_EXAM_LIST_FOR_EXAMINER: `${API_URL}/examiner/list`,
+  GET_EXAM_DETAIL_FOR_EXAMINER: `${API_URL}/examiner/detail/`
 }
 
 
