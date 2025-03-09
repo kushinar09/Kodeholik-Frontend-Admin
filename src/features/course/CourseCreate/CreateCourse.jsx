@@ -27,7 +27,7 @@ const formSchema = z.object({
   topicIds: z
     .array(z.string())
     .min(1, "At least one topic must be selected"),
-  status: z.enum(["ACTIVATED", "DEACTIVATED"]),
+  status: z.enum(["ACTIVATED", "INACTIVATED"]),
   imageFile: z
     .instanceof(File, { message: "Image must be a file" })
     .optional()
