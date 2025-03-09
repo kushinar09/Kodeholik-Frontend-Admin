@@ -1,109 +1,113 @@
-import { useState, useEffect } from "react"
-import { getCourseList, getTopicsWithId } from "@/lib/api/course_api"
-import { Link } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { GLOBALS } from "@/lib/constants"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { Search, Plus, Edit } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
-const ITEMS_PER_PAGE = 5
+import { useState, useEffect } from "react";
+import { getCourseSearch, getTopicsWithId } from "@/lib/api/course_api";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { GLOBALS } from "@/lib/constants";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { Search, Plus, Edit } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function CourseList() {
   useEffect(() => {
-    document.title = `Courses List - ${GLOBALS.APPLICATION_NAME}`
-  }, [])
+    document.title = `Courses List - ${GLOBALS.APPLICATION_NAME}`;
+  }, []);
 
-  const [allCourses, setAllCourses] = useState([])
-  const [topics, setTopics] = useState([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedTopic, setSelectedTopic] = useState("All")
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false)
-  const [totalPages, setTotalPages] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
+  const [courses, setCourses] = useState([]);
+  const [topics, setTopics] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState("All");
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState("title");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [itemsPerPage, setItemsPerPage] = useState(6);
 
-  // Fetch all courses once
   useEffect(() => {
     const fetchCourses = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const data = await getCourseList()
-        console.log("API Response:", data)
-        setAllCourses(Array.isArray(data) ? data : data.content || [])
+        const data = await getCourseSearch({
+          page: currentPage,
+          size: itemsPerPage,
+          sortBy,
+          ascending: sortOrder === "asc",
+          query: searchQuery,
+          topic: selectedTopic,
+        });
+        console.log("API Response:", data);
+        setCourses(data.content || []);
+        setTotalPages(data.totalPages || 1);
       } catch (error) {
-        console.error("Error fetching courses:", error)
-        setAllCourses([])
+        console.error("Error fetching courses:", error);
+        setCourses([]);
+        setTotalPages(1);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    fetchCourses()
-  }, []) // No dependencies, fetch once on mount
+    };
+    fetchCourses();
+  }, [currentPage, itemsPerPage, sortBy, sortOrder, searchQuery, selectedTopic]);
 
-  // Fetch topics from API
   useEffect(() => {
     const fetchTopics = async () => {
       try {
-        const data = await getTopicsWithId()
-        console.log("Fetched topics:", data)
-        setTopics(data || [])
+        const data = await getTopicsWithId();
+        console.log("Fetched topics:", data);
+        setTopics(data || []);
       } catch (error) {
-        console.error("Error fetching topics:", error)
-        setTopics([])
+        console.error("Error fetching topics:", error);
+        setTopics([]);
       }
-    }
-    fetchTopics()
-  }, [])
-
-  // Filter and paginate courses client-side
-  const getFilteredCourses = () => {
-    return allCourses.filter((course) => {
-      const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase())
-  
-      if (selectedTopic === "All") return matchesSearch
-  
-      // Check if course.topics includes the selected topic
-      return matchesSearch && course.topics.includes(selectedTopic)
-    })
-  }
-
-  useEffect(() => {
-    const filteredCourses = getFilteredCourses()
-    setTotalPages(Math.ceil(filteredCourses.length / ITEMS_PER_PAGE))
-    setCurrentPage(1) // Reset to first page when filters change
-  }, [allCourses, searchQuery, selectedTopic, topics])
-
-  const paginatedCourses = getFilteredCourses()
-    .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+    };
+    fetchTopics();
+  }, []);
 
   const handlePageChange = (page) => {
-    setCurrentPage(page)
-  }
+    setCurrentPage(page - 1);
+  };
 
   const handleFilterClick = () => {
-    setIsFilterExpanded(!isFilterExpanded)
-  }
+    setIsFilterExpanded(!isFilterExpanded);
+  };
 
   const handleTopicClick = (topic) => {
-    setSelectedTopic(topic === "All" ? "All" : topic)
-    setCurrentPage(1)
-    setIsFilterExpanded(false) // Close filter after selection
-  }
+    setSelectedTopic(topic === "All" ? "All" : topic);
+    setCurrentPage(0);
+    setIsFilterExpanded(false);
+  };
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("asc");
+    }
+    setCurrentPage(0);
+  };
+
+  const handleItemsPerPageChange = (value) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(0);
+  };
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      Active: "bg-green-500",
-      Inactive: "bg-red-500",
-      Draft: "bg-yellow-500",
-      Completed: "bg-blue-500",
-    }
-
-    return <Badge className={`${statusMap[status] || "bg-gray-500"} text-white`}>{status}</Badge>
-  }
+      ACTIVATED: "bg-green-500",
+      INACTIVATED: "bg-red-500",
+    };
+    return (
+      <Badge className={`${statusMap[status] || "bg-gray-500"} text-white`}>
+        {status?.toUpperCase()}
+      </Badge>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col">
@@ -122,9 +126,8 @@ function CourseList() {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="mb-6 space-y-4">
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col md:flex-row gap-4 items-center">
                 <div className="relative flex-grow">
-            
                   <Input
                     type="text"
                     placeholder="Search Course title..."
@@ -133,12 +136,23 @@ function CourseList() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
+                <Select onValueChange={handleItemsPerPageChange} value={itemsPerPage.toString()}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Items per page" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="6">6 per page</SelectItem>
+                    <SelectItem value="12">12 per page</SelectItem>
+                    <SelectItem value="24">24 per page</SelectItem>
+                    <SelectItem value="30">30 per page</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="ghost"
                   onClick={handleFilterClick}
                   className={cn(
                     "text-primary font-bold hover:bg-primary transition hover:text-black",
-                    isFilterExpanded && "bg-button-primary text-bg-primary hover:bg-button-hover",
+                    isFilterExpanded && "bg-button-primary text-bg-primary hover:bg-button-hover"
                   )}
                 >
                   Filter
@@ -158,7 +172,7 @@ function CourseList() {
                         "text-sm",
                         selectedTopic === "All"
                           ? "bg-primary text-white hover:bg-primary/90"
-                          : "text-primary border-primary hover:bg-primary/10 hover:text",
+                          : "text-primary border-primary hover:bg-primary/10 hover:text"
                       )}
                     >
                       All
@@ -173,7 +187,7 @@ function CourseList() {
                           "text-sm",
                           selectedTopic === (topic.name || topic)
                             ? "bg-primary text-white hover:bg-primary/90"
-                            : "text-primary border-primary hover:bg-primary/10",
+                            : "text-primary border-primary hover:bg-primary/10"
                         )}
                       >
                         {topic.name || topic}
@@ -188,7 +202,7 @@ function CourseList() {
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
-            ) : paginatedCourses.length === 0 ? (
+            ) : courses.length === 0 ? (
               <div className="text-center py-12 text-text-secondary">
                 <p className="text-lg font-medium">No courses found</p>
                 <p className="text-sm mt-2">Try adjusting your search or filters</p>
@@ -198,28 +212,51 @@ function CourseList() {
                 <Table className="w-full">
                   <TableHeader className="bg-bg-secondary">
                     <TableRow className="hover:bg-bg-secondary/80">
-                      <TableHead className="text-text-secondary font-semibold">ID</TableHead>
-                      <TableHead className="text-text-secondary font-semibold">Title</TableHead>
-                      <TableHead className="text-text-secondary font-semibold">Participants</TableHead>
-                      <TableHead className="text-text-secondary font-semibold">Status</TableHead>
+                      <TableHead
+                        className="text-text-secondary font-semibold cursor-pointer"
+                        onClick={() => handleSort("id")}
+                      >
+                        ID {sortBy === "id" && (sortOrder === "asc" ? "↑" : "↓")}
+                      </TableHead>
+                      <TableHead
+                        className="text-text-secondary font-semibold cursor-pointer"
+                        onClick={() => handleSort("title")}
+                      >
+                        Title {sortBy === "title" && (sortOrder === "asc" ? "↑" : "↓")}
+                      </TableHead>
+                      <TableHead
+                        className="text-text-secondary font-semibold cursor-pointer"
+                        onClick={() => handleSort("numberOfParticipant")}
+                      >
+                        Participants{" "}
+                        {sortBy === "numberOfParticipant" && (sortOrder === "asc" ? "↑" : "↓")}
+                      </TableHead>
+                      <TableHead
+                        className="text-text-secondary font-semibold cursor-pointer"
+                        onClick={() => handleSort("status")}
+                      >
+                        Status {sortBy === "status" && (sortOrder === "asc" ? "↑" : "↓")}
+                      </TableHead>
                       <TableHead className="text-text-secondary font-semibold">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedCourses.map((course) => (
+                    {courses.map((course) => (
                       <TableRow
                         key={course.id}
                         className="hover:bg-bg-secondary/30 transition-colors border-t border-border-muted"
                       >
                         <TableCell className="font-medium text-text-primary">{course.id}</TableCell>
                         <TableCell className="text-text-primary">{course.title}</TableCell>
-                        <TableCell className="text-text-primary">{course.numberOfParticipant}</TableCell>
+                        <TableCell className="text-text-primary">
+                          {course.numberOfParticipant}
+                        </TableCell>
                         <TableCell>{getStatusBadge(course.status)}</TableCell>
                         <TableCell>
                           <Link to={`/course/${course.id}`}>
                             <Button
                               variant="outline"
-                              className="border-primary text-primary hover:bg-primary hover:text-black transition-colors"
+                              className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
                               size="sm"
                             >
                               <Edit className="h-4 w-4 mr-1" />
@@ -234,19 +271,18 @@ function CourseList() {
               </div>
             )}
 
-            {!isLoading && paginatedCourses.length > 0 && (
+            {!isLoading && courses.length > 0 && (
               <div className="flex justify-center mt-6 gap-2">
                 <Button
                   variant="ghost"
                   className="text-primary font-bold hover:bg-primary transition hover:text-black"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage)}
+                  disabled={currentPage === 0}
                 >
                   Previous
                 </Button>
                 <div className="flex gap-1">
                   {[...Array(totalPages)].map((_, index) => {
-                    // Show limited page numbers with ellipsis for better UX
                     if (
                       totalPages <= 5 ||
                       index === 0 ||
@@ -260,12 +296,12 @@ function CourseList() {
                           onClick={() => handlePageChange(index + 1)}
                           className={cn(
                             "text-primary font-bold hover:bg-primary transition hover:text-black",
-                            currentPage === index + 1 && "bg-button-primary text-bg-primary hover:bg-button-hover",
+                            currentPage === index && "bg-button-primary text-bg-primary hover:bg-button-hover"
                           )}
                         >
                           {index + 1}
                         </Button>
-                      )
+                      );
                     } else if (
                       (index === 1 && currentPage > 3) ||
                       (index === totalPages - 2 && currentPage < totalPages - 2)
@@ -274,16 +310,16 @@ function CourseList() {
                         <Button key={index} variant="ghost" disabled className="text-primary font-bold">
                           ...
                         </Button>
-                      )
+                      );
                     }
-                    return null
+                    return null;
                   })}
                 </div>
                 <Button
                   variant="ghost"
                   className="text-primary font-bold hover:bg-primary transition hover:text-black"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 2)}
+                  disabled={currentPage === totalPages - 1}
                 >
                   Next
                 </Button>
@@ -293,8 +329,7 @@ function CourseList() {
         </Card>
       </main>
     </div>
-  )
+  );
 }
 
-export default CourseList
-
+export default CourseList;

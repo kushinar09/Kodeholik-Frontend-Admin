@@ -1,21 +1,52 @@
-import { ENDPOINTS } from "../constants"
+import { ENDPOINTS } from "../constants";
 
-export const getCourseSearch = async ({ page, size, sortBy, ascending, query, topic }) => {
-  const url = new URL(ENDPOINTS.GET_COURSES);
+export const getCourseSearch = async ({ page, size, sortBy = "title", ascending = true, query, topic }) => {
+  const url = new URL(ENDPOINTS.GET_COURSES_LIST); // Should be "http://localhost:8080/api/v1/course/search"
   url.searchParams.append("page", page);
   url.searchParams.append("size", size);
   url.searchParams.append("sortBy", sortBy);
   url.searchParams.append("ascending", ascending);
-  if (query) url.searchParams.append("title", query); // Use "title" instead of "query"
-  if (topic) url.searchParams.append("topic", topic);
 
-  const response = await fetch(url, {
-      method: "GET",
+  const body = {};
+  if (query) body.title = query;
+  if (topic && topic !== "All") body.topics = [topic]; // Convert single topic to array
+
+  console.log("Fetching courses from:", url.toString());
+  console.log("Request body:", body);
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-  });
-  if (!response.ok) throw new Error("Failed to fetch courses");
-  return await response.json();
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+
+    console.log("Response status:", response.status);
+    console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Fetch failed with status:", response.status, "Response:", errorText);
+      throw new Error(`Failed to fetch courses: ${response.status} - ${errorText}`);
+    }
+
+    const text = await response.text();
+    console.log("Raw response:", text);
+
+    try {
+      const jsonData = JSON.parse(text);
+      return jsonData;
+    } catch (jsonError) {
+      console.error("Failed to parse JSON:", jsonError, "Raw text:", text);
+      throw new Error("Response is not valid JSON");
+    }
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    throw error;
+  }
 };
+
 
 export async function getTopicList() {
     const response = await fetch(ENDPOINTS.GET_TOPIC_LIST)
@@ -109,7 +140,27 @@ export const createCourse = async (courseData, imageFile, apiCall) => {
       throw new Error(`Failed to create course: ${JSON.stringify(errorResponse)}`);
     }
 
-    return await response.json();
+    // Log response details for debugging
+    console.log("Response status:", response.status);
+    console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+
+    // Get the response as text first
+    const text = await response.text();
+    console.log("Raw response:", text);
+
+    // Handle the known case where backend returns "1" for success
+    if (text.trim() === "1") {
+      return { success: true }; // Normalize to a success object
+    }
+
+    // Attempt to parse as JSON for future-proofing
+    try {
+      const jsonData = JSON.parse(text);
+      return jsonData;
+    } catch (jsonError) {
+      console.warn("Response is not JSON, treating as success:", text);
+      return { success: true, rawResponse: text }; // Fallback for non-JSON success
+    }
   } catch (error) {
     console.error("Error in createCourse:", {
       error: error.message,
@@ -120,50 +171,64 @@ export const createCourse = async (courseData, imageFile, apiCall) => {
 };
 
 export async function updateCourse(id, courseData, imageFile, apiCall) {
-  // Validate inputs
   if (!id || typeof id !== 'string') {
-      throw new Error('Invalid course ID provided');
+    throw new Error('Invalid course ID provided');
   }
   if (!courseData || typeof courseData !== 'object') {
-      throw new Error('Invalid course data provided');
+    throw new Error('Invalid course data provided');
   }
 
   const formData = new FormData();
-  
-  // Append course data as JSON Blob with explicit type
   formData.append("data", new Blob([JSON.stringify(courseData)], { type: "application/json" }));
-
-  // Append image file if provided, with validation
   if (imageFile) {
-      if (!(imageFile instanceof File || imageFile instanceof Blob)) {
-          throw new Error('Invalid image file provided');
-      }
-      formData.append("image", imageFile);
+    if (!(imageFile instanceof File || imageFile instanceof Blob)) {
+      throw new Error('Invalid image file provided');
+    }
+    formData.append("image", imageFile);
   }
 
   try {
-      const response = await apiCall(ENDPOINTS.UPDATE_COURSE.replace(":id", id), {
-          method: "PUT",
-          credentials: "include",
-          body: formData,
-      });
+    const response = await apiCall(ENDPOINTS.UPDATE_COURSE.replace(":id", id), {
+      method: "PUT",
+      credentials: "include",
+      body: formData,
+    });
 
-      if (!response.ok) {
-          const errorResponse = await response.json();
-          throw new Error(`Failed to update course: ${JSON.stringify(errorResponse)}`);
-      }
+    if (!response.ok) {
+      const errorResponse = await response.json();
+      throw new Error(`Failed to update course: ${JSON.stringify(errorResponse)}`);
+    }
 
-      return await response.json();
+    // Log response details for debugging
+    console.log("Response status:", response.status);
+    console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+
+    // Get the response as text first
+    const text = await response.text();
+    console.log("Raw response:", text);
+
+    // Handle the known case where backend returns "1" for success
+    if (text.trim() === "1") {
+      return { success: true }; // Normalize to a success object
+    }
+
+    // Attempt to parse as JSON for future-proofing
+    try {
+      const jsonData = JSON.parse(text);
+      return jsonData;
+    } catch (jsonError) {
+      console.warn("Response is not JSON, treating as success:", text);
+      return { success: true, rawResponse: text }; // Fallback for non-JSON success
+    }
   } catch (error) {
-      // Log more detailed information for debugging
-      console.error('Error in updateCourse:', {
-          error: error.message,
-          id,
-          courseData,
-          hasImage: !!imageFile,
-          formDataEntries: [...formData.entries()] // Log FormData contents
-      });
-      throw error;
+    console.error('Error in updateCourse:', {
+      error: error.message,
+      id,
+      courseData,
+      hasImage: !!imageFile,
+      formDataEntries: [...formData.entries()],
+    });
+    throw error;
   }
 }
 
