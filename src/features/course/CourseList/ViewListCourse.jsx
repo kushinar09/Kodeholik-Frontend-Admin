@@ -216,26 +216,29 @@ function CourseList() {
                         className="text-text-secondary font-semibold cursor-pointer"
                         onClick={() => handleSort("id")}
                       >
-                        ID {sortBy === "id" && (sortOrder === "asc" ? "↑" : "↓")}
+                        ID {sortBy === "id" && (sortOrder === "asc" ? "▲" : "▼")}
                       </TableHead>
                       <TableHead
                         className="text-text-secondary font-semibold cursor-pointer"
                         onClick={() => handleSort("title")}
                       >
-                        Title {sortBy === "title" && (sortOrder === "asc" ? "↑" : "↓")}
+                        Title {sortBy === "title" && (sortOrder === "asc" ? "▲" : "▼")}
                       </TableHead>
                       <TableHead
                         className="text-text-secondary font-semibold cursor-pointer"
                         onClick={() => handleSort("numberOfParticipant")}
                       >
                         Participants{" "}
-                        {sortBy === "numberOfParticipant" && (sortOrder === "asc" ? "↑" : "↓")}
+                        {sortBy === "numberOfParticipant" && (sortOrder === "asc" ? "▲" : "▼")}
                       </TableHead>
                       <TableHead
-                        className="text-text-secondary font-semibold cursor-pointer"
-                        onClick={() => handleSort("status")}
+                      className="text-text-secondary font-semibold cursor-pointer"
+                      onClick={() => handleSort("createAt")}
                       >
-                        Status {sortBy === "status" && (sortOrder === "asc" ? "↑" : "↓")}
+                        Created At {sortBy === "createAt" && (sortOrder === "asc" ? "▲" : "▼")}
+                      </TableHead>
+                      <TableHead>
+                        Status
                       </TableHead>
                       <TableHead className="text-text-secondary font-semibold">Action</TableHead>
                     </TableRow>
@@ -251,6 +254,7 @@ function CourseList() {
                         <TableCell className="text-text-primary">
                           {course.numberOfParticipant}
                         </TableCell>
+                        <TableCell>{course.createdAt}</TableCell>
                         <TableCell>{getStatusBadge(course.status)}</TableCell>
                         <TableCell>
                           <Link to={`/course/${course.id}`}>
