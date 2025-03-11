@@ -122,16 +122,6 @@ export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
     }
   }, [formData.editorial, form])
 
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      console.log("Updated form values:", value.solutionCodes)
-      console.log("Changed field:", name) // ✅ Shows which field changed
-      console.log("Dirty fields:", form.formState.dirtyFields) // ✅ Check if the field is marked as changed
-    })
-
-    return () => subscription.unsubscribe()
-  }, [form.watch, form.formState.dirtyFields])
-
   // Watch for form changes and update parent formData
   useEffect(() => {
     console.log("editorial", form.getValues())

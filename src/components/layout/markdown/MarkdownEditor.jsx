@@ -1,12 +1,11 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { EditorView, basicSetup } from "codemirror"
 import { keymap } from "@codemirror/view"
 import { indentWithTab } from "@codemirror/commands"
 import { markdown } from "@codemirror/lang-markdown"
 import { EditorState } from "@codemirror/state"
-import { Button } from "@/components/ui/button"
 import {
   Bold,
   Italic,
@@ -18,50 +17,52 @@ import {
   Heading,
   Image,
   Code2Icon,
-  CodeSquare
+  CodeSquare,
+  Loader2
 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import "./styles.css"
 import { Separator } from "@/components/ui/separator"
-import { marked } from "marked"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 
-//highlight.js
+// highlight.js
 import hljs from "highlight.js"
 import "highlight.js/styles/default.css"
+import { getCookie, setCookie } from "@/lib/utils"
+import { toast } from "sonner"
+import { ENDPOINTS } from "@/lib/constants"
+import { useAuth } from "@/provider/AuthProvider"
+import RenderMarkdown from "./RenderMarkdown"
 
-//save cookie
-import { setCookie, getCookie } from "@/lib/utils"
-import { useToast } from "@/hooks/use-toast"
-import { Toaster } from "sonner"
 
-const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
-  const { toast } = useToast()
-  marked.use({
-    // ALLOWS LINE BREAKS WITH RETURN BUTTON
-    breaks: true,
-    useNewRenderer: true,
-    renderer: {
-      // INSERTS target="_blank" INTO HREF TAG
-      link({ href, text, title }) {
-        return `<a target="_blank" href="${href}"${title ? ` title="${title}"` : ""} rel="noopener noreferrer nofollow ugc">${text}</a>`
-      }
-    }
-  })
+// Cache for storing image URLs
+const imageUrlCache = new Map()
 
-  // INITIAL MARKDOWN CONTENT
+const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
+  const [isUploading, setIsUploading] = useState(false)
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
+  const [imageUrl, setImageUrl] = useState("")
+  const [imageAlt, setImageAlt] = useState("")
+  const fileInputRef = useRef(null)
+  const cursorPositionRef = useRef(null)
+
+  const { apiCall } = useAuth()
+
   const [markdownContent, setMarkdownContent] = useState(() => {
     const draft = getCookie(cookieDraft)
-    return draft || typeof(value) === "string" ? value : ""
+    return draft || typeof value === "string" ? value : ""
   })
-  //const [isSaving, setIsSaving] = useState(false)
+
   const editorViewRef = useRef(null)
 
-  // Load draft on mount
   useEffect(() => {
     const draft = getCookie(cookieDraft)
     if (draft) {
       setMarkdownContent(draft)
-      // Update the editor content
       if (editorViewRef.current) {
         const transaction = editorViewRef.current.state.update({
           changes: {
@@ -73,11 +74,10 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
         editorViewRef.current.dispatch(transaction)
       }
     } else {
-      setMarkdownContent(typeof(value) === "string" ? value : "")
+      setMarkdownContent(typeof value === "string" ? value : "")
     }
   }, [])
 
-  // Define keyboard shortcuts
   const shortcuts = {
     b: { key: "B", action: "**", label: "Bold" },
     i: { key: "I", action: "*", label: "Italic" },
@@ -95,20 +95,20 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
       if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
         hljs.highlightBlock(block)
     })
-    onChange(markdownContent)
+    if (onChange) onChange(markdownContent)
   }, [markdownContent])
 
-  // Save draft to cookie every 10s
   useEffect(() => {
-    setTimeout(() => {
-      setCookie("draft", markdownContent)
+    const saveInterval = setInterval(() => {
+      setCookie(cookieDraft, markdownContent)
     }, 10000)
-  })
+
+    return () => clearInterval(saveInterval)
+  }, [markdownContent, cookieDraft])
 
   useEffect(() => {
     const state = EditorState.create({
       doc: markdownContent,
-      linesNumber: false,
       extensions: [
         basicSetup,
         keymap.of([indentWithTab]),
@@ -136,19 +136,18 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
       parent: document.getElementById("editor")
     })
 
-    // Add keyboard event listener
     const handleKeyDown = (e) => {
-      // Check if Ctrl/Cmd key is pressed
       if (e.ctrlKey || e.metaKey) {
-        if (shortcuts[e.key.toLowerCase()]) {
+        const shortcut = shortcuts[e.key.toLowerCase()]
+        if (shortcut) {
           if (e.key.toLowerCase() !== "s") {
             e.preventDefault()
-            applyMarkdown(shortcuts[e.key.toLowerCase()].action)
+            applyMarkdown(shortcut.action)
           } else {
             e.preventDefault()
             const currentContent = editorViewRef.current.state.doc.toString()
-            setCookie("draft", currentContent)
-            toast({
+            setCookie(cookieDraft, currentContent)
+            toast.info({
               description: "Saved.",
               duration: 1000
             })
@@ -165,7 +164,6 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
       }
       document.removeEventListener("keydown", handleKeyDown)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const applyMarkdown = (syntax) => {
@@ -183,145 +181,144 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
     let linkRegex
     let lines
     switch (syntax) {
-    case "**":
-      if (from === to) {
-        text = "Bold"
-      }
-      if (text.startsWith("**") && text.endsWith("**")) {
-        newText = text.slice(2, -2)
-      } else if (/^#+\s/.test(text)) {
-        let pre
-        let heading = text.replace(/^#+\s/, (match) => {
-          pre = match
-          return ""
-        })
-        if (heading.startsWith("**") && heading.endsWith("**")) {
-          heading = heading.slice(2, -2)
-          newText = pre + heading
+      case "**":
+        if (from === to) {
+          text = "Bold"
+        }
+        if (text.startsWith("**") && text.endsWith("**")) {
+          newText = text.slice(2, -2)
+        } else if (/^#+\s/.test(text)) {
+          let pre
+          let heading = text.replace(/^#+\s/, (match) => {
+            pre = match
+            return ""
+          })
+          if (heading.startsWith("**") && heading.endsWith("**")) {
+            heading = heading.slice(2, -2)
+            newText = pre + heading
+          } else {
+            newText = pre + `**${heading}**`
+          }
         } else {
-          newText = pre + `**${heading}**`
+          newText = `**${text}**`
         }
-      } else {
-        newText = `**${text}**`
-      }
-      break
-    case "#":
-      if (from === to) {
-        text = "Heading"
-      }
-      if (text.startsWith("#")) {
-        newText = `#${text}`
-      } else {
-        newText = `# ${text}`
-        if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
-          newText = "\n" + newText
+        break
+      case "#":
+        if (from === to) {
+          text = "Heading"
         }
-      }
-      break
-    case "*":
-      if (from === to) {
-        text = "Italic"
-      }
-      if (text.startsWith("*") && text.endsWith("*")) {
-        newText = text.slice(1, -1)
-      } else {
-        newText = `*${text}*`
-      }
-      break
-    case "`":
-      if (from === to) {
-        text = "code"
-      }
-      if (text.startsWith("`") && text.endsWith("`")) {
-        newText = text.slice(1, -1)
-      } else {
-        newText = `\`${text}\``
-      }
-      break
-    case "```":
-      if (from === to) {
-        text = "public static void main(String[] args) {\n  System.out.println(\"Hello, World!\");\n}"
-      }
-      if (text.startsWith("```\n") && text.endsWith("\n```")) {
-        newText = text.slice(4, -4)
-      } else {
-        newText = `\`\`\`\n${text}\n\`\`\``
-        if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
-          newText = "\n" + newText
-        }
-        newText = newText + "\n"
-      }
-      break
-    case "[]()":
-      if (from === to) {
-        text = "link"
-      }
-      linkRegex = /^\[(.+)\]$$(.+)$$$/
-      if (linkRegex.test(text)) {
-        newText = text.match(linkRegex)[1]
-      } else {
-        newText = `[${text}](url)`
-      }
-      break
-    case ">":
-      if (from === to) {
-        text = "Quote"
-      }
-      if (text.startsWith("> ")) {
-        newText = text.slice(2)
-      } else {
-        newText = `> ${text}`
-        if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
-          newText = "\n" + newText
-        }
-      }
-      break
-    case "1.":
-      // Check if text has multiple lines
-      lines = text.split("\n")
-      if (lines.length > 1) {
-        // Check if first line starts with any number followed by dot and space
-        const numberMatch = lines[0].match(/^\d+\.\s/)
-        if (numberMatch) {
-          // Remove the numbering from all lines
-          newText = lines.map((line) => line.replace(/^\d+\.\s/, "")).join("\n")
+        if (text.startsWith("#")) {
+          newText = `#${text}`
         } else {
-          // Add incrementing numbers to each line
-          newText = lines.map((line, index) => `${index + 1}. ${line}`).join("\n")
+          newText = `# ${text}`
           if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
             newText = "\n" + newText
           }
         }
-      } else {
-        // Single line case
-        const numberMatch = text.match(/^\d+\.\s/)
-        if (numberMatch) {
-          // Remove the numbering
-          newText = text.replace(/^\d+\.\s/, "")
+        break
+      case "*":
+        if (from === to) {
+          text = "Italic"
+        }
+        if (text.startsWith("*") && text.endsWith("*")) {
+          newText = text.slice(1, -1)
         } else {
-          // Add numbering
-          newText = `1. ${text}`
+          newText = `*${text}*`
+        }
+        break
+      case "`":
+        if (from === to) {
+          text = "code"
+        }
+        if (text.startsWith("`") && text.endsWith("`")) {
+          newText = text.slice(1, -1)
+        } else {
+          newText = `\`${text}\``
+        }
+        break
+      case "```":
+        if (from === to) {
+          text = "public static void main(String[] args) {\n  System.out.println(\"Hello, World!\");\n}"
+        }
+        if (text.startsWith("```\n") && text.endsWith("\n```")) {
+          newText = text.slice(4, -4)
+        } else {
+          newText = `\`\`\`\n${text}\n\`\`\``
+          if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
+            newText = "\n" + newText
+          }
+          newText = newText + "\n"
+        }
+        break
+      case "[]()":
+        if (from === to) {
+          text = "link"
+        }
+        linkRegex = /^\[(.+)\]$$(.+)$$$/
+        if (linkRegex.test(text)) {
+          newText = text.match(linkRegex)[1]
+        } else {
+          newText = `[${text}](url)`
+        }
+        break
+      case ">":
+        if (from === to) {
+          text = "Quote"
+        }
+        if (text.startsWith("> ")) {
+          newText = text.slice(2)
+        } else {
+          newText = `> ${text}`
           if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
             newText = "\n" + newText
           }
         }
-      }
-      break
-    case "-":
-      if (text.startsWith("- ")) {
-        newText = text.slice(2)
-      } else {
-        newText = `- ${text}`
-        if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
-          newText = "\n" + newText
+        break
+      case "1.":
+        lines = text.split("\n")
+        if (lines.length > 1) {
+          const numberMatch = lines[0].match(/^\d+\.\s/)
+          if (numberMatch) {
+            newText = lines.map((line) => line.replace(/^\d+\.\s/, "")).join("\n")
+          } else {
+            newText = lines.map((line, index) => `${index + 1}. ${line}`).join("\n")
+            if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
+              newText = "\n" + newText
+            }
+          }
+        } else {
+          const numberMatch = text.match(/^\d+\.\s/)
+          if (numberMatch) {
+            newText = text.replace(/^\d+\.\s/, "")
+          } else {
+            newText = `1. ${text}`
+            if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
+              newText = "\n" + newText
+            }
+          }
         }
-      }
-      break
-    case "---":
-      newText = "\n---\n"
-      break
-    default:
-      newText = text
+        break
+      case "-":
+        if (text.startsWith("- ")) {
+          newText = text.slice(2)
+        } else {
+          newText = `- ${text}`
+          if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
+            newText = "\n" + newText
+          }
+        }
+        break
+      case "---":
+        newText = "\n---\n"
+        break
+      case "![]()":
+        if (from === to) {
+          text = "Image description"
+        }
+        newText = `\n![${text}](url)\n`
+        break
+      default:
+        newText = text
     }
 
     const transaction = state.update({
@@ -340,9 +337,172 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
     view.focus()
   }
 
+  const handleImageClick = () => {
+    if (editorViewRef.current) {
+      cursorPositionRef.current = editorViewRef.current.state.selection.main.from
+    }
+    setIsImageDialogOpen(true)
+  }
+
+  const handleFileSelect = () => {
+    if (editorViewRef.current) {
+      cursorPositionRef.current = editorViewRef.current.state.selection.main.from
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const uploadResponse = await apiCall(ENDPOINTS.POST_UPLOAD_IMAGE, {
+        method: "POST",
+        body: formData
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed with status: ${uploadResponse.status}`)
+      }
+
+      const uploadData = await uploadResponse.json()
+
+      if (!uploadData) {
+        throw new Error("Key not found in upload response")
+      }
+
+      const imageKey = uploadData[0]
+      const altText = file.name || "Image"
+
+      if (editorViewRef.current && cursorPositionRef.current !== null) {
+        const imageMarkdown = `\n![${altText}](s3:${imageKey})\n`
+
+        const transaction = editorViewRef.current.state.update({
+          changes: {
+            from: cursorPositionRef.current,
+            to: cursorPositionRef.current,
+            insert: imageMarkdown
+          },
+          selection: { anchor: cursorPositionRef.current + imageMarkdown.length }
+        })
+
+        editorViewRef.current.dispatch(transaction)
+        editorViewRef.current.focus()
+      }
+    } catch (error) {
+      console.error("Image upload error:", error)
+      toast.error("Error", {
+        description: `Upload failed: ${error.message}`,
+        duration: 3000
+      })
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+    }
+  }
+
+  const insertImageFromUrl = () => {
+    if (!imageUrl.trim()) {
+      toast.warning({
+        description: "Please enter an image URL",
+        duration: 3000
+      })
+      return
+    }
+
+    if (editorViewRef.current && cursorPositionRef.current !== null) {
+      const alt = imageAlt.trim() || "Image"
+      const imageMarkdown = `\n![${alt}](${imageUrl})\n`
+
+      const transaction = editorViewRef.current.state.update({
+        changes: {
+          from: cursorPositionRef.current,
+          to: cursorPositionRef.current,
+          insert: imageMarkdown
+        },
+        selection: { anchor: cursorPositionRef.current + imageMarkdown.length }
+      })
+
+      editorViewRef.current.dispatch(transaction)
+      editorViewRef.current.focus()
+    }
+
+    setImageUrl("")
+    setImageAlt("")
+    setIsImageDialogOpen(false)
+  }
+
   return (
     <div className="flex flex-col bg-background h-fit">
-      {/* Toolbar */}
+      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+
+      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Insert Image</DialogTitle>
+            <DialogDescription>Add an image to your content</DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="upload">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="upload">Upload</TabsTrigger>
+              <TabsTrigger value="url">URL</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="upload" className="py-4">
+              <div className="flex flex-col gap-4">
+                <Button onClick={handleFileSelect} disabled={isUploading} className="w-full">
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Image className="mr-2 h-4 w-4" />
+                      Choose Image
+                    </>
+                  )}
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="url" className="py-4">
+              <div className="flex flex-col gap-4">
+                <div className="grid w-full gap-2">
+                  <Label htmlFor="image-url">Image URL</Label>
+                  <Input
+                    id="image-url"
+                    placeholder="https://example.com/image.jpg"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                  />
+                </div>
+                <div className="grid w-full gap-2">
+                  <Label htmlFor="image-alt">Alt Text</Label>
+                  <Input
+                    id="image-alt"
+                    placeholder="Image description"
+                    value={imageAlt}
+                    onChange={(e) => setImageAlt(e.target.value)}
+                  />
+                </div>
+                <Button onClick={insertImageFromUrl}>Insert Image</Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+
       <div className="border-b bg-muted/40">
         <TooltipProvider>
           <div className="flex flex-wrap items-center gap-2 my-4 ms-4">
@@ -436,11 +596,11 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("---")}>
-                    <Image className="h-4 w-4" />
+                  <Button variant="outline" size="icon" type="button" onClick={handleImageClick} disabled={isUploading}>
+                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Image</TooltipContent>
+                <TooltipContent>Upload Image</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -460,17 +620,16 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
         </TooltipProvider>
       </div>
 
-      {/* Editor and Preview */}
       <div className="flex-1 grid grid-cols-2 divide-x h-fit max-h-[500px]">
         <div id="editor" className="min-h-[500px] overflow-auto focus-within:ring-1 focus-within:ring-ring" />
         <div className="min-h-0 overflow-auto">
-          <div
+          {/* <div
             className="markdown prose prose-sm dark:prose-invert max-w-none p-4"
-            dangerouslySetInnerHTML={{ __html: marked(markdownContent) }}
-          />
+            dangerouslySetInnerHTML={{ __html: renderedMarkdown }}
+          /> */}
+          <RenderMarkdown content={markdownContent} className="p-4"/>
         </div>
       </div>
-      <Toaster />
     </div>
   )
 }

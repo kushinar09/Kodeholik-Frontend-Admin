@@ -16,6 +16,7 @@ import { ExamList } from "./features/exam/list"
 import ViewListCourse from "./features/course/CourseList/ViewListCourse"
 import CreateCourse from "./features/course/CourseCreate/CreateCourse"
 import UpdateCourse from "./features/course/CourseUpdate/UpdateCourse"
+import MarkdownEditor from "./components/layout/markdown/MarkdownEditor"
 
 function App() {
   return (
@@ -34,6 +35,9 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot" element={<ForgotPassword />} />
             <Route path="/reset" element={<ResetPassword />} />
+
+            {/* Test */}
+            <Route path="/markdown" element={<MarkdownEditor />} />
 
             {/* Protected Routes */}
             <Route path="/" element={<Dashboard />}>

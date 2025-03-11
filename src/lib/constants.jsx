@@ -71,7 +71,8 @@ const ENDPOINTS = {
   GET_TOPIC_LIST: `${API_URL}/tag/all-topic`,
   GET_tOPICWITHID: `${API_URL}/tag/topic`,
 
-  //image
+  //Image
+  POST_UPLOAD_IMAGE: `${API_URL}/s3/upload`,
   GET_IMAGE: (imageKey) => `${API_URL}/s3/presigned-url?key=${encodeURIComponent(imageKey)}`,
 
   // code
