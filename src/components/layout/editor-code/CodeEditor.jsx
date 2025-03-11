@@ -16,6 +16,10 @@ export default function CodeEditor({ initialCode, onChange, className = "" }) {
   const [breakpoints, setBreakpoints] = useState(new Map()) // Track breakpoints
 
   useEffect(() => {
+    if (!initialCode || initialCode === "") {
+      onChange(INITIAL_CODE_DEFAULT)
+    }
+
     if (editorRef.current && !editor) {
       monaco.languages.register({ id: "java" })
 
@@ -81,8 +85,8 @@ export default function CodeEditor({ initialCode, onChange, className = "" }) {
   }
 
   return (
-    <div className={`w-full h-full ${className}`}>
-      <div ref={editorRef} className="w-full h-full min-h-[200px]" />
+    <div className="w-full h-full">
+      <div ref={editorRef} className={`w-full h-full ${className}`} />
       <style>
         {`
           .breakpoint-icon::after {

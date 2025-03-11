@@ -349,7 +349,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
             <div className="flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown("#")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("#")}>
                     <Heading className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -357,7 +357,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown("**")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("**")}>
                     <Bold className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -365,7 +365,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown("*")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("*")}>
                     <Italic className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -378,7 +378,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
             <div className="flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown("`")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("`")}>
                     <CodeSquare className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -386,7 +386,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown("```")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("```")}>
                     <Code2Icon className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -399,7 +399,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
             <div className="flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown("1.")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("1.")}>
                     <ListOrdered className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -407,7 +407,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown("-")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("-")}>
                     <List className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -415,7 +415,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown("---")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("---")}>
                     <Minus className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -428,7 +428,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
             <div className="flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown("[]()")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("[]()")}>
                     <LinkIcon className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -436,7 +436,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown("---")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown("---")}>
                     <Image className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -444,7 +444,7 @@ const MarkdownEditor = ({ value, onChange, cookieDraft }) => {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={() => applyMarkdown(">")}>
+                  <Button variant="outline" size="icon" type="button" onClick={() => applyMarkdown(">")}>
                     <Quote className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>

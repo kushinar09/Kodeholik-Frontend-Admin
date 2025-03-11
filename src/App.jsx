@@ -8,7 +8,6 @@ import GeneralError from "./features/errors/general-error"
 import MaintenanceError from "./features/errors/maintenance-error"
 import { AuthProvider } from "./provider/AuthProvider"
 import ProblemCreator from "./features/problem/ProblemCreate"
-import ProtectedRoute from "./provider/ProtectedRoute"
 import LoginPage from "./features/auth/login"
 import ForgotPassword from "./features/auth/forgot"
 import ResetPassword from "./features/auth/reset"
@@ -42,18 +41,16 @@ function App() {
               <Route path="/problem/create" element={<ProblemCreator />} />
               <Route path="/problem/:id" element={<ProblemEdit />} />
               <Route path="/exam" element={<ExamList />} />
-              
+
               {/* Course Page*/}
               <Route path="/course" element={<ViewListCourse/>}/>
               <Route path="/course/add" element={<CreateCourse/>}/>
               <Route path="/course/:id" element={<UpdateCourse/>}/>
             </Route>
-            {/* <Route element={<ProtectedRoute />}>
-            </Route> */}
           </Routes>
         </div>
       </AuthProvider>
-      <Toaster />
+      <Toaster richColors/>
     </Router>
   )
 }

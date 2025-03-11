@@ -50,9 +50,6 @@ const ENDPOINTS = {
   GET_PROBLEM_SOLUTIONS: `${API_URL}/problem-solution/list/:id`,
   GET_PROBLEM_SUBMISSIONS: `${API_URL}/problem/submissions/:id`,
   GET_SEARCH_PROBLEM: `${API_URL}/problem/search`,
-  POST_CREATE_PROBLEM: `${API_URL}/problem/create`,
-  POST_UPDATE_PROBLEM: `${API_URL}/problem/update/:id`,
-  POST_DELETE_PROBLEM: `${API_URL}/problem/delete/:id`,
 
   GET_TOPICS_PROBLEM: `${API_URL}/tag/all-topic`,
   GET_SKILLS_PROBLEM: `${API_URL}/tag/all-skill`,
@@ -83,7 +80,21 @@ const ENDPOINTS = {
 
   //Exam
   POST_EXAM_LIST_FOR_EXAMINER: `${API_URL}/examiner/list`,
-  GET_EXAM_DETAIL_FOR_EXAMINER: `${API_URL}/examiner/detail/`
+  GET_EXAM_DETAIL_FOR_EXAMINER: `${API_URL}/examiner/detail/`,
+
+  // Teacher role
+  // Problem
+  GET_TEACHER_PROBLEM_DETAILS: `${API_URL}/problem/basic-for-emp/:id`,
+  GET_TEACHER_PROBLEM_EDITORIAL: `${API_URL}/problem/editorial-for-emp/:id`,
+  GET_TEACHER_PROBLEM_TEMPLATE: `${API_URL}/problem/template-for-emp/:id`,
+  GET_TEACHER_PROBLEM_TESTCASE: `${API_URL}/problem/download-testcase/:id`,
+
+  POST_TEACHER_PROBLEMS_LIST: `${API_URL}/problem/list-problem`,
+  POST_CREATE_PROBLEM: `${API_URL}/problem/add-problem`,
+  POST_UPDATE_PROBLEM: `${API_URL}/problem/edit-problem/:id`,
+  POST_DELETE_PROBLEM: `${API_URL}/problem/delete/:id`,
+  PUT_CHANGE_STATUS_PROBLEM_ACTIVE: `${API_URL}/problem/activate-problem/:id`,
+  PUT_CHANGE_STATUS_PROBLEM_DEACTIVE: `${API_URL}/problem/deactivate-problem/:id`
 }
 
 

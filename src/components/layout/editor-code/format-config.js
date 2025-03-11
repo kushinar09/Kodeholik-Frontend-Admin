@@ -30,9 +30,9 @@ function formatJavaCode(code) {
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim()
 
-    if (line === "") {
-      continue
-    }
+    // if (line === "") {
+    //   continue
+    // }
 
     if (line.startsWith("/*")) {
       state.inComment = true
@@ -100,8 +100,8 @@ function formatLine(line, state) {
 
   // Format spacce for operators [==, ++, --, +=, -=]
   formattedLine = formattedLine.replace(/\s*=\s*=\s*/g, " == ")
-  formattedLine = formattedLine.replace(/\s*\+\s*\+\s*/g, " ++ ")
-  formattedLine = formattedLine.replace(/\s*-\s*-\s*/g, " -- ")
+  formattedLine = formattedLine.replace(/\s*\+\s*\+\s*/g, "++")
+  formattedLine = formattedLine.replace(/\s*-\s*-\s*/g, "--")
   formattedLine = formattedLine.replace(/\s*\+\s*=\s*/g, " += ")
   formattedLine = formattedLine.replace(/\s*-\s*=\s*/g, " -= ")
 

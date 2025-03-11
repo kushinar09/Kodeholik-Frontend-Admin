@@ -26,9 +26,9 @@ import {
   SidebarMenuItem,
   useSidebar
 } from "@/components/ui/sidebar"
-import { useAuth } from "@/provider/AuthProvider"
 import { Button } from "../ui/button"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/provider/AuthProvider"
 
 export function NavUser() {
   const { isAuthenticated, logout, user } = useAuth()
@@ -49,7 +49,7 @@ export function NavUser() {
         {!isAuthenticated &&
           <Button onClick={handleLogin}>Sign in</Button>
         }
-        {isAuthenticated &&
+        {isAuthenticated && user &&
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton

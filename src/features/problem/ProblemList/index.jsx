@@ -1,93 +1,131 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { AlertDialog } from "./components/alert-dialog"
 import { ProblemItem } from "./components/problem-item"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
+} from "@/components/ui/pagination"
+import { useAuth } from "@/provider/AuthProvider"
 import { FilterBar } from "./components/filter-list"
-import { Checkbox } from "@/components/ui/checkbox"
-
-const ITEMS_PER_PAGE = 10
+import { ENDPOINTS } from "@/lib/constants"
+import { toast } from "sonner"
 
 export default function ProblemList({ onNavigate }) {
-  const [problems, setProblems] = useState([
-    {
-      id: 1,
-      title: "Two Sum",
-      titleSearchAndSort: "Two Sum",
-      difficulty: "Easy",
-      acceptanceRate: 45.2,
-      noSubmission: 12500,
-      active: true,
-      link: "two-sum",
-      topics: ["Arrays", "Hash Table"],
-      skills: ["Problem Solving", "Data Structures"]
+  const [problemData, setProblemData] = useState({
+    content: [],
+    pageable: {
+      pageNumber: 0,
+      pageSize: 5,
+      sort: {
+        empty: false,
+        unsorted: false,
+        sorted: true
+      },
+      offset: 0,
+      unpaged: false,
+      paged: true
     },
-    {
-      id: 2,
-      title: "Reverse Linked List",
-      titleSearchAndSort: "Reverse Linked List",
-      difficulty: "Medium",
-      acceptanceRate: 62.8,
-      noSubmission: 8750,
-      active: false,
-      link: "reverse-linked-list",
-      topics: ["Linked List", "Recursion"],
-      skills: ["Data Structures", "Algorithms"]
+    last: false,
+    totalElements: 0,
+    totalPages: 0,
+    size: 5,
+    number: 0,
+    sort: {
+      empty: false,
+      unsorted: false,
+      sorted: true
     },
-    {
-      id: 3,
-      title: "Binary Tree Maximum Path Sum",
-      titleSearchAndSort: "Binary Tree Maximum Path Sum",
-      difficulty: "Hard",
-      acceptanceRate: 35.1,
-      noSubmission: 5200,
-      active: false,
-      link: "binary-tree-maximum-path-sum",
-      topics: ["Binary Tree", "DFS"],
-      skills: ["Tree Traversal", "Dynamic Programming"]
-    }
-  ])
+    first: true,
+    numberOfElements: 0,
+    empty: false
+  })
+  const pageSize = 10
 
-  const [showTags, setShowTags] = useState(false)
   const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false)
   const [currentProblem, setCurrentProblem] = useState(null)
   const [alertAction, setAlertAction] = useState(null)
   const [filters, setFilters] = useState({
-    search: "",
-    difficulty: "",
-    topics: [],
-    skills: [],
-    status: ""
+    page: 0,
+    size: pageSize,
+    title: "",
+    difficulty: null,
+    status: null,
+    isActive: true,
+    sortBy: null,
+    ascending: null
   })
-  const [currentPage, setCurrentPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const filteredProblems = useMemo(() => {
-    return problems.filter((problem) => {
-      const matchesSearch = problem.title.toLowerCase().includes(filters.search.toLowerCase())
-      const matchesDifficulty = !filters.difficulty || problem.difficulty === filters.difficulty
-      const matchesTopics =
-        filters.topics.length === 0 || filters.topics.every((topic) => problem.topics.includes(topic))
-      const matchesSkills =
-        filters.skills.length === 0 || filters.skills.every((skill) => problem.skills.includes(skill))
-      const matchesStatus =
-        !filters.status ||
-        (filters.status === "active" && problem.active) ||
-        (filters.status === "inactive" && !problem.active)
+  const { apiCall } = useAuth()
 
-      return matchesSearch && matchesDifficulty && matchesTopics && matchesSkills && matchesStatus
-    })
-  }, [problems, filters])
+  useEffect(() => {
+    const message = localStorage.getItem("toastMessage")
+    if (message) {
+      toast.success("Success", {
+        description: message
+      })
+      localStorage.removeItem("toastMessage")
+    }
+  }, [])
 
-  const pageCount = Math.ceil(filteredProblems.length / ITEMS_PER_PAGE)
-  const paginatedProblems = filteredProblems.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+  // Fetch problems when filters change
+  useEffect(() => {
+    fetchProblems()
+  }, [filters])
+
+  const fetchProblems = async () => {
+    setIsLoading(true)
+
+    try {
+      const response = await apiCall(ENDPOINTS.POST_TEACHER_PROBLEMS_LIST, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(filters)
+      })
+
+      if (!response.ok) {
+        toast.error("Error", {
+          description: response.json().message || `Failed to load problems. Catch error ${response.status}.`
+        })
+      }
+      const text = await response.text()
+      if (text && text.length > 0) {
+        const data = JSON.parse(text)
+        setProblemData(data)
+      } else setProblemData(null)
+    } catch (err) {
+      toast.error("Error", {
+        description: "Failed to load problems. Please try again."
+      })
+      setProblemData(null)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handlePageChange = (newPage) => {
+    setFilters((prev) => ({
+      ...prev,
+      page: newPage
+    }))
+  }
 
   const handleFilterChange = (newFilters) => {
-    setFilters(newFilters)
-    setCurrentPage(1)
+    setFilters((prev) => ({
+      ...prev,
+      ...newFilters,
+      page: 0
+    }))
   }
 
   const handleToggleActive = (problem) => {
@@ -96,30 +134,41 @@ export default function ProblemList({ onNavigate }) {
     setIsAlertDialogOpen(true)
   }
 
-  const confirmToggleActive = () => {
+  const confirmToggleActive = async () => {
     if (currentProblem) {
-      setProblems(problems.map((p) => (p.id === currentProblem.id ? { ...p, active: !p.active } : p)))
-      setIsAlertDialogOpen(false)
+      setIsLoading(true)
+      try {
+        const url = currentProblem.active ? ENDPOINTS.PUT_CHANGE_STATUS_PROBLEM_DEACTIVE : ENDPOINTS.PUT_CHANGE_STATUS_PROBLEM_ACTIVE
+        // Call API to toggle problem active status
+        const response = await apiCall(url.replace(":id", currentProblem.link), {
+          method: "PUT"
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to update problem status")
+        } else {
+          toast.success("Success", {
+            description: "Change problem status successfully."
+          })
+        }
+        // Refresh problem list
+        fetchProblems()
+      } catch (err) {
+        toast.error("Error", {
+          description: "Error updating problem status: " + (err.message || "Failed to load problems. Please try again.")
+        })
+      } finally {
+        setIsLoading(false)
+        setIsAlertDialogOpen(false)
+      }
     }
   }
-
-  const allTopics = Array.from(new Set(problems.flatMap((p) => p.topics)))
-  const allSkills = Array.from(new Set(problems.flatMap((p) => p.skills)))
-  const allDifficulties = Array.from(new Set(problems.map((p) => p.difficulty)))
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Problems</h2>
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="show-tags"
-              checked={showTags}
-              onCheckedChange={() => setShowTags(!showTags)}
-            />
-            <Label htmlFor="show-tags">Show Tags</Label>
-          </div>
           <Button onClick={() => onNavigate("/problem/create")}>
             <Plus className="mr-2 h-4 w-4" />
             Create
@@ -127,45 +176,74 @@ export default function ProblemList({ onNavigate }) {
         </div>
       </div>
 
-      <FilterBar
-        difficulties={allDifficulties}
-        topics={allTopics}
-        skills={allSkills}
-        onFilterChange={handleFilterChange}
-      />
+      <FilterBar onFilterChange={handleFilterChange} initialFilters={filters} pageSize={pageSize} />
 
-      <div className="grid gap-4">
-        {paginatedProblems.map((problem) => (
-          <ProblemItem
-            key={problem.id}
-            problem={problem}
-            showTags={showTags}
-            onEdit={() => onNavigate(`/problem/${problem.link}`)}
-            onToggleActive={() => handleToggleActive(problem)}
-          />
-        ))}
-      </div>
-
-      {pageCount > 1 && (
-        <div className="flex justify-center mt-6 space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <span className="flex items-center">
-            Page {currentPage} of {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage((prev) => Math.min(pageCount, prev + 1))}
-            disabled={currentPage === pageCount}
-          >
-            Next
-          </Button>
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
+      ) : (
+        <>
+          {!problemData || problemData.content.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">No problems found. Try adjusting your filters.</div>
+          ) : (
+            <div className="grid gap-4">
+              {problemData.content.map((problem) => (
+                <ProblemItem
+                  key={problem.link}
+                  problem={{
+                    ...problem,
+                    difficulty: problem.difficulty,
+                    link: problem.link
+                  }}
+                  onEdit={() => onNavigate(`/problem/${problem.link}`)}
+                  onToggleActive={() => handleToggleActive(problem)}
+                />
+              ))}
+            </div>
+          )}
+
+          {problemData && problemData.totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handlePageChange(Math.max(0, problemData.number - 1))
+                    }}
+                    disabled={problemData.first}
+                  />
+                </PaginationItem>
+                {Array.from({ length: problemData.totalPages }).map((_, index) => (
+                  <PaginationItem key={index}>
+                    <PaginationLink
+                      href="#"
+                      isActive={problemData.number === index}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handlePageChange(index)
+                      }}
+                    >
+                      {index + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handlePageChange(Math.min(problemData.number + 1, problemData.totalPages - 1))
+                    }}
+                    disabled={problemData.last}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </>
       )}
 
       <AlertDialog

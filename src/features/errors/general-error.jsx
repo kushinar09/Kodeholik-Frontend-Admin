@@ -19,10 +19,7 @@ export default function GeneralError({
         </p>
         {!minimal && (
           <div className='mt-6 flex gap-4'>
-            <Button variant='outline' onClick={() => window.history.back()}>
-              Go Back
-            </Button>
-            <Button onClick={() => navigate({ to: "/" })}>Back to Home</Button>
+            <Button onClick={() => navigate("/")}>Back to Home</Button>
           </div>
         )}
       </div>

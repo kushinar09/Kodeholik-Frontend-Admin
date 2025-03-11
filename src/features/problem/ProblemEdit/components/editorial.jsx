@@ -28,17 +28,26 @@ const formSchema = z.object({
   editorialSkills: z.array(z.string()).optional(),
   solutionCodes: z.array(
     z.object({
-      language: z.string(),
+      solutionLanguage: z.string(),
       solutionCode: z.string().min(1, "Solution code is required")
     })
   )
 })
 
 export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
-  const [activeLanguage, setActiveLanguage] = useState(formData.details.languageSupport[0] || "")
+  // Use formData.details.languageSupport if it exists and has items
+  const languages =
+    formData.details?.languageSupport && formData.details.languageSupport.length > 0
+      ? formData.details.languageSupport
+      : formData.editorial?.editorialDto?.solutionCodes
+        ? formData.editorial.editorialDto.solutionCodes.map((code) => code.solutionLanguage)
+        : []
+
+  const initialLanguage = languages.length > 0 ? languages[0] : ""
+  const [activeLanguage, setActiveLanguage] = useState(initialLanguage)
 
   const [topics, setTopics] = useState([])
-  const [skills, setKkills] = useState([])
+  const [skills, setSkills] = useState([])
 
   useEffect(() => {
     const fetchTopics = async () => {
@@ -55,7 +64,7 @@ export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
       try {
         const response = await fetch(ENDPOINTS.GET_SKILLS_PROBLEM)
         const data = await response.json()
-        setKkills(data)
+        setSkills(data)
       } catch (error) {
         console.error("Error fetching skills:", error)
       }
@@ -65,33 +74,104 @@ export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
     fetchSkills()
   }, [])
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      editorialTitle: formData.editorial.editorialTitle || "",
-      editorialTextSolution: formData.editorial.editorialTextSolution || "",
-      editorialSkills: formData.editorial.editorialSkills || [],
-      solutionCodes: formData.details.languageSupport.map((lang) => ({
-        language: lang,
-        solutionCode: formData.editorial.solutionCode.find(l => l.solutionLanguage === lang)?.solutionCode || ""
+  // Initialize form with existing data
+  const getDefaultValues = () => {
+    // console.log(formData.editorial)
+    if (formData.editorial) {
+      const editorialData = formData.editorial
+
+      // Map solution codes to the expected format
+      const solutionCodes = languages.map((lang) => {
+        const existingCode = editorialData.solutionCodes.find((code) => code.solutionLanguage === lang)
+
+        return {
+          solutionLanguage: lang,
+          solutionCode: existingCode?.solutionCode || ""
+        }
+      })
+
+      return {
+        editorialTitle: editorialData.editorialTitle || "",
+        editorialTextSolution: editorialData.editorialTextSolution || "",
+        editorialSkills: editorialData.editorialSkills || [],
+        solutionCodes
+      }
+    }
+
+    // Default values if no editorial data exists
+    return {
+      editorialTitle: "",
+      editorialTextSolution: "",
+      editorialSkills: [],
+      solutionCodes: languages.map((lang) => ({
+        solutionLanguage: lang,
+        solutionCode: ""
       }))
     }
+  }
+
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: getDefaultValues()
   })
-  // Fix the handleSubmit function to properly pass data to parent component
-  // Replace the handleSubmit function with:
+
+  // Update form when formData changes
+  useEffect(() => {
+    if (formData.editorial?.editorialDto) {
+      form.reset(getDefaultValues())
+    }
+  }, [formData.editorial, form])
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      console.log("Updated form values:", value.solutionCodes)
+      console.log("Changed field:", name) // ✅ Shows which field changed
+      console.log("Dirty fields:", form.formState.dirtyFields) // ✅ Check if the field is marked as changed
+    })
+
+    return () => subscription.unsubscribe()
+  }, [form.watch, form.formState.dirtyFields])
+
+  // Watch for form changes and update parent formData
+  useEffect(() => {
+    console.log("editorial", form.getValues())
+    const subscription = form.watch((value) => {
+      if (Object.keys(form.formState.dirtyFields).length > 0) {
+        // Only update if form has been modified
+        const formValues = form.getValues()
+        // Extract input parameters from form values
+        const transformedData = {
+          editorialTitle: formValues.editorialTitle,
+          editorialTextSolution: formValues.editorialTextSolution,
+          editorialSkills: formValues.editorialSkills,
+          solutionCodes: formValues.solutionCodes.map((code) => ({
+            solutionLanguage: code.solutionLanguage,
+            solutionCode: code.solutionCode
+          }))
+        }
+        // Update the parent's formData with the new inputParameter array
+        updateFormData(transformedData, "editorial")
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [form, updateFormData])
+
   const handleSubmit = (values) => {
     // Transform the data to match the parent component's expected structure
     const transformedData = {
-      editorialTitle: values.editorialTitle,
-      editorialTextSolution: values.editorialTextSolution,
-      editorialSkills: values.editorialSkills,
-      solutionCode: values.solutionCodes.map((code) => ({
-        solutionLanguage: code.language,
-        solutionCode: code.solutionCode
-      }))
+      editorialDto: {
+        editorialTitle: values.editorialTitle,
+        editorialTextSolution: values.editorialTextSolution,
+        editorialSkills: values.editorialSkills,
+        solutionCodes: values.solutionCodes.map((code) => ({
+          solutionLanguage: code.solutionLanguage,
+          solutionCode: code.solutionCode
+        }))
+      }
     }
 
-    console.log("Editorial submitting:", transformedData)
+    // console.log("Editorial submitting:", transformedData)
     updateFormData(transformedData, "editorial")
     onNext()
   }
@@ -121,7 +201,7 @@ export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
             name="editorialTextSolution"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Problem Description</FormLabel>
+                <FormLabel>Problem Solution</FormLabel>
                 <FormControl>
                   <div className="border rounded-md h-fit">
                     <MarkdownEditor value={field.value} onChange={field.onChange} />
@@ -154,43 +234,46 @@ export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
           {/* Solution Code Tabs */}
           <div className="space-y-4">
             <Label>Solution Code</Label>
-            <Tabs value={activeLanguage} onValueChange={setActiveLanguage}>
-              <TabsList className="w-full">
-                {formData.details.languageSupport.map((language) => (
-                  <TabsTrigger key={language} value={language} className="flex-1">
+            <Tabs value={activeLanguage} onValueChange={setActiveLanguage} className="bg-muted rounded-md">
+              <TabsList>
+                {languages.map((language) => (
+                  <TabsTrigger key={language} value={language} className="flex-1 min-w-24">
                     {language}
                   </TabsTrigger>
                 ))}
               </TabsList>
 
-              {formData.details.languageSupport.map((language, index) => (
-                <TabsContent key={language} value={language}>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>{language} Solution</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <FormField
-                        control={form.control}
-                        name={`solutionCodes.${index}.solutionCode`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Template Code</FormLabel>
-                            <FormControl>
-                              <CodeEditor
-                                initialCode={field.value || ""}
-                                onChange={field.onChange}
-                                className="min-h-[200px]"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              ))}
+              {languages.map((language, index) => {
+                // Find the index in the form's solutionCodes array that matches this language
+                const codeIndex = form.getValues().solutionCodes.findIndex((code) => code.solutionLanguage === language)
+                return (
+                  <TabsContent key={language} value={language} className="mt-0">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{language} Solution</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <FormField
+                          control={form.control}
+                          name={`solutionCodes.${codeIndex}.solutionCode`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <CodeEditor
+                                  className="min-h-[300px]"
+                                  initialCode={field.value || ""}
+                                  onChange={field.onChange}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                )
+              })}
             </Tabs>
           </div>
         </div>

@@ -111,7 +111,7 @@ export default function ResetPassword() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full bg-button-secondary hover:bg-button-secondaryHover font-semibold" disabled={form.formState.isSubmitting}>
+                <Button type="submit" variant="outline" className="w-full" disabled={form.formState.isSubmitting}>
                   {form.formState.isSubmitting ? "Resetting..." : "Reset Password"}
                 </Button>
               </div>

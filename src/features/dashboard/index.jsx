@@ -19,7 +19,10 @@ import UpdateCourse from "../course/CourseUpdate/UpdateCourse"
 export default function Dashboard() {
   const location = useLocation()
   const navigate = useNavigate()
+
   const [activeState, setActiveState] = useState("")
+  const [headerData, setHeaderData] = useState([])
+
   const [currentTitleProblem, setCurrentTitleProblem] = useState("")
   const [currentTitleCourse, setCurrentTitleCourse] = useState("")
 
@@ -32,14 +35,14 @@ export default function Dashboard() {
       setActiveState("problemEdit")
       // TODO: get title base slug
       // example
-      setCurrentTitleProblem("Two Sum")
+      // setCurrentTitleProblem("Edit Problem")
     } else if (location.pathname === "/exam") {
       setActiveState("examList")
-    }else if (location.pathname === "/course"){
+    } else if (location.pathname === "/course") {
       setActiveState("courseList")
-    }else if (location.pathname === "/course/add"){
+    } else if (location.pathname === "/course/add") {
       setActiveState("createCourse")
-    }else if (/^\/course\/[\w-]+$/.test(location.pathname)){
+    } else if (/^\/course\/[\w-]+$/.test(location.pathname)) {
       setActiveState("updateCourse")
       setCurrentTitleCourse("Java Beginner")
     } else {
@@ -47,67 +50,68 @@ export default function Dashboard() {
     }
   }, [location.pathname])
 
-  const getHeaderData = () => {
+  useEffect(() => {
+    const pathname = location.pathname
     const headerMap = {
       "/problem": [{ title: "Problem", url: "/" }],
       "/exam": [{ title: "Examination", url: "/" }],
-      "/course": [{title: "Course", url: "/"}],
+      "/course": [{ title: "Course", url: "/" }],
       "/course/add": [
-        {title: "Course", url: "/course"},
-        {title: "Create Course", url: "#"}
+        { title: "Course", url: "/course" },
+        { title: "Create Course", url: "#" },
       ],
       "/problem/create": [
         { title: "Problem", url: "/problem" },
-        { title: "Create Problem", url: "#" }
-      ]
+        { title: "Create Problem", url: "#" },
+      ],
     }
 
-    const match = location.pathname.match(/^\/problem\/[\w-]+$/)
-    const courseMatch = location.pathname.match(/^\/course\/[\w-]+$/)
+    const match = pathname.match(/^\/problem\/[\w-]+$/)
+    const courseMatch = pathname.match(/^\/course\/[\w-]+$/)
 
-    if (location.pathname !== "/problem/create" && match) {
-      headerMap[location.pathname] = [
+    if (pathname !== "/problem/create" && match) {
+      headerMap[pathname] = [
         { title: "Problem", url: "/problem" },
-        { title: currentTitleProblem, url: "#" }
+        { title: currentTitleProblem, url: "#" },
       ]
     }
 
-    if (location.pathname !== "/course/add" && courseMatch) {
-      headerMap[location.pathname] = [
+    if (pathname !== "/course/add" && courseMatch) {
+      headerMap[pathname] = [
         { title: "Course", url: "/course" },
-        { title: currentTitleCourse, url: "#" }
+        { title: currentTitleCourse, url: "#" },
       ]
     }
 
-    if (location.pathname.startsWith("/users")) {
-      return [
+    if (pathname.startsWith("/users")) {
+      setHeaderData([
         { title: "Users", url: "/users" },
-        { title: "Create User", url: "/users/create" }
-      ]
+        { title: "Create User", url: "/users/create" },
+      ])
+      return
     }
 
-    return headerMap[location.pathname] || [{ title: "Dashboard", url: "/" }]
-  }
+    setHeaderData(headerMap[pathname] || [{ title: "Dashboard", url: "/" }])
+  }, [location.pathname, currentTitleProblem, currentTitleCourse])
 
-
-  const handleNavigation = (path) => {
-    navigate(path)
+  const handleNavigation = (newPath) => {
+    navigate(newPath)
   }
 
   return (
     <SidebarProvider>
       <AppSidebar onNavigate={handleNavigation} />
       <SidebarInset>
-        <Header headerData={getHeaderData() || []} onNavigate={handleNavigation} />
+        <Header headerData={headerData || []} onNavigate={handleNavigation} />
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {activeState === "" && <Overview onNavigate={handleNavigation} />}
+          {activeState === "" && <Overview />}
           {activeState === "problemList" && <ProblemList onNavigate={handleNavigation} />}
-          {activeState === "problemCreate" && <ProblemCreator />}
-          {activeState === "problemEdit" && <ProblemEdit onNavigate={handleNavigation} />}
+          {activeState === "problemCreate" && <ProblemCreator onNavigate={handleNavigation} />}
+          {activeState === "problemEdit" && <ProblemEdit onNavigate={handleNavigation} setCurrentTitleProblem={setCurrentTitleProblem} />}
           {activeState === "examList" && <ExamList onNavigate={handleNavigation} />}
-          {activeState === "courseList" && <CourseList onNavigate={handleNavigation} />}
-          {activeState === "createCourse" && <CreateCourse onNavigate={handleNavigation} />}
-          {activeState === "updateCourse" && <UpdateCourse onNavigate={handleNavigation} />}
+          {activeState === "courseList" && <CourseList />}
+          {activeState === "createCourse" && <CreateCourse />}
+          {activeState === "updateCourse" && <UpdateCourse />}
         </div>
       </SidebarInset>
     </SidebarProvider>
