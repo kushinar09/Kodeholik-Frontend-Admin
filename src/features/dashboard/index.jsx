@@ -17,6 +17,9 @@ import UpdateCourse from "../course/CourseUpdate/UpdateCourse"
 import ExamList from "../exam/list"
 import { CreateExam } from "../exam/create"
 import { EditExam } from "../exam/edit"
+import UserList from "../users/list"
+import CreateUser from "../users/create"
+import EditUser from "../users/edit"
 
 export default function Dashboard() {
   const location = useLocation()
@@ -25,9 +28,9 @@ export default function Dashboard() {
   const [currentTitleProblem, setCurrentTitleProblem] = useState("")
   const [currentTitleCourse, setCurrentTitleCourse] = useState("")
   const [currentTitleExam, setCurrentTitleExam] = useState("")
+  const [currentTitleUser, setCurrentTitleUser] = useState("")
 
   useEffect(() => {
-    console.log(location.pathname)
     if (location.pathname === "/problem") {
       setActiveState("problemList")
     } else if (location.pathname === "/problem/create") {
@@ -46,6 +49,15 @@ export default function Dashboard() {
     } else if (location.pathname.includes("/exam/edit")) {
       setActiveState("examEdit")
       setCurrentTitleExam("Examination");
+    }else if (location.pathname === "/user") {
+      setActiveState("userList")
+      setCurrentTitleUser("Users");
+    }else if (location.pathname === "/user/create") {
+      setActiveState("userCreate")
+      setCurrentTitleUser("Users");
+    }else if (location.pathname.includes("/user/edit")) {
+      setActiveState("userEdit")
+      setCurrentTitleUser("Users");
     }else if (location.pathname === "/course") {
       setActiveState("courseList")
     } else if (location.pathname === "/course/add") {
@@ -70,6 +82,15 @@ export default function Dashboard() {
         { title: "Examination", url: "/exam" },
         { title: "Edit Exam", url: "#" }
       ],
+      "/user": [{ title: "Users", url: "/" }],
+      "/user/create": [
+        { title: "Users", url: "/user" },
+        { title: "Create User", url: "#" }
+      ],
+      "/user/edit": [
+        { title: "Users", url: "/user" },
+        { title: "Edit User", url: "#" }
+      ],
       "/course": [{ title: "Course", url: "/" }],
       "/course/add": [
         { title: "Course", url: "/course" },
@@ -84,7 +105,9 @@ export default function Dashboard() {
     const match = location.pathname.match(/^\/problem\/[\w-]+$/)
     const courseMatch = location.pathname.match(/^\/course\/[\w-]+$/)
     const examMatch = location.pathname.match(/^\/exam\/[\w-]+$/)
-    const examEditMatch = location.pathname.match(/^\/exam\/[^/]+\/[^/]+$/);
+    const examEditMatch = location.pathname.match(/^\/exam\/[^/]+\/[^/]+$/)
+    const userEditMatch = location.pathname.match(/^\/user\/[^/]+\/[^/]+$/)
+    const userMatch = location.pathname.match(/^\/user\/[\w-]+$/)
 
     if (location.pathname !== "/problem/create" && match) {
       headerMap[location.pathname] = [
@@ -121,12 +144,20 @@ export default function Dashboard() {
       ]
     }
 
-    if (location.pathname.startsWith("/users")) {
-      return [
-        { title: "Users", url: "/users" },
-        { title: "Create User", url: "/users/create" }
+    if(userEditMatch) {
+      headerMap[location.pathname] = [
+        { title: "Users", url: "/user" },
+        { title: "Edit User", url: "#" }
       ]
     }
+
+    if (location.pathname !== "/user/create" && userMatch) {
+      headerMap[location.pathname] =  [
+        { title: "Users", url: "/user" },
+        { title: "Create User", url: "/user/create" }
+      ]
+    }
+    
 
     return headerMap[location.pathname] || [{ title: "Dashboard", url: "/" }]
   }
@@ -146,6 +177,9 @@ export default function Dashboard() {
           {activeState === "problemList" && <ProblemList onNavigate={handleNavigation} />}
           {activeState === "problemCreate" && <ProblemCreator />}
           {activeState === "problemEdit" && <ProblemEdit onNavigate={handleNavigation} />}
+          {activeState === "userList" && <UserList onNavigate={handleNavigation} />}
+          {activeState === "userCreate" && <CreateUser onNavigate={handleNavigation} />}
+          {activeState === "userEdit" && <EditUser onNavigate={handleNavigation} />}
           {activeState === "examList" && <ExamList onNavigate={handleNavigation} />}
           {activeState === "examCreate" && <CreateExam onNavigate={handleNavigation} />}
           {activeState === "examEdit" && <EditExam onNavigate={handleNavigation} />}

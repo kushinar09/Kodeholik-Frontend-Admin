@@ -36,7 +36,6 @@ let mockFormData = {
 }
 export function EditExam({ onNavigate }) {
 
-  console.log("1");
   const { code } = useParams();
   const [activeStep, setActiveStep] = useState("details");
   const [formData, setFormData] = useState(mockFormData);

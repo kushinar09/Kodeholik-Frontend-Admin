@@ -19,6 +19,9 @@ import ExamList from "./features/exam/list"
 import { Toaster } from "sonner"
 import { CreateExam } from "./features/exam/create"
 import { EditExam } from "./features/exam/edit"
+import UserList from "./features/users/list"
+import CreateUser from "./features/users/create"
+import EditUser from "./features/users/edit"
 
 function App() {
   return (
@@ -53,13 +56,18 @@ function App() {
               <Route path="/exam" element={<ExamList />} />
               <Route path="/exam/create" element={<CreateExam />} />
               <Route path="/exam/edit/:code" element={<EditExam />} />
+
+              {/* User Page*/}
+              <Route path="/user" element={<UserList />} />
+              <Route path="/user/create" element={<CreateUser />} />
+              <Route path="/user/edit/:id" element={<EditUser />} />
             </Route>
             {/* <Route element={<ProtectedRoute />}>
             </Route> */}
           </Routes>
         </div>
       </AuthProvider>
-      <Toaster />
+      <Toaster richColors/>
     </Router>
   )
 }

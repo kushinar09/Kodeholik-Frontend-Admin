@@ -1,7 +1,7 @@
 "use client"
 import * as React from "react"
 
-import { useState, useEffect, useRef} from "react"
+import { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -13,13 +13,13 @@ import { cn } from "@/lib/utils"
 import { addDays, format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
-
+import { useDebounce } from "./use-debounce"
 
 export function FilterBar({ onFilterChange }) {
     const [open, setOpen] = useState(false);
     const calendarRef = useRef(null);
 
-    const [date, setDate] = React.useState  ({
+    const [date, setDate] = React.useState({
         from: new Date(2024, 0, 20),
         to: new Date(2026, 0, 20),
     })
@@ -27,8 +27,23 @@ export function FilterBar({ onFilterChange }) {
     const [filters, setFilters] = useState({
         search: "",
         status: "all",
+        role: "all",
         date: date
     })
+
+    const [searchInput, setSearchInput] = useState('')
+
+    // Debounce the search input with a 500ms delay
+    const debouncedSearchTerm = useDebounce(searchInput, 500)
+
+    // Update filters only after debounce
+    useEffect(() => {
+        handleFilterChange("search", debouncedSearchTerm)
+    }, [debouncedSearchTerm])
+
+    const handleSearchInputChange = (e) => {
+        setSearchInput(e.target.value)
+      }
 
     const handleFilterChange = (key, value) => {
         const newFilters = { ...filters, [key]: value }
@@ -44,6 +59,7 @@ export function FilterBar({ onFilterChange }) {
         const clearedFilters = {
             search: "",
             status: "all",
+            role: "all",
             date: {
                 from: new Date(2024, 0, 20),
                 to: new Date(2026, 0, 20),
@@ -58,18 +74,18 @@ export function FilterBar({ onFilterChange }) {
     }
 
     useEffect(() => {
-        if(!open) {
+        if (!open) {
             handleFilterChange("date", date);
 
         }
-      }, [open])
+    }, [open])
 
     return (
         <div className="flex flex-wrap gap-4 items-center mb-4 mt-4">
             <Input
-                placeholder="Search exam title..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange("search", e.target.value)}
+                placeholder="Search username or fullname..."
+                value={searchInput}
+                onChange={handleSearchInputChange}
                 className="w-full md:w-64"
             />
             <Popover open={open} onOpenChange={setOpen}>
@@ -105,7 +121,7 @@ export function FilterBar({ onFilterChange }) {
                         selected={date}
                         onSelect={setDate}
                         value={date}
-                        onClickOutside ={handleDateChange}
+                        onClickOutside={handleDateChange}
                         numberOfMonths={2}
                     />
                 </PopoverContent>
@@ -116,9 +132,21 @@ export function FilterBar({ onFilterChange }) {
                 </SelectTrigger>
                 <SelectContent defaultValue="all">
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="NOT_STARTED">Not Started</SelectItem>
-                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                    <SelectItem value="END">End</SelectItem>
+                    <SelectItem value="ACTIVATED">Activated</SelectItem>
+                    <SelectItem value="NOT_ACTIVATED">Not Activated</SelectItem>
+                    <SelectItem value="BANNED">Banned</SelectItem>
+                </SelectContent>
+            </Select>
+            <Select value={filters.role} onValueChange={(value) => handleFilterChange("role", value)}>
+                <SelectTrigger className="w-full md:w-40">
+                    <SelectValue placeholder="Role" />
+                </SelectTrigger>
+                <SelectContent defaultValue="all">
+                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="STUDENT">Student</SelectItem>
+                    <SelectItem value="TEACHER">Teacher</SelectItem>
+                    <SelectItem value="EXAMINER">Examiner</SelectItem>
+                    <SelectItem value="ADMIN">Admin</SelectItem>
                 </SelectContent>
             </Select>
             <Button variant="outline" onClick={clearFilters}>

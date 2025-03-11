@@ -87,7 +87,15 @@ const ENDPOINTS = {
   GET_PRIVATE_PROBLEM_FOR_EXAMINER: `${API_URL}/examiner/private-problem`,
   DELETE_EXAM: `${API_URL}/examiner/delete/`,
   POST_CREATE_EXAM: `${API_URL}/examiner/create`,
-  POST_EDIT_EXAM: `${API_URL}/examiner/edit/`
+  POST_EDIT_EXAM: `${API_URL}/examiner/edit/`,
+
+  //User
+  POST_USER_LIST_FOR_ADMIN: `${API_URL}/admin/list-user`,
+  BAN_USER: `${API_URL}/admin/ban-user/`,
+  UNBAN_USER: `${API_URL}/admin/unban-user/`,
+  CREATE_USER: `${API_URL}/admin/add-user`,
+  EDIT_USER: `${API_URL}/admin/edit-user/`,
+  DETAIL_USER: `${API_URL}/admin/detail/`
 }
 
 

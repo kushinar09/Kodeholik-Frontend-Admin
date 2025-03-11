@@ -101,6 +101,7 @@ export default function ExamList({ onNavigate }) {
       const data = await getListExamForExaminer(apiCall, requestData)
       if (data == null) {
         setNoContent(true)
+        setTotalElements(0)
       }
       else {
         setExams(data.content)
@@ -127,25 +128,13 @@ export default function ExamList({ onNavigate }) {
   }
 
   const handleSizeChange = (size) => {
+    requestData.page = 0
+    setCurrentPage(1)
     setSize(size)
     requestData.size = Number(size);
     fetchExamList()
   }
   const allStatuses = Array.from(new Set("Not Started", "Inprogress", "End"))
-
-  const handleEditExam = (exam) => {
-    if (currentExam) {
-      const updatedExam = {
-        ...currentExam,
-        title: exam.title,
-        startTime: exam.startTime,
-        endTime: exam.endTime
-      }
-      setExams(exams.map((e) => (e.id === currentExam.id ? updatedExam : e)))
-      setIsEditDialogOpen(false)
-    }
-  }
-
 
   const handleDeleteExam = async () => {
     try {
@@ -194,6 +183,30 @@ export default function ExamList({ onNavigate }) {
           <Plus className="mr-2 h-4 w-4" /> Create Exam
         </Button>
       </div>
+      <div className="flex items-center">
+              <div>
+                No Result: <span className="font-semibold">{totalElements}</span>
+              </div>
+              <div className="flex ml-8 items-center">
+                <div>
+                  Size
+                </div>
+                <div className="ml-4">
+                  <Select value={size} onValueChange={(value) => handleSizeChange(value)}>
+                    <SelectTrigger className="w-full md:w-40">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent defaultValue="all">
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
       {!noContent &&
         <Table>
           <TableHeader>
@@ -316,30 +329,6 @@ export default function ExamList({ onNavigate }) {
       {
         !isLoading && totalPages > 1 && !noContent && (
           <div className="flex justify-between items-center mt-4 w-full">
-            <div className="flex items-center">
-              <div>
-                No Result: <span className="font-semibold">{totalElements}</span>
-              </div>
-              <div className="flex ml-8 items-center">
-                <div>
-                  Size
-                </div>
-                <div className="ml-4">
-                  <Select value={size} onValueChange={(value) => handleSizeChange(value)}>
-                    <SelectTrigger className="w-full md:w-40">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent defaultValue="all">
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
             <div className="flex-1 flex justify-center gap-2">
               <Button
                 variant="ghost"

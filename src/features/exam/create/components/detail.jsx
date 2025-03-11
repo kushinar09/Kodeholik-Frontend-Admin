@@ -79,7 +79,6 @@ export function CreateExamDetails({ onNext, formData, updateFormData }) {
 
     function onSubmit(values) {
         const currentValues = form.getValues()
-        console.log("Form submitted with values:", currentValues);
         updateFormData(currentValues, 'details');
         if (onNext) onNext(values)
     }

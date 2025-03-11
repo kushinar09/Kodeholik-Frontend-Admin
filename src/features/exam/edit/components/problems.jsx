@@ -117,7 +117,6 @@ export function EditExamProblems({ onNext, onPrevious, formData, updateFormData 
             const newValues = [...currentValues]
             newValues.splice(index, 1)
             form.setValue("problems", newValues)
-            console.log(form.getValues());
         }
     }
 
@@ -130,11 +129,7 @@ export function EditExamProblems({ onNext, onPrevious, formData, updateFormData 
         if (Number(totalPoint) != 10) {
             toast.error("Error", {
                 description: "Total point of all problem in your exam must be 10",
-                variant: "destructive",
-                action: {
-                    label: "Undo",
-                    onClick: () => console.log("Undo"),
-                },
+                variant: "destructive"
             });
 
         }
