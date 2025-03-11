@@ -63,14 +63,15 @@ export default function ProblemList({ onNavigate }) {
     ascending: null
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
 
   const { apiCall } = useAuth()
 
   useEffect(() => {
     const message = localStorage.getItem("toastMessage")
     if (message) {
-      toast.success(message)
+      toast.success("Success", {
+        description: message
+      })
       localStorage.removeItem("toastMessage")
     }
   }, [])
@@ -82,7 +83,6 @@ export default function ProblemList({ onNavigate }) {
 
   const fetchProblems = async () => {
     setIsLoading(true)
-    setError(null)
 
     try {
       const response = await apiCall(ENDPOINTS.POST_TEACHER_PROBLEMS_LIST, {
@@ -94,12 +94,19 @@ export default function ProblemList({ onNavigate }) {
       })
 
       if (!response.ok) {
-        setError("Failed to load problems. Please try again.")
+        toast.error("Error", {
+          description: response.json().message || `Failed to load problems. Catch error ${response.status}.`
+        })
       }
-
-      const data = await response.json()
-      setProblemData(data)
+      const text = await response.text()
+      if (text && text.length > 0) {
+        const data = JSON.parse(text)
+        setProblemData(data)
+      } else setProblemData(null)
     } catch (err) {
+      toast.error("Error", {
+        description: "Failed to load problems. Please try again."
+      })
       setProblemData(null)
     } finally {
       setIsLoading(false)
@@ -139,12 +146,17 @@ export default function ProblemList({ onNavigate }) {
 
         if (!response.ok) {
           throw new Error("Failed to update problem status")
+        } else {
+          toast.success("Success", {
+            description: "Change problem status successfully."
+          })
         }
         // Refresh problem list
         fetchProblems()
       } catch (err) {
-        console.error("Error updating problem status:", err)
-        setError("Failed to update problem status. Please try again.")
+        toast.error("Error", {
+          description: "Error updating problem status: " + (err.message || "Failed to load problems. Please try again.")
+        })
       } finally {
         setIsLoading(false)
         setIsAlertDialogOpen(false)
@@ -165,12 +177,6 @@ export default function ProblemList({ onNavigate }) {
       </div>
 
       <FilterBar onFilterChange={handleFilterChange} initialFilters={filters} pageSize={pageSize} />
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <span className="block sm:inline">{error}</span>
-        </div>
-      )}
 
       {isLoading ? (
         <div className="flex justify-center py-8">

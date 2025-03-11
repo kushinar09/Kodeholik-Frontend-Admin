@@ -22,20 +22,30 @@ const formSchema = z.object({
       parameters: z.array(
         z.object({
           inputName: z.string().min(1, "Parameter name is required"),
-          inputType: z.string().min(1, "Parameter type is required")
+          inputType: z.string().min(1, "Parameter type is required"),
+          otherInputType: z.string().nullable().optional(),
+          noDimension: z.number().nullable().optional()
         })
       ),
       templateCode: z.string().min(1, "Template code is required")
     })
   ),
   sharedFunctionSignature: z.string().min(1, "Function signature is required"),
-  sharedReturnType: z.string().min(1, "Return type is required")
+  sharedReturnType: z.string().min(1, "Return type is required"),
+  otherReturnType: z.string().nullable().optional(),
+  noDimension: z.number().nullable().optional()
 })
 
-export function InputParameters({ formData, updateFormData, onNext, onPrevious }) {
-  // Find the first supported language or use the first one from inputParameter if it exists
-  const initialLanguage =
-    formData.inputParameter.length > 0 ? formData.inputParameter[0].language : formData.details.languageSupport[0] || ""
+export function InputParameters({ formData, updateFormData, onNext, otherType = false, onPrevious }) {
+  // Use formData.details.languageSupport if it exists and has items
+  const languages =
+    formData.details?.languageSupport && formData.details.languageSupport.length > 0
+      ? formData.details.languageSupport
+      : formData.inputParameter?.length > 0
+        ? formData.inputParameter.map((item) => item.language)
+        : []
+
+  const initialLanguage = languages.length > 0 ? languages[0] : ""
 
   const [activeLanguage, setActiveLanguage] = useState(initialLanguage)
   const [returnTypes] = useState([
@@ -55,7 +65,7 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
     "ARR_OBJECT",
     "ARR_STRING",
     "OBJECT",
-    "UNKNOWN"
+    "OTHER"
   ])
 
   // Initialize form with existing data or create new entries for each language
@@ -67,26 +77,33 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
 
       // Map existing data to match form structure
       return {
-        problemInputParameterDto: formData.inputParameter.map((param) => ({
-          language: param.language,
-          parameters: param.parameters || [],
-          templateCode: param.templateCode || ""
-        })),
+        problemInputParameterDto: languages.map((lang) => {
+          const existingParam = formData.inputParameter.find((param) => param.language === lang)
+          return {
+            language: lang,
+            parameters: existingParam?.parameters || [],
+            templateCode: existingParam?.templateCode?.code || ""
+          }
+        }),
         // Add shared fields with values from the first item
         sharedFunctionSignature: firstItem.functionSignature || "",
-        sharedReturnType: firstItem.returnType || ""
+        sharedReturnType: firstItem.returnType || "",
+        otherReturnType: firstItem.otherReturnType || "",
+        noDimension: firstItem.noDimension || 1
       }
     }
 
     // Otherwise, create new entries for each supported language
     return {
-      problemInputParameterDto: formData.details.languageSupport.map((lang) => ({
+      problemInputParameterDto: languages.map((lang) => ({
         language: lang,
         parameters: [],
         templateCode: ""
       })),
       sharedFunctionSignature: "",
-      sharedReturnType: ""
+      sharedReturnType: "",
+      otherReturnType: "",
+      noDimension: 1
     }
   }
 
@@ -98,20 +115,38 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
   // Update form when formData changes
   useEffect(() => {
     if (formData.inputParameter && formData.inputParameter.length > 0) {
-      const firstItem = formData.inputParameter[0]
-
-      const formattedData = {
-        problemInputParameterDto: formData.inputParameter.map(param => ({
-          language: param.language,
-          parameters: param.parameters || [],
-          templateCode: param.templateCode || ""
-        })),
-        sharedFunctionSignature: firstItem.functionSignature || "",
-        sharedReturnType: firstItem.returnType || ""
-      }
-      form.reset(formattedData)
+      form.reset(getDefaultValues())
     }
   }, [formData.inputParameter, form])
+
+  // Watch for form changes and update parent formData
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (Object.keys(form.formState.dirtyFields).length > 0) {
+        // Only update if form has been modified
+        const formValues = form.getValues()
+
+        // Extract input parameters from form values
+        const inputParameters = formValues.problemInputParameterDto.map((param) => ({
+          language: param.language,
+          functionSignature: formValues.sharedFunctionSignature,
+          returnType: formValues.sharedReturnType === "OTHER" ? "UNKNOWN" : formValues.sharedReturnType,
+          otherReturnType: formValues.otherReturnType,
+          noDimension: formValues.sharedReturnType.startsWith("ARR_") ? formValues.noDimension : null,
+          parameters: param.parameters || [],
+          templateCode: {
+            code: param.templateCode,
+            language: param.language
+          }
+        }))
+
+        // Update the parent's formData with the new inputParameter array
+        updateFormData(inputParameters, "parameters")
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [form, updateFormData])
 
   const addParameter = (languageIndex) => {
     const currentParams = form.getValues(`problemInputParameterDto.${languageIndex}.parameters`) || []
@@ -133,24 +168,34 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
 
   // Handle form submission
   const handleSubmit = (values) => {
-    console.log("Input Parameters submitting:", values)
     // Extract input parameters from form values
     const inputParameters = values.problemInputParameterDto.map((param) => ({
       language: param.language,
       functionSignature: values.sharedFunctionSignature,
-      returnType: values.sharedReturnType,
+      returnType: values.sharedReturnType === "OTHER" ? "UNKNOWN" : values.sharedReturnType,
+      otherReturnType: values.otherReturnType,
+      noDimension: values.sharedReturnType.startsWith("ARR_") ? values.noDimension : null,
       parameters: param.parameters || [],
-      templateCode: param.templateCode
+      templateCode: {
+        code: param.templateCode,
+        language: param.language
+      }
     }))
 
     // Update the parent's formData with the new inputParameter array
     updateFormData(inputParameters, "parameters")
+
+    // Move to the next step
     onNext()
+  }
+
+  const onError = (errors) => {
+    console.error("Form validation errors:", errors)
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit, onError)} className="space-y-6">
         <h2 className="text-2xl font-bold">Input Parameters</h2>
 
         {/* Shared Function Signature and Return Type */}
@@ -167,10 +212,7 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
                 <FormItem>
                   <FormLabel>Function Signature</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="e.g., twoSum"
-                      {...field}
-                    />
+                    <Input placeholder="e.g., twoSum" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -202,21 +244,61 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
                 </FormItem>
               )}
             />
+
+            {/* Other Return Type - only show if "OTHER" is selected */}
+            {form.watch("sharedReturnType") === "OTHER" && (
+              <FormField
+                control={form.control}
+                name="otherReturnType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Custom Return Type</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter custom return type" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Number of Dimensions - only show if return type starts with ARR_ */}
+            {form.watch("sharedReturnType")?.startsWith("ARR_") && (
+              <FormField
+                control={form.control}
+                name="noDimension"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Dimensions</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="Enter number of dimensions"
+                        {...field}
+                        onChange={(e) => field.onChange(Number.parseInt(e.target.value, 10) || 1)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </CardContent>
         </Card>
 
-        <Tabs value={activeLanguage} onValueChange={setActiveLanguage}>
-          <TabsList className="w-full">
-            {formData.details.languageSupport.map((language) => (
-              <TabsTrigger key={language} value={language} className="flex-1">
+        <Tabs value={activeLanguage} onValueChange={setActiveLanguage} className="bg-muted rounded-md">
+          <TabsList>
+            {languages.map((language) => (
+              <TabsTrigger key={language} value={language} className="flex-1 min-w-24">
                 {language}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {formData.details.languageSupport.map((language, index) => {
+          {languages.map((language, index) => {
             return (
-              <TabsContent key={language} value={language} className="space-y-6">
+              <TabsContent key={language} value={language} className="space-y-6 mt-0">
                 <Card>
                   <CardHeader>
                     <CardTitle>{language} Implementation</CardTitle>
@@ -242,7 +324,7 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
                           <Card key={paramIndex}>
                             <CardContent className="p-4">
                               <div className="flex items-center gap-4">
-                                <div className="flex-1">
+                                <div className="flex-1 self-start">
                                   <Label className="text-xs">Parameter Name</Label>
                                   <Input
                                     {...form.register(
@@ -250,14 +332,12 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
                                     )}
                                     placeholder={`e.g., ${language === "Java" ? "nums" : "nums_array"}`}
                                   />
-                                  {form.formState.errors.problemInputParameterDto?.[index]?.parameters?.[
-                                    paramIndex
-                                  ]?.inputName && (
+                                  {form.formState.errors.problemInputParameterDto?.[index]?.parameters?.[paramIndex]
+                                    ?.inputName && (
                                     <p className="text-sm text-destructive mt-1">
                                       {
-                                        form.formState.errors.problemInputParameterDto[index].parameters[
-                                          paramIndex
-                                        ].inputName.message
+                                        form.formState.errors.problemInputParameterDto[index].parameters[paramIndex]
+                                          .inputName.message
                                       }
                                     </p>
                                   )}
@@ -282,16 +362,55 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
                                       </Select>
                                     )}
                                   />
-                                  {form.formState.errors.problemInputParameterDto?.[index]?.parameters?.[
-                                    paramIndex
-                                  ]?.inputType && (
+                                  {form.formState.errors.problemInputParameterDto?.[index]?.parameters?.[paramIndex]
+                                    ?.inputType && (
                                     <p className="text-sm text-destructive mt-1">
                                       {
-                                        form.formState.errors.problemInputParameterDto[index].parameters[
-                                          paramIndex
-                                        ].inputType.message
+                                        form.formState.errors.problemInputParameterDto[index].parameters[paramIndex]
+                                          .inputType.message
                                       }
                                     </p>
+                                  )}
+                                  {/* Other Input Type - only show if "OTHER" is selected */}
+                                  {form.watch(
+                                    `problemInputParameterDto.${index}.parameters.${paramIndex}.inputType`
+                                  ) === "OTHER" && (
+                                    <FormField
+                                      control={form.control}
+                                      name={`problemInputParameterDto.${index}.parameters.${paramIndex}.otherInputType`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>Custom Input Type</FormLabel>
+                                          <FormControl>
+                                            <Input placeholder="Enter custom input type" {...field} />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  )}
+                                  {form
+                                    .watch(`problemInputParameterDto.${index}.parameters.${paramIndex}.inputType`)
+                                    ?.startsWith("ARR_") && (
+                                    <FormField
+                                      control={form.control}
+                                      name={`problemInputParameterDto.${index}.parameters.${paramIndex}.noDimension`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>Number of Dimensions</FormLabel>
+                                          <FormControl>
+                                            <Input
+                                              type="number"
+                                              min="1"
+                                              placeholder="Enter number of dimensions"
+                                              {...field}
+                                              onChange={(e) => field.onChange(Number.parseInt(e.target.value, 10) || 1)}
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
                                   )}
                                 </div>
                                 <Button
@@ -347,3 +466,4 @@ export function InputParameters({ formData, updateFormData, onNext, onPrevious }
     </Form>
   )
 }
+

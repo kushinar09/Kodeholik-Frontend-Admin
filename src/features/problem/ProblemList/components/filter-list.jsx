@@ -210,13 +210,13 @@ export function FilterBar({ onFilterChange, initialFilters, pageSize }) {
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="NONE">Select sort</SelectItem>
+            <SelectItem value="NONE">Default</SelectItem>
             <SelectItem value="acceptanceRate">Acceptance Rate</SelectItem>
             <SelectItem value="noSubmission">Submissions</SelectItem>
           </SelectContent>
         </Select>
 
-        <Button variant="outline" onClick={toggleSortDirection} className="flex items-center">
+        <Button variant="outline" disabled={!filters.sortBy || filters.sortBy === "NONE"} onClick={toggleSortDirection} className="flex items-center">
           <ArrowUpDown className="h-4 w-4 mr-2" />
           {filters.ascending ? "Ascending" : "Descending"}
         </Button>

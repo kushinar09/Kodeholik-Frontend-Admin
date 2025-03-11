@@ -7,12 +7,12 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { useLocation, useNavigate } from "react-router-dom"
-import { toast } from "@/hooks/use-toast"
 import { LOGO } from "@/lib/constants"
 import { MESSAGES } from "@/lib/messages"
 import { login, loginWithGithub, loginWithGoogle } from "@/lib/api/auth_api"
 import { useAuth } from "@/provider/AuthProvider"
 import LoadingScreen from "@/components/layout/loading"
+import { toast } from "sonner"
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(true)
@@ -36,26 +36,20 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (location.state?.sendEmail) {
-      toast({
-        title: "Success",
-        description: "Password reset link has been sent to your email.",
-        variant: "default"
+      toast.success("Success.", {
+        description: "Password reset link has been sent to your email."
       })
     }
 
     if (location.state?.resetSuccess) {
-      toast({
-        title: "Success",
-        description: "Your password has been reset successfully. You can now log in with your new password.",
-        variant: "default"
+      toast.success("Success", {
+        description: "Your password has been reset successfully. You can now log in with your new password."
       })
     }
 
     if (location.state?.loginRequire) {
-      toast({
-        title: "Login Required",
-        description: "You need to be logged in to continue.",
-        variant: "default"
+      toast.info("Login Required", {
+        description: "You need to be logged in to continue."
       })
     }
   }, [location])

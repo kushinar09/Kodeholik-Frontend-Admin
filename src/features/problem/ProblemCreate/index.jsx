@@ -157,9 +157,11 @@ export default function ProblemCreator({ onNavigate }) {
       if (response.ok) {
         localStorage.setItem("toastMessage", "Create problem completely !!!")
         onNavigate("/problem")
-      } else throw new Error(response.message)
+      } else throw new Error(response.json().message)
     } catch (error) {
-      toast.error("Error while creating problem: " + error.message, { duration: 2000 })
+      toast.error("Error", {
+        description: error.message || "Error in creat problem. Please try again."
+      })
     }
   }
 

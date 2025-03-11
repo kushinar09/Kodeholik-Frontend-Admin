@@ -50,7 +50,7 @@ function App() {
           </Routes>
         </div>
       </AuthProvider>
-      <Toaster />
+      <Toaster richColors/>
     </Router>
   )
 }
