@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { Check } from "lucide-react"
 import { ProblemDetails } from "./components/problem-details"
 import { InputParameters } from "./components/input-parameters"
 import { Editorial } from "./components/editorial"
