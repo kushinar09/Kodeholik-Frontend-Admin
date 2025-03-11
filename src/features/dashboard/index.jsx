@@ -15,6 +15,8 @@ import CourseList from "../course/CourseList/ViewListCourse"
 import CreateCourse from "../course/CourseCreate/CreateCourse"
 import UpdateCourse from "../course/CourseUpdate/UpdateCourse"
 import ExamList from "../exam/list"
+import { CreateExam } from "../exam/create"
+import { EditExam } from "../exam/edit"
 
 export default function Dashboard() {
   const location = useLocation()
@@ -22,8 +24,10 @@ export default function Dashboard() {
   const [activeState, setActiveState] = useState("")
   const [currentTitleProblem, setCurrentTitleProblem] = useState("")
   const [currentTitleCourse, setCurrentTitleCourse] = useState("")
+  const [currentTitleExam, setCurrentTitleExam] = useState("")
 
   useEffect(() => {
+    console.log(location.pathname)
     if (location.pathname === "/problem") {
       setActiveState("problemList")
     } else if (location.pathname === "/problem/create") {
@@ -35,7 +39,14 @@ export default function Dashboard() {
       setCurrentTitleProblem("Two Sum")
     } else if (location.pathname === "/exam") {
       setActiveState("examList")
-    } else if (location.pathname === "/course") {
+      setCurrentTitleExam("Examination");
+    } else if (location.pathname === "/exam/create") {
+      setActiveState("examCreate")
+      setCurrentTitleExam("Examination");
+    } else if (location.pathname.includes("/exam/edit")) {
+      setActiveState("examEdit")
+      setCurrentTitleExam("Examination");
+    }else if (location.pathname === "/course") {
       setActiveState("courseList")
     } else if (location.pathname === "/course/add") {
       setActiveState("createCourse")
@@ -51,6 +62,14 @@ export default function Dashboard() {
     const headerMap = {
       "/problem": [{ title: "Problem", url: "/" }],
       "/exam": [{ title: "Examination", url: "/" }],
+      "/exam/create": [
+        { title: "Examination", url: "/exam" },
+        { title: "Create Exam", url: "#" }
+      ],
+      "/exam/edit": [
+        { title: "Examination", url: "/exam" },
+        { title: "Edit Exam", url: "#" }
+      ],
       "/course": [{ title: "Course", url: "/" }],
       "/course/add": [
         { title: "Course", url: "/course" },
@@ -64,6 +83,8 @@ export default function Dashboard() {
 
     const match = location.pathname.match(/^\/problem\/[\w-]+$/)
     const courseMatch = location.pathname.match(/^\/course\/[\w-]+$/)
+    const examMatch = location.pathname.match(/^\/exam\/[\w-]+$/)
+    const examEditMatch = location.pathname.match(/^\/exam\/[^/]+\/[^/]+$/);
 
     if (location.pathname !== "/problem/create" && match) {
       headerMap[location.pathname] = [
@@ -76,6 +97,27 @@ export default function Dashboard() {
       headerMap[location.pathname] = [
         { title: "Course", url: "/course" },
         { title: currentTitleCourse, url: "#" }
+      ]
+    }
+
+    if (location.pathname !== "/exam/create" && examMatch) {
+      headerMap[location.pathname] = [
+        { title: "Examination", url: "/exam" },
+        { title: currentTitleExam, url: "#" }
+      ]
+    }
+
+    if (location.pathname !== "/exam/edit" && examMatch) {
+      headerMap[location.pathname] = [
+        { title: "Examination", url: "/exam" },
+        { title: currentTitleExam, url: "#" }
+      ]
+    }
+
+    if(examEditMatch) {
+      headerMap[location.pathname] = [
+        { title: "Examination", url: "/exam" },
+        { title: "Edit Exam", url: "#" }
       ]
     }
 
@@ -105,6 +147,8 @@ export default function Dashboard() {
           {activeState === "problemCreate" && <ProblemCreator />}
           {activeState === "problemEdit" && <ProblemEdit onNavigate={handleNavigation} />}
           {activeState === "examList" && <ExamList onNavigate={handleNavigation} />}
+          {activeState === "examCreate" && <CreateExam onNavigate={handleNavigation} />}
+          {activeState === "examEdit" && <EditExam onNavigate={handleNavigation} />}
           {activeState === "courseList" && <CourseList onNavigate={handleNavigation} />}
           {activeState === "createCourse" && <CreateCourse onNavigate={handleNavigation} />}
           {activeState === "updateCourse" && <UpdateCourse onNavigate={handleNavigation} />}

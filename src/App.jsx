@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route} from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import Dashboard from "./features/dashboard"
 import UnauthorisedError from "./features/errors/unauthorized-error"
 import ForbiddenError from "./features/errors/forbidden"
@@ -17,6 +17,8 @@ import CreateCourse from "./features/course/CourseCreate/CreateCourse"
 import UpdateCourse from "./features/course/CourseUpdate/UpdateCourse"
 import ExamList from "./features/exam/list"
 import { Toaster } from "sonner"
+import { CreateExam } from "./features/exam/create"
+import { EditExam } from "./features/exam/edit"
 
 function App() {
   return (
@@ -41,12 +43,16 @@ function App() {
               <Route path="/problem" element={<ProblemCreator />} />
               <Route path="/problem/create" element={<ProblemCreator />} />
               <Route path="/problem/:id" element={<ProblemEdit />} />
-              <Route path="/exam" element={<ExamList />} />
 
               {/* Course Page*/}
               <Route path="/course" element={<ViewListCourse />} />
               <Route path="/course/add" element={<CreateCourse />} />
               <Route path="/course/:id" element={<UpdateCourse />} />
+
+              {/* Exam Page*/}
+              <Route path="/exam" element={<ExamList />} />
+              <Route path="/exam/create" element={<CreateExam />} />
+              <Route path="/exam/edit/:code" element={<EditExam />} />
             </Route>
             {/* <Route element={<ProtectedRoute />}>
             </Route> */}

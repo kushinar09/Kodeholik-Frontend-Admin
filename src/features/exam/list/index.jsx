@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -14,15 +14,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { Plus, MoreHorizontal, Pencil, Trash, ArrowDownAZ, ArrowDown, ArrowUp } from "lucide-react"
-import { CreateExamDialog } from "../create"
-import { EditExamDialog } from "../edit"
+import { Plus, MoreHorizontal, Pencil, Trash, ArrowDown, ArrowUp } from "lucide-react"
 import { format } from "date-fns"
 import { useAuth } from "@/provider/AuthProvider"
-import { getListExamForExaminer } from "@/lib/api/exam_api"
+import { deleteExamForExaminer, getListExamForExaminer } from "@/lib/api/exam_api"
 import { cn } from "@/lib/utils"
 import { FilterBar } from "./components/filter-list"
 import { toast } from "sonner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 const ExamStatus = {
   DRAFT: "DRAFT",
   PUBLISHED: "PUBLISHED",
@@ -38,8 +37,8 @@ const requestData = {
   status: null,
   start: null,
   end: null,
-  sortBy: null,
-  ascending: null
+  sortBy: "createdAt",
+  ascending: false
 }
 
 const mockExams = [
@@ -67,30 +66,16 @@ export default function ExamList({ onNavigate }) {
   const [isLoading, setIsLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
   const [noContent, setNoContent] = useState(false)
-  const [sortBy, setSortBy] = useState("")
-  const [ascending, setAscending] = useState(true)
+  const [sortBy, setSortBy] = useState("createdAt")
+  const [size, setSize] = useState("5")
+  const [ascending, setAscending] = useState(false)
   const [filters, setFilters] = useState({
     search: "",
     status: ""
   })
 
-  const handleCreateExam = (exam) => {
-    // In a real application, you would send this to your backend
-    const newExam = {
-      id: Math.max(...exams.map((e) => e.id)) + 1,
-      code: `EXAM${String(exams.length + 1).padStart(3, "0")}`,
-      title: exam.title,
-      noParticipant: 0,
-      startTime: exam.startTime,
-      endTime: exam.endTime,
-      status: ExamStatus.DRAFT,
-      createdBy: { id: 1, name: "Current User", email: "user@example.com" },
-      createdAt: Date.now()
-    }
-    fetchExamList()
-    setIsCreateDialogOpen(false)
-  }
 
   const handleFilterChange = (newFilters) => {
     console.log(newFilters)
@@ -121,6 +106,7 @@ export default function ExamList({ onNavigate }) {
         setExams(data.content)
         setTotalPages(data.totalPages)
         setNoContent(false)
+        setTotalElements(data.totalElements)
       }
       console.log("API Response:", data)
     } catch (error) {
@@ -139,6 +125,12 @@ export default function ExamList({ onNavigate }) {
     requestData.page = page - 1
     fetchExamList()
   }
+
+  const handleSizeChange = (size) => {
+    setSize(size)
+    requestData.size = Number(size);
+    fetchExamList()
+  }
   const allStatuses = Array.from(new Set("Not Started", "Inprogress", "End"))
 
   const handleEditExam = (exam) => {
@@ -153,25 +145,18 @@ export default function ExamList({ onNavigate }) {
       setIsEditDialogOpen(false)
     }
   }
-  toast.success("Operation successful!", { duration: 3000 })
 
-  toast.error("Error", {
-    description: "Sunday, December 03, 2023 at 9:00 AM",
-    variant: "destructive",
-    action: {
-      label: "Undo",
-      onClick: () => console.log("Undo"),
-    },
-  });
 
   const handleDeleteExam = async () => {
     try {
-      console.log(currentExam.code)
-      //await deleteExamForExaminer(apiCall, code)
+      const response = await deleteExamForExaminer(apiCall, currentExam.code)
       //fetchExamList();
-      //if (response.ok) {
-      toast.success("Delete successful!", { duration: 2000 })
-      //}
+      if (response.ok) {
+        toast.success("Delete exam successful!", { duration: 2000 })
+        requestData.page = 0
+        setCurrentPage(1)
+        fetchExamList()
+      }
     } catch (error) {
       console.error("Error delete exams:", error)
     } finally {
@@ -205,7 +190,7 @@ export default function ExamList({ onNavigate }) {
           onFilterChange={handleFilterChange}
           status={allStatuses}
         />
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button onClick={() => onNavigate("/exam/create")}>
           <Plus className="mr-2 h-4 w-4" /> Create Exam
         </Button>
       </div>
@@ -268,8 +253,8 @@ export default function ExamList({ onNavigate }) {
                 <TableCell>
                   {exam.noParticipant}
                 </TableCell>
-                <TableCell>{format(new Date(exam.startTime).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
-                <TableCell>{format(new Date(exam.endTime).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
+                <TableCell>{exam.startTime}</TableCell>
+                <TableCell>{exam.endTime}</TableCell>
                 <TableCell>
                   {exam.status === "NOT_STARTED" && "Not Started"}
                   {exam.status === "IN_PROGRESS" && "In Progress"}
@@ -287,7 +272,7 @@ export default function ExamList({ onNavigate }) {
                   </div>
                 </TableCell>
 
-                <TableCell>{format(new Date(exam.createdAt).toLocaleString(), "dd/MM/yyyy HH:mm")}</TableCell>
+                <TableCell>{exam.createdAt}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -297,11 +282,8 @@ export default function ExamList({ onNavigate }) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setCurrentExam(exam)
-                          setIsEditDialogOpen(true)
-                        }}
+                      <DropdownMenuItem className="cursor-pointer"
+                        onClick={() => onNavigate("/exam/edit/" + exam.code)}
                       >
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit
@@ -333,74 +315,90 @@ export default function ExamList({ onNavigate }) {
 
       {
         !isLoading && totalPages > 1 && !noContent && (
-          <div className="flex justify-center mt-6 gap-2">
-            <Button
-              variant="ghost"
-              className="text-primary font-bold hover:bg-primary transition hover:text-white"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <div className="flex gap-1">
-              {[...Array(totalPages)].map((_, index) => {
-                // Show limited page numbers with ellipsis for better UX
-                if (
-                  totalPages <= 5 ||
-                  index === 0 ||
-                  index === totalPages - 1 ||
-                  (index >= currentPage - 1 && index <= currentPage + 1)
-                ) {
-                  return (
-                    <Button
-                      variant="ghost"
-                      key={index}
-                      onClick={() => handlePageChange(index + 1)}
-                      className={cn(
-                        "text-primary font-bold hover:bg-primary transition hover:text-white",
-                        currentPage === index + 1 && "bg-button-primary text-white bg-primary hover:bg-button-hover"
-                      )}
-                    >
-                      {index + 1}
-                    </Button>
-                  )
-                } else if (
-                  (index === 1 && currentPage > 3) ||
-                  (index === totalPages - 2 && currentPage < totalPages - 2)
-                ) {
-                  return (
-                    <Button key={index} variant="ghost" disabled className="text-primary font-bold">
-                      ...
-                    </Button>
-                  )
-                }
-                return null
-              })}
+          <div className="flex justify-between items-center mt-4 w-full">
+            <div className="flex items-center">
+              <div>
+                No Result: <span className="font-semibold">{totalElements}</span>
+              </div>
+              <div className="flex ml-8 items-center">
+                <div>
+                  Size
+                </div>
+                <div className="ml-4">
+                  <Select value={size} onValueChange={(value) => handleSizeChange(value)}>
+                    <SelectTrigger className="w-full md:w-40">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent defaultValue="all">
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
-            <Button
-              variant="ghost"
-              className="text-primary font-bold hover:bg-primary transition hover:text-white"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
+            <div className="flex-1 flex justify-center gap-2">
+              <Button
+                variant="ghost"
+                className="text-primary font-bold hover:bg-primary transition hover:text-white"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <div className="flex gap-1">
+                {[...Array(totalPages)].map((_, index) => {
+                  // Show limited page numbers with ellipsis for better UX
+                  if (
+                    totalPages <= 5 ||
+                    index === 0 ||
+                    index === totalPages - 1 ||
+                    (index >= currentPage - 1 && index <= currentPage + 1)
+                  ) {
+                    return (
+                      <Button
+                        variant="ghost"
+                        key={index}
+                        onClick={() => handlePageChange(index + 1)}
+                        className={cn(
+                          "text-primary font-bold hover:bg-primary transition hover:text-white",
+                          currentPage === index + 1 && "bg-button-primary text-white bg-primary hover:bg-button-hover"
+                        )}
+                      >
+                        {index + 1}
+                      </Button>
+                    )
+                  } else if (
+                    (index === 1 && currentPage > 3) ||
+                    (index === totalPages - 2 && currentPage < totalPages - 2)
+                  ) {
+                    return (
+                      <Button key={index} variant="ghost" disabled className="text-primary font-bold">
+                        ...
+                      </Button>
+                    )
+                  }
+                  return null
+                })}
+              </div>
+              <Button
+                variant="ghost"
+                className="text-primary font-bold hover:bg-primary transition hover:text-white"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         )
       }
 
-      <CreateExamDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onSubmit={handleCreateExam} />
 
-      {
-        currentExam && (
-          <EditExamDialog
-            open={isEditDialogOpen}
-            onOpenChange={setIsEditDialogOpen}
-            exam={currentExam}
-            onSubmit={handleEditExam}
-          />
-        )
-      }
+
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
