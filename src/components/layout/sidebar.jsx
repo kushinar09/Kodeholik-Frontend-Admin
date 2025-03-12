@@ -63,6 +63,10 @@ const data = {
           url: "/course"
         },
         {
+          title: "Chapter",
+          url: "/chapter"
+        },
+        {
           title: "Examinations",
           url: "/exam"
         }
