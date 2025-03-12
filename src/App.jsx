@@ -20,6 +20,9 @@ import MarkdownEditor from "./components/layout/markdown/MarkdownEditor"
 import ChapterList from "./features/chapter/ChapterList/ChapterList"
 import CreateChapter from "./features/chapter/ChapterCreate/CreateChapter"
 import UpdateChapter from "./features/chapter/ChapterUpdate/UpdateChapter"
+import LessonList from "./features/lesson/LessonList/LessonList"
+import CreateLesson from "./features/lesson/LessonCreate"
+import UpdateLesson from "./features/lesson/LessonUpdate"
 
 function App() {
   return (
@@ -58,6 +61,11 @@ function App() {
               <Route path="/chapter" element={<ChapterList/>}/>
               <Route path="/chapter/add" element={<CreateChapter/>}/>
               <Route path="/chapter/:id" element={<UpdateChapter/>}/>
+
+              {/* Lesson Page */}
+              <Route path="/lesson" element={<LessonList/>}/>
+              <Route path="/lesson/add" element={<CreateLesson />} />
+              <Route path="/lesson/:id" element={<UpdateLesson />} />
             </Route>
           </Routes>
         </div>
