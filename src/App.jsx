@@ -17,6 +17,9 @@ import ViewListCourse from "./features/course/CourseList/ViewListCourse"
 import CreateCourse from "./features/course/CourseCreate/CreateCourse"
 import UpdateCourse from "./features/course/CourseUpdate/UpdateCourse"
 import MarkdownEditor from "./components/layout/markdown/MarkdownEditor"
+import ChapterList from "./features/chapter/ChapterList/ChapterList"
+import CreateChapter from "./features/chapter/ChapterCreate/CreateChapter"
+import UpdateChapter from "./features/chapter/ChapterUpdate/UpdateChapter"
 
 function App() {
   return (
@@ -50,6 +53,11 @@ function App() {
               <Route path="/course" element={<ViewListCourse/>}/>
               <Route path="/course/add" element={<CreateCourse/>}/>
               <Route path="/course/:id" element={<UpdateCourse/>}/>
+
+              {/* Chapter Page */}
+              <Route path="/chapter" element={<ChapterList/>}/>
+              <Route path="/chapter/add" element={<CreateChapter/>}/>
+              <Route path="/chapter/:id" element={<UpdateChapter/>}/>
             </Route>
           </Routes>
         </div>

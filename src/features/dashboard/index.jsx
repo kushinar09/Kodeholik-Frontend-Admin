@@ -15,6 +15,10 @@ import { ExamList } from "../exam/list"
 import CourseList from "../course/CourseList/ViewListCourse"
 import CreateCourse from "../course/CourseCreate/CreateCourse"
 import UpdateCourse from "../course/CourseUpdate/UpdateCourse"
+import ChapterList from "../chapter/ChapterList/ChapterList"
+import CreateChapter from "../chapter/ChapterCreate/CreateChapter"
+import UpdateChapter from "../chapter/ChapterUpdate/UpdateChapter"
+
 
 export default function Dashboard() {
   const location = useLocation()
@@ -25,6 +29,7 @@ export default function Dashboard() {
 
   const [currentTitleProblem, setCurrentTitleProblem] = useState("")
   const [currentTitleCourse, setCurrentTitleCourse] = useState("")
+  const [currentTitleChapter, setCurrentTitleChapter] = useState("")
 
   useEffect(() => {
     if (location.pathname === "/problem") {
@@ -45,6 +50,13 @@ export default function Dashboard() {
     } else if (/^\/course\/[\w-]+$/.test(location.pathname)) {
       setActiveState("updateCourse")
       setCurrentTitleCourse("Java Beginner")
+    } else if (location.pathname === "/chapter") {
+      setActiveState("chapterList")
+    } else if (location.pathname === "/chapter/add") {
+      setActiveState("createChapter")
+    } else if (/^\/chapter\/[\w-]+$/.test(location.pathname)) {
+      setActiveState("updateChapter")
+      setCurrentTitleCourse("Chương 1: Giới thiệu khóa học")
     } else {
       setActiveState("")
     }
@@ -56,9 +68,14 @@ export default function Dashboard() {
       "/problem": [{ title: "Problem", url: "/" }],
       "/exam": [{ title: "Examination", url: "/" }],
       "/course": [{ title: "Course", url: "/" }],
+      "/chapter": [{ title: "Chapter", url: "/"}],
       "/course/add": [
         { title: "Course", url: "/course" },
         { title: "Create Course", url: "#" },
+      ],
+      "/chapter/add": [
+        { title: "Chapter", url: "/chapter" },
+        { title: "Create Chapter", url: "#" },
       ],
       "/problem/create": [
         { title: "Problem", url: "/problem" },
@@ -68,6 +85,7 @@ export default function Dashboard() {
 
     const match = pathname.match(/^\/problem\/[\w-]+$/)
     const courseMatch = pathname.match(/^\/course\/[\w-]+$/)
+    const chapterMatch = pathname.match(/^\/chapter\/[\w-]+$/)
 
     if (pathname !== "/problem/create" && match) {
       headerMap[pathname] = [
@@ -83,6 +101,13 @@ export default function Dashboard() {
       ]
     }
 
+    if (pathname !== "/chapter/add" && chapterMatch) {
+      headerMap[pathname] = [
+        { title: "Chapter", url: "/chapter" },
+        { title: currentTitleChapter, url: "#" },
+      ]
+    }
+
     if (pathname.startsWith("/users")) {
       setHeaderData([
         { title: "Users", url: "/users" },
@@ -92,7 +117,7 @@ export default function Dashboard() {
     }
 
     setHeaderData(headerMap[pathname] || [{ title: "Dashboard", url: "/" }])
-  }, [location.pathname, currentTitleProblem, currentTitleCourse])
+  }, [location.pathname, currentTitleProblem, currentTitleCourse, currentTitleChapter])
 
   const handleNavigation = (newPath) => {
     navigate(newPath)
@@ -109,9 +134,12 @@ export default function Dashboard() {
           {activeState === "problemCreate" && <ProblemCreator onNavigate={handleNavigation} />}
           {activeState === "problemEdit" && <ProblemEdit onNavigate={handleNavigation} setCurrentTitleProblem={setCurrentTitleProblem} />}
           {activeState === "examList" && <ExamList onNavigate={handleNavigation} />}
-          {activeState === "courseList" && <CourseList />}
-          {activeState === "createCourse" && <CreateCourse />}
-          {activeState === "updateCourse" && <UpdateCourse />}
+          {activeState === "courseList" && <CourseList onNavigate={handleNavigation}/>}
+          {activeState === "createCourse" && <CreateCourse onNavigate={handleNavigation}/>}
+          {activeState === "updateCourse" && <UpdateCourse onNavigate={handleNavigation} setCurrentTitleCourse={setCurrentTitleCourse}/>}
+          {activeState === "chapterList" && <ChapterList onNavigate={handleNavigation}/>}
+          {activeState === "createChapter" && <CreateChapter onNavigate={handleNavigation}/>}
+          {activeState === "updateChapter" && <UpdateChapter onNavigate={handleNavigation} setCurrentTitleChapter={setCurrentTitleChapter}/>}
         </div>
       </SidebarInset>
     </SidebarProvider>
