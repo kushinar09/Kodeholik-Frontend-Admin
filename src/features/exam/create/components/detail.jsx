@@ -31,6 +31,7 @@ export function CreateExamDetails({ onNext, formData, updateFormData }) {
         90,
         120
     ]);
+    console.log(formData);
     const [formValues, setFormValues] = useState(formData.details || {});
     useEffect(() => {
         // This is useful if you need to set the value based on some condition

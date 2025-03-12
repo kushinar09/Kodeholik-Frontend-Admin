@@ -277,12 +277,12 @@ export default function UserList({ onNavigate }) {
                                             <DropdownMenuItem className="cursor-pointer"
                                                 onClick={() => onNavigate("/user/edit/" + user.id)}
                                             >
-                                                <Pencil className="mr-2 h-4 w-4" />
+                                                <Pencil className="h-4 w-4" />
                                                 Edit
                                             </DropdownMenuItem>
                                             {user.status !== "BANNED" &&
                                                 <DropdownMenuItem
-                                                    className="text-red-500 hover:text-red-700 focus:text-red-700"
+                                                    className="text-red-500 cursor-pointer hover:text-red-700 focus:text-red-700"
                                                     onClick={() => {
                                                         setCurrentUser(user)
                                                         setIsBanDialogOpen(true)
@@ -295,7 +295,7 @@ export default function UserList({ onNavigate }) {
 
                                             {user.status === "BANNED" &&
                                                 <DropdownMenuItem
-                                                    className="text-green-500 hover:text-red-700 focus:text-red-700"
+                                                    className="text-green-500 cursor-pointer hover:text-red-700 focus:text-red-700"
                                                     onClick={() => {
                                                         setCurrentUser(user)
                                                         setIsUnbanDialogOpen(true)

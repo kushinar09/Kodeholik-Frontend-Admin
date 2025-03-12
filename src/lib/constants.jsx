@@ -95,7 +95,13 @@ const ENDPOINTS = {
   UNBAN_USER: `${API_URL}/admin/unban-user/`,
   CREATE_USER: `${API_URL}/admin/add-user`,
   EDIT_USER: `${API_URL}/admin/edit-user/`,
-  DETAIL_USER: `${API_URL}/admin/detail/`
+  DETAIL_USER: `${API_URL}/admin/detail/`,
+
+  //Tag
+  POST_TAG_LIST_FOR_ADMIN: `${API_URL}/admin/list-tag`,
+  DELETE_TAG: `${API_URL}/admin/delete-tag/`,
+  ADD_TAG: `${API_URL}/admin/add-tag`,
+  EDIT_TAG: `${API_URL}/admin/edit-tag/`
 }
 
 

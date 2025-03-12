@@ -20,6 +20,7 @@ import { EditExam } from "../exam/edit"
 import UserList from "../users/list"
 import CreateUser from "../users/create"
 import EditUser from "../users/edit"
+import TagList from "../tag/list"
 
 export default function Dashboard() {
   const location = useLocation()
@@ -29,6 +30,7 @@ export default function Dashboard() {
   const [currentTitleCourse, setCurrentTitleCourse] = useState("")
   const [currentTitleExam, setCurrentTitleExam] = useState("")
   const [currentTitleUser, setCurrentTitleUser] = useState("")
+  const [currentTitleTag, setCurrentTitleTag] = useState("")
 
   useEffect(() => {
     if (location.pathname === "/problem") {
@@ -58,6 +60,9 @@ export default function Dashboard() {
     }else if (location.pathname.includes("/user/edit")) {
       setActiveState("userEdit")
       setCurrentTitleUser("Users");
+    }else if (location.pathname === "/tag") {
+      setActiveState("tagList")
+      setCurrentTitleUser("Tags");
     }else if (location.pathname === "/course") {
       setActiveState("courseList")
     } else if (location.pathname === "/course/add") {
@@ -73,6 +78,7 @@ export default function Dashboard() {
   const getHeaderData = () => {
     const headerMap = {
       "/problem": [{ title: "Problem", url: "/" }],
+      "/tag": [{ title: "Tags", url: "/" }],
       "/exam": [{ title: "Examination", url: "/" }],
       "/exam/create": [
         { title: "Examination", url: "/exam" },
@@ -108,6 +114,7 @@ export default function Dashboard() {
     const examEditMatch = location.pathname.match(/^\/exam\/[^/]+\/[^/]+$/)
     const userEditMatch = location.pathname.match(/^\/user\/[^/]+\/[^/]+$/)
     const userMatch = location.pathname.match(/^\/user\/[\w-]+$/)
+    const tagMatch = location.pathname.match(/^\/tag\/[\w-]+$/)
 
     if (location.pathname !== "/problem/create" && match) {
       headerMap[location.pathname] = [
@@ -130,12 +137,13 @@ export default function Dashboard() {
       ]
     }
 
-    if (location.pathname !== "/exam/edit" && examMatch) {
+    if (location.pathname === "/exam/create" && examMatch) {
       headerMap[location.pathname] = [
         { title: "Examination", url: "/exam" },
-        { title: currentTitleExam, url: "#" }
+        { title: "Create Exam", url: "#" }
       ]
     }
+
 
     if(examEditMatch) {
       headerMap[location.pathname] = [
@@ -157,8 +165,14 @@ export default function Dashboard() {
         { title: "Create User", url: "/user/create" }
       ]
     }
-    
 
+    if(tagMatch) {
+      headerMap[location.pathname] = [
+        { title: "Tags", url: "/user" },
+        { title: currentTitleTag, url: "#" }
+      ]
+    }
+    
     return headerMap[location.pathname] || [{ title: "Dashboard", url: "/" }]
   }
 
@@ -180,6 +194,7 @@ export default function Dashboard() {
           {activeState === "userList" && <UserList onNavigate={handleNavigation} />}
           {activeState === "userCreate" && <CreateUser onNavigate={handleNavigation} />}
           {activeState === "userEdit" && <EditUser onNavigate={handleNavigation} />}
+          {activeState === "tagList" && <TagList onNavigate={handleNavigation} />}
           {activeState === "examList" && <ExamList onNavigate={handleNavigation} />}
           {activeState === "examCreate" && <CreateExam onNavigate={handleNavigation} />}
           {activeState === "examEdit" && <EditExam onNavigate={handleNavigation} />}

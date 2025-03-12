@@ -32,18 +32,15 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
             120
         ]);
         const [formValues, setFormValues] = useState(formData.details || {});
-        useEffect(() => {
-            // This is useful if you need to set the value based on some condition
-            // or after fetching data from an API
-            form.setValue("duration", "90")
-        }, [])
+
+        
         const form = useForm({
             resolver: zodResolver(formSchema),
             defaultValues: {
                 title: formData.details.title || "",
                 description: formData.details.description,
                 startTime: formData.details.startTime || new Date(),
-                duration: formData.details.duration || null, // Add this line
+                duration: formData.details.duration || "90", // Add this line
             },
         })
         const watchedValues = form.watch()

@@ -22,6 +22,7 @@ import { EditExam } from "./features/exam/edit"
 import UserList from "./features/users/list"
 import CreateUser from "./features/users/create"
 import EditUser from "./features/users/edit"
+import TagList from "./features/tag/list"
 
 function App() {
   return (
@@ -61,6 +62,9 @@ function App() {
               <Route path="/user" element={<UserList />} />
               <Route path="/user/create" element={<CreateUser />} />
               <Route path="/user/edit/:id" element={<EditUser />} />
+
+              {/* Tag Page*/}
+              <Route path="/tag" element={<TagList />} />
             </Route>
             {/* <Route element={<ProtectedRoute />}>
             </Route> */}

@@ -70,6 +70,10 @@ const data = {
         {
           title: "User",
           url: "/user"
+        },
+        {
+          title: "Tag",
+          url: "/tag"
         }
       ]
     }

@@ -12,6 +12,8 @@ import { useAuth } from "@/provider/AuthProvider"
 import { EditExamDetails } from "./components/detail"
 import { EditExamProblems } from "./components/problems"
 import { useParams } from "react-router-dom";
+import { parse } from "date-fns";
+
 const requestData = {
   title: "",
   description: "",
@@ -46,16 +48,19 @@ export function EditExam({ onNavigate }) {
     details: false,
     problems: false
   })
-
+  const parseCustomDate = (dateString) => {
+    return parse(dateString, "dd/MM/yyyy, HH:mm", new Date());
+  };
   const fetchExam = async () => {
     try {
       setIsLoading(true);
       const data = await getExamDetailForExaminer(apiCall, code);
+      console.log(data);
       mockFormData.code = data.code;
       mockFormData.details.title = data.title;
       mockFormData.details.description = data.description;
-      mockFormData.details.startTime = new Date(data.startTime);
-      mockFormData.details.duration = (new Date(data.endTime).getTime() - new Date(data.startTime).getTime()) / 60000;
+      mockFormData.details.startTime = parseCustomDate(data.startTime);
+      mockFormData.details.duration = (parseCustomDate(data.endTime).getTime() - parseCustomDate(data.startTime).getTime()) / 60000;
       mockFormData.problems.languageSupports = data.languageSupports;
       mockFormData.problems.problems = [];
       for (const problem of data.problems) {

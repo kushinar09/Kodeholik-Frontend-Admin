@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { createExam } from "@/lib/api/exam_api"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
@@ -12,7 +12,7 @@ import { CreateExamProblems } from "./components/problems"
 const mockFormData = {
   details: {
     title: "",
-    description: "abc",
+    description: "",
     startTime: new Date(),
     duration: 90
 
@@ -34,14 +34,42 @@ const requestData = {
 
 export function CreateExam({ onNavigate }) {
   const [activeStep, setActiveStep] = useState("details");
-  const [formData, setFormData] = useState(mockFormData);
+  const [formData, setFormData] = useState({
+    details: {
+      title: "",
+      description: "",
+      startTime: new Date(),
+      duration: 90
+  
+    },
+    problems: {
+      languageSupports: [],
+      problems: []
+    }
+  });
   const { apiCall } = useAuth();
 
   const [completedSteps, setCompletedSteps] = useState({
     details: false,
     problems: false
   })
-
+  useEffect(() => {
+    setFormData(
+      {
+        details: {
+          title: "",
+          description: "",
+          startTime: new Date(),
+          duration: 90
+      
+        },
+        problems: {
+          languageSupports: [],
+          problems: []
+        }
+      }
+    )
+  }, [])
   const updateFormData = (stepData, step) => {
     if (step === "details") {
       mockFormData.details = stepData;
@@ -81,8 +109,21 @@ export function CreateExam({ onNavigate }) {
             (parseInt(problem.points, 10) || 0) // Convert to number if it's a string
         }));
       }
-
+      setFormData({
+        details: {
+          title: "",
+          description: "",
+          startTime: new Date(),
+          duration: 90
+      
+        },
+        problems: {
+          languageSupports: [],
+          problems: []
+        }
+      })
       await createExam(apiCall, requestData);
+      
     } catch (error) {
       console.error("Error fetching exams:", error)
     } finally {
