@@ -212,11 +212,8 @@ function CourseList() {
                 <Table className="w-full">
                   <TableHeader className="bg-bg-secondary">
                     <TableRow className="hover:bg-bg-secondary/80">
-                      <TableHead
-                        className="text-text-secondary font-semibold cursor-pointer"
-                        onClick={() => handleSort("id")}
-                      >
-                        ID {sortBy === "id" && (sortOrder === "asc" ? "▲" : "▼")}
+                      <TableHead>
+                        ID 
                       </TableHead>
                       <TableHead
                         className="text-text-secondary font-semibold cursor-pointer"
