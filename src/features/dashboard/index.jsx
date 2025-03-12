@@ -18,6 +18,9 @@ import UpdateCourse from "../course/CourseUpdate/UpdateCourse"
 import ChapterList from "../chapter/ChapterList/ChapterList"
 import CreateChapter from "../chapter/ChapterCreate/CreateChapter"
 import UpdateChapter from "../chapter/ChapterUpdate/UpdateChapter"
+import LessonList from "../lesson/LessonList/LessonList"
+import CreateLesson from "../lesson/LessonCreate"
+import UpdateLesson from "../lesson/LessonUpdate"
 
 
 export default function Dashboard() {
@@ -30,6 +33,7 @@ export default function Dashboard() {
   const [currentTitleProblem, setCurrentTitleProblem] = useState("")
   const [currentTitleCourse, setCurrentTitleCourse] = useState("")
   const [currentTitleChapter, setCurrentTitleChapter] = useState("")
+  const [currentTitleLesson, setCurrentTitleLesson] = useState("")
 
   useEffect(() => {
     if (location.pathname === "/problem") {
@@ -57,6 +61,13 @@ export default function Dashboard() {
     } else if (/^\/chapter\/[\w-]+$/.test(location.pathname)) {
       setActiveState("updateChapter")
       setCurrentTitleCourse("Chương 1: Giới thiệu khóa học")
+    } else if (location.pathname === "/lesson") {
+      setActiveState("lessonList")
+    } else if (location.pathname === "/lesson/add") {
+      setActiveState("createLesson")
+    } else if (/^\/lesson\/[\w-]+$/.test(location.pathname)) {
+      setActiveState("updateLesson")
+      setCurrentTitleCourse("Introduction to Python")
     } else {
       setActiveState("")
     }
@@ -69,6 +80,7 @@ export default function Dashboard() {
       "/exam": [{ title: "Examination", url: "/" }],
       "/course": [{ title: "Course", url: "/" }],
       "/chapter": [{ title: "Chapter", url: "/"}],
+      "/lesson": [{ title: "Lesson", url: "/"}],
       "/course/add": [
         { title: "Course", url: "/course" },
         { title: "Create Course", url: "#" },
@@ -76,6 +88,10 @@ export default function Dashboard() {
       "/chapter/add": [
         { title: "Chapter", url: "/chapter" },
         { title: "Create Chapter", url: "#" },
+      ],
+      "/lesson/add": [
+        { title: "Lesson", url: "/lesson" },
+        { title: "Create Lesson", url: "#" },
       ],
       "/problem/create": [
         { title: "Problem", url: "/problem" },
@@ -86,6 +102,7 @@ export default function Dashboard() {
     const match = pathname.match(/^\/problem\/[\w-]+$/)
     const courseMatch = pathname.match(/^\/course\/[\w-]+$/)
     const chapterMatch = pathname.match(/^\/chapter\/[\w-]+$/)
+    const lessonMatch = pathname.match(/^\/lesson\/[\w-]+$/)
 
     if (pathname !== "/problem/create" && match) {
       headerMap[pathname] = [
@@ -108,6 +125,13 @@ export default function Dashboard() {
       ]
     }
 
+    if (pathname !== "/lesson/add" && lessonMatch) {
+      headerMap[pathname] = [
+        { title: "Lesson", url: "/lesson" },
+        { title: currentTitleLesson, url: "#" },
+      ]
+    }
+
     if (pathname.startsWith("/users")) {
       setHeaderData([
         { title: "Users", url: "/users" },
@@ -117,7 +141,7 @@ export default function Dashboard() {
     }
 
     setHeaderData(headerMap[pathname] || [{ title: "Dashboard", url: "/" }])
-  }, [location.pathname, currentTitleProblem, currentTitleCourse, currentTitleChapter])
+  }, [location.pathname, currentTitleProblem, currentTitleCourse, currentTitleChapter, currentTitleLesson])
 
   const handleNavigation = (newPath) => {
     navigate(newPath)
@@ -140,6 +164,9 @@ export default function Dashboard() {
           {activeState === "chapterList" && <ChapterList onNavigate={handleNavigation}/>}
           {activeState === "createChapter" && <CreateChapter onNavigate={handleNavigation}/>}
           {activeState === "updateChapter" && <UpdateChapter onNavigate={handleNavigation} setCurrentTitleChapter={setCurrentTitleChapter}/>}
+          {activeState === "lessonList" && <LessonList onNavigate={handleNavigation}/>}
+          {activeState === "createLesson" && <CreateLesson onNavigate={handleNavigation}/>}
+          {activeState === "updateLesson" && <UpdateLesson onNavigate={handleNavigation} setCurrentTitleLesson={setCurrentTitleLesson} />}
         </div>
       </SidebarInset>
     </SidebarProvider>

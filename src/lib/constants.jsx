@@ -74,6 +74,13 @@ const ENDPOINTS = {
   CREATE_CHAPTER: `${API_URL}/chapter/add`,
   UPDATE_CHAPTER: `${API_URL}/chapter/update/:id`, 
 
+  //Lesson
+  GET_LESSONS: `${API_URL}/lesson/list`,
+  GET_LESSON_BY_CHAPTERID: `${API_URL}/lesson/by-chapter/:id`,
+  GET_LESSON_DETAIL: `${API_URL}/lesson/detail/:id`,
+  CREATE_LESSON: `${API_URL}/lesson/add`,
+  UPDATE_LESSON: `${API_URL}/lesson/update/:id`,
+
   //Topic
   GET_TOPIC_LIST: `${API_URL}/tag/all-topic`,
   GET_tOPICWITHID: `${API_URL}/tag/topic`,
