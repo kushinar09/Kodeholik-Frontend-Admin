@@ -21,6 +21,7 @@ const requestData = {
   endTime: Date.now() + 3600000,
   languageSupports: [],
   problemRequests: []
+  
 }
 let mockFormData = {
   code: "",
@@ -34,7 +35,11 @@ let mockFormData = {
   problems: {
     languageSupports: [],
     problems: []
-  }
+  },
+  createdAt: "",
+  createdBy: {},
+  updatedAt: "",
+  updatedBy: {}
 }
 export function EditExam({ onNavigate }) {
 
@@ -57,6 +62,10 @@ export function EditExam({ onNavigate }) {
       const data = await getExamDetailForExaminer(apiCall, code);
       console.log(data);
       mockFormData.code = data.code;
+      mockFormData.createdAt = data.createdAt;
+      mockFormData.createdBy = data.createdBy;
+      mockFormData.updatedAt = data.updatedAt;
+      mockFormData.updatedBy = data.updatedBy;
       mockFormData.details.title = data.title;
       mockFormData.details.description = data.description;
       mockFormData.details.startTime = parseCustomDate(data.startTime);

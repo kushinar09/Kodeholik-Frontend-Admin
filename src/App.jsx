@@ -23,6 +23,7 @@ import UserList from "./features/users/list"
 import CreateUser from "./features/users/create"
 import EditUser from "./features/users/edit"
 import TagList from "./features/tag/list"
+import { ExamResult } from "./features/exam/result"
 
 function App() {
   return (
@@ -57,7 +58,7 @@ function App() {
               <Route path="/exam" element={<ExamList />} />
               <Route path="/exam/create" element={<CreateExam />} />
               <Route path="/exam/edit/:code" element={<EditExam />} />
-
+              <Route path="/exam/result/:code" element={<ExamResult />} />
               {/* User Page*/}
               <Route path="/user" element={<UserList />} />
               <Route path="/user/create" element={<CreateUser />} />

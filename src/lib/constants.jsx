@@ -88,6 +88,8 @@ const ENDPOINTS = {
   DELETE_EXAM: `${API_URL}/examiner/delete/`,
   POST_CREATE_EXAM: `${API_URL}/examiner/create`,
   POST_EDIT_EXAM: `${API_URL}/examiner/edit/`,
+  GET_EXAM_LIST_PARTICIPANT: `${API_URL}/examiner/list-participant/`,
+  GET_EXAM_PARTICIPANT_RESULT: `${API_URL}/examiner/result/`,
 
   //User
   POST_USER_LIST_FOR_ADMIN: `${API_URL}/admin/list-user`,

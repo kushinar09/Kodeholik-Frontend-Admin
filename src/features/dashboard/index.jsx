@@ -21,6 +21,7 @@ import UserList from "../users/list"
 import CreateUser from "../users/create"
 import EditUser from "../users/edit"
 import TagList from "../tag/list"
+import { ExamResult } from "../exam/result"
 
 export default function Dashboard() {
   const location = useLocation()
@@ -48,22 +49,25 @@ export default function Dashboard() {
     } else if (location.pathname === "/exam/create") {
       setActiveState("examCreate")
       setCurrentTitleExam("Examination");
+    } else if (location.pathname.includes("/exam/result")) {
+      setActiveState("examResult")
+      setCurrentTitleExam("Examination");
     } else if (location.pathname.includes("/exam/edit")) {
       setActiveState("examEdit")
       setCurrentTitleExam("Examination");
-    }else if (location.pathname === "/user") {
+    } else if (location.pathname === "/user") {
       setActiveState("userList")
       setCurrentTitleUser("Users");
-    }else if (location.pathname === "/user/create") {
+    } else if (location.pathname === "/user/create") {
       setActiveState("userCreate")
       setCurrentTitleUser("Users");
-    }else if (location.pathname.includes("/user/edit")) {
+    } else if (location.pathname.includes("/user/edit")) {
       setActiveState("userEdit")
       setCurrentTitleUser("Users");
-    }else if (location.pathname === "/tag") {
+    } else if (location.pathname === "/tag") {
       setActiveState("tagList")
       setCurrentTitleUser("Tags");
-    }else if (location.pathname === "/course") {
+    } else if (location.pathname === "/course") {
       setActiveState("courseList")
     } else if (location.pathname === "/course/add") {
       setActiveState("createCourse")
@@ -83,6 +87,10 @@ export default function Dashboard() {
       "/exam/create": [
         { title: "Examination", url: "/exam" },
         { title: "Create Exam", url: "#" }
+      ],
+      "/exam/result": [
+        { title: "Examination", url: "/exam" },
+        { title: "Exam Result", url: "#" }
       ],
       "/exam/edit": [
         { title: "Examination", url: "/exam" },
@@ -145,14 +153,22 @@ export default function Dashboard() {
     }
 
 
-    if(examEditMatch) {
-      headerMap[location.pathname] = [
-        { title: "Examination", url: "/exam" },
-        { title: "Edit Exam", url: "#" }
-      ]
+    if (examEditMatch) {
+      if (location.pathname.includes("edit")) {
+        headerMap[location.pathname] = [
+          { title: "Examination", url: "/exam" },
+          { title: "Edit Exam", url: "#" }
+        ]
+      }
+      else {
+        headerMap[location.pathname] = [
+          { title: "Examination", url: "/exam" },
+          { title: "Exam Result", url: "#" }
+        ]
+      }
     }
 
-    if(userEditMatch) {
+    if (userEditMatch) {
       headerMap[location.pathname] = [
         { title: "Users", url: "/user" },
         { title: "Edit User", url: "#" }
@@ -160,19 +176,19 @@ export default function Dashboard() {
     }
 
     if (location.pathname !== "/user/create" && userMatch) {
-      headerMap[location.pathname] =  [
+      headerMap[location.pathname] = [
         { title: "Users", url: "/user" },
         { title: "Create User", url: "/user/create" }
       ]
     }
 
-    if(tagMatch) {
+    if (tagMatch) {
       headerMap[location.pathname] = [
         { title: "Tags", url: "/user" },
         { title: currentTitleTag, url: "#" }
       ]
     }
-    
+
     return headerMap[location.pathname] || [{ title: "Dashboard", url: "/" }]
   }
 
@@ -197,6 +213,7 @@ export default function Dashboard() {
           {activeState === "tagList" && <TagList onNavigate={handleNavigation} />}
           {activeState === "examList" && <ExamList onNavigate={handleNavigation} />}
           {activeState === "examCreate" && <CreateExam onNavigate={handleNavigation} />}
+          {activeState === "examResult" && <ExamResult onNavigate={handleNavigation} />}
           {activeState === "examEdit" && <EditExam onNavigate={handleNavigation} />}
           {activeState === "courseList" && <CourseList onNavigate={handleNavigation} />}
           {activeState === "createCourse" && <CreateCourse onNavigate={handleNavigation} />}

@@ -184,29 +184,29 @@ export default function ExamList({ onNavigate }) {
         </Button>
       </div>
       <div className="flex items-center">
-              <div>
-                No Result: <span className="font-semibold">{totalElements}</span>
-              </div>
-              <div className="flex ml-8 items-center">
-                <div>
-                  Size
-                </div>
-                <div className="ml-4">
-                  <Select value={size} onValueChange={(value) => handleSizeChange(value)}>
-                    <SelectTrigger className="w-full md:w-40">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent defaultValue="all">
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
+        <div>
+          No Result: <span className="font-semibold">{totalElements}</span>
+        </div>
+        <div className="flex ml-8 items-center">
+          <div>
+            Size
+          </div>
+          <div className="ml-4">
+            <Select value={size} onValueChange={(value) => handleSizeChange(value)}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent defaultValue="all">
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
       {!noContent &&
         <Table>
           <TableHeader>
@@ -295,12 +295,12 @@ export default function ExamList({ onNavigate }) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem className="cursor-pointer"
+                      {exam.status === "NOT_STARTED" && <DropdownMenuItem className="cursor-pointer"
                         onClick={() => onNavigate("/exam/edit/" + exam.code)}
                       >
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit
-                      </DropdownMenuItem>
+                      </DropdownMenuItem>}
                       {exam.status === "NOT_STARTED" &&
                         <DropdownMenuItem
                           className="text-red-500 hover:text-red-700 focus:text-red-700"
@@ -310,6 +310,15 @@ export default function ExamList({ onNavigate }) {
                           }}
                         >
                           <Trash className="mr-2 h-4 w-4" onClick={() => { handleDeleteExam(exam) }} />Delete
+                        </DropdownMenuItem>
+                      }
+
+                      {exam.status === "END" && exam.noParticipant > 0 &&
+                        <DropdownMenuItem className="cursor-pointer"
+                          onClick={() => onNavigate("/exam/result/" + exam.code)}
+                        >
+                          <svg class="mr-2 h-4 w-4 text-black" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">  <path stroke="none" d="M0 0h24v24H0z" />  <rect x="5" y="3" width="14" height="18" rx="2" />  <line x1="9" y1="7" x2="15" y2="7" />  <line x1="9" y1="11" x2="15" y2="11" />  <line x1="9" y1="15" x2="13" y2="15" /></svg>
+                          View Result
                         </DropdownMenuItem>
                       }
                     </DropdownMenuContent>

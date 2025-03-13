@@ -147,3 +147,73 @@ export async function editExam(apiCall, body, code) {
     return JSON.parse(text)
   }
 }
+
+export async function getListParticipantInExam(apiCall, code) {
+  const url = `${ENDPOINTS.GET_EXAM_LIST_PARTICIPANT}${code}`
+  const response = await apiCall(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  if (!response.ok) {
+    if (response.status == 400) {
+      try {
+        const errorData = await response.json();
+        toast.error("Error", {
+          description: errorData.message,
+          variant: "destructive"
+        });
+      } catch (error) {
+        console.error("Error parsing error response:", error);
+      }
+    }
+    else if (response.status == 500) {
+      toast.error("Error", {
+        description: MESSAGES.MSG01,
+        variant: "destructive"
+      });
+    }
+    return null;
+  }
+  else {
+    const text = await response.text()
+    if (!text) return null
+    return JSON.parse(text)
+  }
+}
+
+export async function getParticipantResultInExam(apiCall, code, userId) {
+  const url = `${ENDPOINTS.GET_EXAM_PARTICIPANT_RESULT}${code}?userId=${userId}`
+  const response = await apiCall(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  if (!response.ok) {
+    if (response.status == 400) {
+      try {
+        const errorData = await response.json();
+        toast.error("Error", {
+          description: errorData.message,
+          variant: "destructive"
+        });
+      } catch (error) {
+        console.error("Error parsing error response:", error);
+      }
+    }
+    else if (response.status == 500) {
+      toast.error("Error", {
+        description: MESSAGES.MSG01,
+        variant: "destructive"
+      });
+    }
+    return null;
+  }
+  else {
+    const text = await response.text()
+    if (!text) return null
+    return JSON.parse(text)
+  }
+}
