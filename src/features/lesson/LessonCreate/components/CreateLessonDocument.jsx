@@ -1,11 +1,22 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, X } from "lucide-react";
 
 function CreateLessonDocument({ file, setFile }) {
+  const [filePreview, setFilePreview] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      if (filePreview) URL.revokeObjectURL(filePreview);
+    };
+  }, [filePreview]);
+
   const handleFileUpload = (e) => {
     const uploadedFile = e.target.files[0];
     if (uploadedFile) {
+      if (filePreview) URL.revokeObjectURL(filePreview);
       setFile(uploadedFile);
+      setFilePreview(URL.createObjectURL(uploadedFile));
     }
   };
 
@@ -19,7 +30,9 @@ function CreateLessonDocument({ file, setFile }) {
     e.stopPropagation();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const uploadedFile = e.dataTransfer.files[0];
+      if (filePreview) URL.revokeObjectURL(filePreview);
       setFile(uploadedFile);
+      setFilePreview(URL.createObjectURL(uploadedFile));
     }
   };
 
@@ -60,7 +73,9 @@ function CreateLessonDocument({ file, setFile }) {
                 size="icon"
                 variant="destructive"
                 onClick={() => {
+                  if (filePreview) URL.revokeObjectURL(filePreview);
                   setFile(null);
+                  setFilePreview(null);
                 }}
               >
                 <X className="h-4 w-4" />

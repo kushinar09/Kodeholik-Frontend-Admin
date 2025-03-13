@@ -13,9 +13,26 @@ import { Switch } from "@/components/ui/switch";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import CreateLessonVideo from "./components/CreateLessonVideo";
 import CreateLessonDocument from "./components/CreateLessonDocument";
 
@@ -29,26 +46,31 @@ const formSchema = z.object({
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(5000, "Description must be less than 5000 characters"),
-  chapterId: z
-    .string()
-    .min(1, "A chapter must be selected"),
-  displayOrder: z
-    .number()
-    .int()
-    .min(1, "Display order must be at least 1"),
-  type: z.enum(["VIDEO", "DOCUMENT"], { message: "Type must be either VIDEO or DOCUMENT" }),
+  chapterId: z.string().min(1, "A chapter must be selected"),
+  displayOrder: z.number().int().min(1, "Display order must be at least 1"),
+  type: z.enum(["VIDEO", "DOCUMENT"], {
+    message: "Type must be either VIDEO or DOCUMENT",
+  }),
   status: z.enum(["ACTIVATED", "INACTIVATED"]),
   attachedFile: z
     .instanceof(File, { message: "Attached file must be a file" })
     .optional()
-    .refine((file) => !file || file.size <= 100 * 1024 * 1024, "Attached file must be less than 100 MB"),
+    .refine(
+      (file) => !file || file.size <= 100 * 1024 * 1024,
+      "Attached file must be less than 100 MB"
+    ),
   videoFile: z
     .instanceof(File, { message: "Video must be a file" })
     .optional()
-    .refine((file) => !file || file.size <= 500 * 1024 * 1024, "Video file must be less than 500 MB")
-    .refine((file) => !file || file.type.startsWith("video/"), "File must be a video"),
+    .refine(
+      (file) => !file || file.size <= 500 * 1024 * 1024,
+      "Video file must be less than 500 MB"
+    )
+    .refine(
+      (file) => !file || file.type.startsWith("video/"),
+      "File must be a video"
+    ),
 });
-
 
 function CreateLesson() {
   useEffect(() => {
@@ -229,7 +251,9 @@ function CreateLesson() {
                 <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
                   <span className="text-black text-sm font-medium">
                     {formData.chapterId
-                      ? chapters.find((ch) => ch.id === parseInt(formData.chapterId))?.title || "Selected Chapter"
+                      ? chapters.find(
+                          (ch) => ch.id === parseInt(formData.chapterId)
+                        )?.title || "Selected Chapter"
                       : "Select Chapter (required)"}
                   </span>
                   {isChaptersOpen ? (
@@ -264,24 +288,31 @@ function CreateLesson() {
                         <Checkbox
                           id={`chapter-${chapter.id}`}
                           checked={formData.chapterId === String(chapter.id)}
-                          onCheckedChange={() => handleChapterChange(chapter.id)}
+                          onCheckedChange={() =>
+                            handleChapterChange(chapter.id)
+                          }
                         />
                         <Label
                           htmlFor={`chapter-${chapter.id}`}
                           className="text-black text-sm whitespace-nowrap"
                         >
-                          {chapter.title || `Unnamed Chapter (ID: ${chapter.id})`}
+                          {chapter.title ||
+                            `Unnamed Chapter (ID: ${chapter.id})`}
                         </Label>
                       </div>
                     ))
                   ) : (
-                    <span className="text-gray-400 text-sm">No chapters found</span>
+                    <span className="text-gray-400 text-sm">
+                      No chapters found
+                    </span>
                   )}
                 </div>
               </CollapsibleContent>
             </Collapsible>
             <div className="space-y-2">
-              <Label className="text-white text-base font-medium">Display Order</Label>
+              <Label className="text-white text-base font-medium">
+                Display Order
+              </Label>
               <Input
                 type="number"
                 name="displayOrder"
@@ -293,12 +324,14 @@ function CreateLesson() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white text-base font-medium">Lesson Type</Label>
+              <Label className="text-white text-base font-medium">
+                Lesson Type
+              </Label>
               <Select
                 value={formData.type}
                 onValueChange={(value) => {
                   setFormData((prev) => ({ ...prev, type: value }));
-                  setFile(null); // Clear file when type changes
+                  setFile(null); // Clear file khi đổi type
                   setFilePreview(null);
                 }}
               >
@@ -308,6 +341,7 @@ function CreateLesson() {
                 <SelectContent>
                   <SelectItem value="VIDEO">Video</SelectItem>
                   <SelectItem value="DOCUMENT">Document</SelectItem>
+                  <SelectItem value="LAB">Lab</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -322,7 +356,10 @@ function CreateLesson() {
                   }))
                 }
               />
-              <Label htmlFor="status" className="text-white text-base font-medium">
+              <Label
+                htmlFor="status"
+                className="text-white text-base font-medium"
+              >
                 Status
               </Label>
               {getStatusBadge(formData.status)}
@@ -338,10 +375,7 @@ function CreateLesson() {
                 setFilePreview={setFilePreview}
               />
             ) : (
-              <CreateLessonDocument
-                file={file}
-                setFile={setFile}
-              />
+              <CreateLessonDocument file={file} setFile={setFile} />
             )}
           </div>
         </div>
