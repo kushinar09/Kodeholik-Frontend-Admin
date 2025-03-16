@@ -4,6 +4,12 @@ import { Upload, X } from "lucide-react";
 
 function CreateLessonDocument({ file, setFile }) {
   const [filePreview, setFilePreview] = useState(null);
+  const allowedTypes = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/plain",
+  ];
 
   useEffect(() => {
     return () => {
@@ -14,6 +20,16 @@ function CreateLessonDocument({ file, setFile }) {
   const handleFileUpload = (e) => {
     const uploadedFile = e.target.files[0];
     if (uploadedFile) {
+      if (!allowedTypes.includes(uploadedFile.type)) {
+        alert(
+          "Only Word (.doc, .docx), PDF (.pdf), and Text (.txt) files are allowed."
+        );
+        return;
+      }
+      if (uploadedFile.size > 100 * 1024 * 1024) {
+        alert("File must be less than 100 MB.");
+        return;
+      }
       if (filePreview) URL.revokeObjectURL(filePreview);
       setFile(uploadedFile);
       setFilePreview(URL.createObjectURL(uploadedFile));
@@ -28,8 +44,18 @@ function CreateLessonDocument({ file, setFile }) {
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const uploadedFile = e.dataTransfer.files[0];
+    const uploadedFile = e.dataTransfer.files[0];
+    if (uploadedFile) {
+      if (!allowedTypes.includes(uploadedFile.type)) {
+        alert(
+          "Only Word (.doc, .docx), PDF (.pdf), and Text (.txt) files are allowed."
+        );
+        return;
+      }
+      if (uploadedFile.size > 100 * 1024 * 1024) {
+        alert("File must be less than 100 MB.");
+        return;
+      }
       if (filePreview) URL.revokeObjectURL(filePreview);
       setFile(uploadedFile);
       setFilePreview(URL.createObjectURL(uploadedFile));
@@ -43,7 +69,7 @@ function CreateLessonDocument({ file, setFile }) {
         <input
           type="file"
           id="fileUpload"
-          accept="*/*"
+          accept=".pdf,.doc,.docx,.txt"
           onChange={handleFileUpload}
           className="hidden"
         />
@@ -91,7 +117,7 @@ function CreateLessonDocument({ file, setFile }) {
             <p className="text-black text-center">
               Drag and drop a file here
               <br />
-              (max 100 MB)
+              (Word, PDF, TXT - max 100 MB)
               <br />
               or click to browse
             </p>

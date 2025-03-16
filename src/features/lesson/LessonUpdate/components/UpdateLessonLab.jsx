@@ -1,5 +1,5 @@
 "use client";
-import { List } from "react-virtualized";
+
 import { useState, useEffect } from "react";
 import { Search, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-export default function CreateLessonLab({
+export default function UpdateLessonLab({
   selectedProblems = [],
   setSelectedProblems,
 }) {
@@ -51,24 +51,12 @@ export default function CreateLessonLab({
   const [searchTerm, setSearchTerm] = useState("");
   const { apiCall } = useAuth();
 
-  // Derive problemIds from selectedProblems
   const problemIds = selectedProblems.map((problem) => String(problem.link));
 
-  const rowRenderer = ({ index, key, style }) => {
-    const problem = problems[index];
-    return (
-      <div key={key} style={style} className="flex items-center space-x-2 ...">
-        {/* Checkbox và Label */}
-      </div>
-    );
-  };
-
-  // Fetch problems when filters change
   useEffect(() => {
     fetchProblems();
   }, [filters]);
 
-  // Debounced search effect
   useEffect(() => {
     const timer = setTimeout(() => {
       setFilters((prev) => ({
@@ -76,27 +64,23 @@ export default function CreateLessonLab({
         title: searchTerm,
         page: 0,
       }));
-    }, 500); // 500ms debounce
-
+    }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
   const fetchProblems = async () => {
     setIsLoading(true);
-
     try {
       const response = await apiCall(ENDPOINTS.POST_TEACHER_PROBLEMS_LIST, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(filters),
       });
 
       if (!response.ok) {
         toast.error("Error", {
           description:
-            response.json().message ||
+            (await response.json()).message ||
             `Failed to load problems. Catch error ${response.status}.`,
         });
       }
@@ -104,11 +88,10 @@ export default function CreateLessonLab({
       const text = await response.text();
       if (text && text.length > 0) {
         const data = JSON.parse(text);
-        // Ensure each problem has a unique link
         const problemsWithUniqueLinks = (data.content || []).map(
           (problem, index) => ({
             ...problem,
-            link: problem.link || `problem-${index}`, // Fallback for missing or duplicate links
+            link: problem.link || `problem-${index}`,
           })
         );
         setProblems(problemsWithUniqueLinks);
@@ -143,29 +126,22 @@ export default function CreateLessonLab({
     }
   };
 
-  // Handle search input change with debounce
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  // Handle problem selection
   const handleSelectProblem = (problem) => {
     const problemLink = String(problem.link);
-
     const isSelected = problemIds.includes(problemLink);
-
     if (isSelected) {
-      // Remove the problem
       setSelectedProblems(
         selectedProblems.filter((p) => String(p.link) !== problemLink)
       );
     } else {
-      // Add the problem
       setSelectedProblems([...selectedProblems, problem]);
     }
   };
 
-  // Handle removing a selected problem
   const handleRemoveProblem = (e, problemId) => {
     e.stopPropagation();
     const problemIdStr = String(problemId);
@@ -174,14 +150,12 @@ export default function CreateLessonLab({
     );
   };
 
-  // Clear all selected problems
   const clearProblemSelection = (e) => {
     e.stopPropagation();
     setSelectedProblems([]);
     setSearchTerm("");
   };
 
-  // Get color based on difficulty
   const getDifficultyColor = (difficulty) => {
     const colors = {
       EASY: "bg-green-500",
@@ -191,17 +165,12 @@ export default function CreateLessonLab({
     return colors[difficulty] || "bg-gray-500";
   };
 
-  // Handle page change
   const handlePageChange = (e, page) => {
     e.preventDefault();
     e.stopPropagation();
-    setFilters((prev) => ({
-      ...prev,
-      page: page,
-    }));
+    setFilters((prev) => ({ ...prev, page }));
   };
 
-  // Check if a problem is selected
   const isProblemSelected = (problemId) => {
     const problemIdStr = String(problemId);
     return problemIds.includes(problemIdStr);
@@ -240,7 +209,6 @@ export default function CreateLessonLab({
               )}
             </div>
 
-            {/* Search input */}
             <div className="relative w-full">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -253,7 +221,6 @@ export default function CreateLessonLab({
               />
             </div>
 
-            {/* Problems list */}
             <div className="max-h-64 overflow-y-auto">
               {isLoading ? (
                 <div className="flex justify-center items-center h-32">
@@ -299,7 +266,6 @@ export default function CreateLessonLab({
               )}
             </div>
 
-            {/* Pagination */}
             {pagination.totalPages > 1 && (
               <Pagination onClick={(e) => e.stopPropagation()}>
                 <PaginationContent>
@@ -323,9 +289,7 @@ export default function CreateLessonLab({
                         <PaginationLink
                           href="#"
                           isActive={pagination.currentPage === index}
-                          onClick={(e) => {
-                            handlePageChange(e, index);
-                          }}
+                          onClick={(e) => handlePageChange(e, index)}
                         >
                           {index + 1}
                         </PaginationLink>
@@ -352,7 +316,6 @@ export default function CreateLessonLab({
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Display selected problems */}
         {selectedProblems.length > 0 && (
           <div className="mt-2 p-3 border rounded-md bg-muted">
             <div className="font-medium mb-2">
@@ -378,9 +341,7 @@ export default function CreateLessonLab({
                     variant="ghost"
                     size="icon"
                     className="h-5 w-5 rounded-full"
-                    onClick={(e) => {
-                      handleRemoveProblem(e, problem.link);
-                    }}
+                    onClick={(e) => handleRemoveProblem(e, problem.link)}
                   >
                     <X className="h-3 w-3" />
                   </Button>
