@@ -1,3 +1,5 @@
+"use client";
+
 import { GLOBALS } from "@/lib/constants";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import CreateLessonVideo from "./components/CreateLessonVideo";
 import CreateLessonDocument from "./components/CreateLessonDocument";
+import CreateLessonLab from "./components/CreateLessonLab";
 
 // Define the Zod schema for form validation
 const formSchema = z.object({
@@ -94,6 +97,8 @@ function CreateLesson() {
   const [error, setError] = useState(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const { apiCall } = useAuth();
+  const [selectedProblems, setSelectedProblems] = useState([]);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
 
   useEffect(() => {
     const fetchChapters = async () => {
@@ -129,7 +134,7 @@ function CreateLesson() {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "displayOrder" ? parseInt(value) : value,
+      [name]: name === "displayOrder" ? Number.parseInt(value) : value,
     }));
   };
 
@@ -147,33 +152,11 @@ function CreateLesson() {
     e.preventDefault();
     setError(null);
 
-    const dataToValidate = {
-      title: formData.title,
-      description: formData.description,
-      chapterId: formData.chapterId,
-      displayOrder: formData.displayOrder,
-      type: formData.type,
-      status: formData.status,
-      attachedFile: formData.type === "DOCUMENT" ? file : undefined,
-      videoFile: formData.type === "VIDEO" ? file : undefined,
-    };
-
-    try {
-      formSchema.parse(dataToValidate);
-    } catch (validationError) {
-      if (validationError instanceof z.ZodError) {
-        setError(validationError.errors[0].message);
-        return;
-      }
-      setError("An unexpected validation error occurred");
-      return;
-    }
-
     const lessonData = {
-      chapterId: formData.chapterId,
+      chapterId: Number(formData.chapterId),
       title: formData.title,
       description: formData.description,
-      displayOrder: formData.displayOrder,
+      displayOrder: Number(formData.displayOrder),
       type: formData.type,
       status: formData.status,
     };
@@ -186,11 +169,46 @@ function CreateLesson() {
       formDataPayload.append("displayOrder", lessonData.displayOrder);
       formDataPayload.append("type", lessonData.type);
       formDataPayload.append("status", lessonData.status);
-      if (formData.type === "DOCUMENT" && file) {
+
+      // Handle video type based on input
+      if (formData.type === "VIDEO") {
+        if (file) {
+          formDataPayload.append("videoType", "VIDEO_FILE");
+          formDataPayload.append("videoFile", file);
+        } else if (youtubeUrl) {
+          formDataPayload.append("videoType", "YOUTUBE");
+          formDataPayload.append("youtubeUrl", youtubeUrl);
+        } else {
+          throw new Error(
+            "Please provide a video file or YouTube URL for a VIDEO lesson."
+          );
+        }
+      } else if (formData.type === "DOCUMENT" && file) {
         formDataPayload.append("attachedFile", file);
-      } else if (formData.type === "VIDEO" && file) {
-        formDataPayload.append("videoFile", file);
       }
+
+      // Always include selected problems regardless of lesson type
+      if (selectedProblems.length > 0) {
+        formDataPayload.append(
+          "problemIds",
+          JSON.stringify(selectedProblems.map((p) => p.link))
+        );
+      }
+
+      // Log the form data being sent
+      console.log("Sending form data:");
+      for (const [key, value] of formDataPayload.entries()) {
+        if (key === "videoFile" || key === "attachedFile") {
+          console.log(
+            `${key}: [File] ${value.name}, size: ${(value.size / 1024).toFixed(
+              2
+            )} KB`
+          );
+        } else {
+          console.log(`${key}: ${value}`);
+        }
+      }
+
       const result = await createLesson(formDataPayload, apiCall);
       console.log("Create lesson result:", result);
       setShowSuccessDialog(true);
@@ -252,7 +270,7 @@ function CreateLesson() {
                   <span className="text-black text-sm font-medium">
                     {formData.chapterId
                       ? chapters.find(
-                          (ch) => ch.id === parseInt(formData.chapterId)
+                          (ch) => ch.id === Number.parseInt(formData.chapterId)
                         )?.title || "Selected Chapter"
                       : "Select Chapter (required)"}
                   </span>
@@ -310,7 +328,7 @@ function CreateLesson() {
               </CollapsibleContent>
             </Collapsible>
             <div className="space-y-2">
-              <Label className="text-white text-base font-medium">
+              <Label className="text-black text-base font-medium">
                 Display Order
               </Label>
               <Input
@@ -324,7 +342,7 @@ function CreateLesson() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white text-base font-medium">
+              <Label className="text-black text-base font-medium">
                 Lesson Type
               </Label>
               <Select
@@ -341,7 +359,6 @@ function CreateLesson() {
                 <SelectContent>
                   <SelectItem value="VIDEO">Video</SelectItem>
                   <SelectItem value="DOCUMENT">Document</SelectItem>
-                  <SelectItem value="LAB">Lab</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -358,12 +375,18 @@ function CreateLesson() {
               />
               <Label
                 htmlFor="status"
-                className="text-white text-base font-medium"
+                className="text-black text-base font-medium"
               >
                 Status
               </Label>
               {getStatusBadge(formData.status)}
             </div>
+
+            {/* Always display CreateLessonLab component */}
+            <CreateLessonLab
+              selectedProblems={selectedProblems}
+              setSelectedProblems={setSelectedProblems}
+            />
           </div>
 
           <div className="lg:w-2/5 space-y-4">
@@ -373,6 +396,8 @@ function CreateLesson() {
                 setFile={setFile}
                 filePreview={filePreview}
                 setFilePreview={setFilePreview}
+                youtubeUrl={youtubeUrl}
+                setYoutubeUrl={setYoutubeUrl}
               />
             ) : (
               <CreateLessonDocument file={file} setFile={setFile} />

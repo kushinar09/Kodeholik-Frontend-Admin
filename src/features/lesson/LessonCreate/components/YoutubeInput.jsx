@@ -2,13 +2,32 @@ import { useState } from "react";
 
 function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
   const [inputValue, setInputValue] = useState(youtubeUrl || "");
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setInputValue(e.target.value);
+    if (!e.target.value.trim()) {
+      setYoutubeUrl("");
+      setError("");
+    }
   };
 
   const handleBlur = () => {
-    setYoutubeUrl(inputValue.trim());
+    const trimmedUrl = inputValue.trim();
+    const videoId = getYoutubeVideoId(trimmedUrl);
+
+    if (trimmedUrl === "") {
+      setYoutubeUrl("");
+      setError("");
+      return;
+    }
+
+    if (videoId) {
+      setYoutubeUrl(trimmedUrl);
+      setError("");
+    } else {
+      setError("URL không hợp lệ. Hãy nhập một liên kết YouTube hợp lệ.");
+    }
   };
 
   return (
@@ -24,7 +43,9 @@ function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
         onBlur={handleBlur}
         className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
       />
-      {youtubeUrl && (
+      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+
+      {youtubeUrl && !error && (
         <div className="mt-2 w-full aspect-video border rounded-lg overflow-hidden">
           <iframe
             className="w-full h-full"
@@ -40,12 +61,12 @@ function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
   );
 }
 
-// Hàm lấy video ID từ URL YouTube
+// 🔹 Hàm lấy video ID từ URL YouTube
 function getYoutubeVideoId(url) {
   const regExp =
     /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
   const match = url.match(regExp);
-  return match ? match[1] : "";
+  return match ? match[1] : null;
 }
 
 export default YoutubeInput;
