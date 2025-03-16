@@ -189,10 +189,9 @@ function CreateLesson() {
 
       // Always include selected problems regardless of lesson type
       if (selectedProblems.length > 0) {
-        formDataPayload.append(
-          "problemIds",
-          JSON.stringify(selectedProblems.map((p) => p.link))
-        );
+        selectedProblems.forEach((p) => {
+          formDataPayload.append("problemIds", p.link);
+        });
       }
 
       // Log the form data being sent
