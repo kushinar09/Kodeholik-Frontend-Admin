@@ -80,7 +80,9 @@ function UpdateLessonDocument({ file, setFile, existingFileUrl }) {
               </>
             ) : (
               <p className="text-black text-center truncate">
-                Existing File: {existingFileUrl.split("/").pop()}
+                {existingFileUrl && existingFileUrl.includes("/")
+                  ? existingFileUrl.split("/").pop().split("-").pop()
+                  : existingFileUrl}
               </p>
             )}
             <div className="absolute top-2 right-2 flex gap-2">

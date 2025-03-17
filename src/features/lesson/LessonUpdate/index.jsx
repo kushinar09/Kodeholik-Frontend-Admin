@@ -94,19 +94,33 @@ function UpdateLesson() {
       }));
       console.log("Selected Problems from API:", formattedProblems); // Debug
       setSelectedProblems(formattedProblems);
-      if (data.type === "VIDEO" && data.videoType === "YOUTUBE") {
-        setYoutubeUrl(data.youtubeUrl || "");
-      } else if (data.type === "VIDEO" && data.videoType === "VIDEO_FILE") {
-        setExistingFileUrl(data.videoUrl);
-        setFilePreview(data.videoUrl);
-      } else if (data.type === "DOCUMENT") {
-        setExistingFileUrl(data.attachedFileUrl);
+      if (data.type === "VIDEO" && data.videoUrl) {
+        if (isYouTubeKey(data.videoUrl)) {
+          setYoutubeUrl("https://www.youtube.com/watch?v=" + data.videoUrl); // Gán YouTube key vào input
+        } else if (isGcsUrl(data.videoUrl)) {
+          setExistingFileUrl(data.videoUrl); // Gán GCS URL
+          setFilePreview(data.videoUrl); // Hiển thị video GCS
+        }
+      } else if (data.type === "DOCUMENT" && data.attachedFile) {
+        setExistingFileUrl(data.attachedFile); // Nếu là document
       }
+
       setIsLoading(false);
     } catch (err) {
       setError(err.message || "Failed to load lesson details");
       setIsLoading(false);
     }
+  };
+
+  const isYouTubeKey = (url) => {
+    return (
+      url && url.length === 11 && !url.includes("/") && !url.startsWith("http")
+    );
+  };
+
+  // Hàm kiểm tra GCS URL
+  const isGcsUrl = (url) => {
+    return url && url.startsWith("https://storage.googleapis.com");
   };
 
   const fetchChapters = async () => {
