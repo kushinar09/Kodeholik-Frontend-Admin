@@ -1,9 +1,10 @@
+"use client";
+
 import { GLOBALS } from "@/lib/constants";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getChapterList } from "@/lib/api/chapter_api";
 import { useAuth } from "@/provider/AuthProvider";
-import { updateLesson, getLessonById } from "@/lib/api/lesson_api";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -11,48 +12,37 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import UpdateLessonVideo from "./components/UpdateLessonVideo";
 import UpdateLessonDocument from "./components/UpdateLessonDocument";
-import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor";
-
-// Define the Zod schema for form validation
-const formSchema = z.object({
-  title: z
-    .string()
-    .min(10, "Title must be at least 10 characters")
-    .max(200, "Title must be less than 200 characters"),
-  description: z
-    .string()
-    .min(10, "Description must be at least 10 characters")
-    .max(5000, "Description must be less than 5000 characters"),
-  chapterId: z
-    .string()
-    .min(1, "A chapter must be selected"),
-  displayOrder: z
-    .number()
-    .int()
-    .min(1, "Display order must be at least 1"),
-  type: z.enum(["VIDEO", "DOCUMENT"], { message: "Type must be either VIDEO or DOCUMENT" }),
-  status: z.enum(["ACTIVATED", "INACTIVATED"]),
-  attachedFile: z
-    .instanceof(File, { message: "Attached file must be a file" })
-    .optional()
-    .refine((file) => !file || file.size <= 100 * 1024 * 1024, "Attached file must be less than 100 MB"),
-  videoFile: z
-    .instanceof(File, { message: "Video must be a file" })
-    .optional()
-    .refine((file) => !file || file.size <= 500 * 1024 * 1024, "Video file must be less than 500 MB")
-    .refine((file) => !file || file.type.startsWith("video/"), "File must be a video"),
-});
+import UpdateLessonLab from "./components/UpdateLessonLab";
+import YoutubeInput from "./components/YoutubeInput";
+import { ENDPOINTS } from "@/lib/constants";
 
 function UpdateLesson() {
-  const { id } = useParams(); // Get the lesson ID from the URL
+  const { id } = useParams(); // Lấy lesson ID từ URL
   const navigate = useNavigate();
+  const { apiCall } = useAuth();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -62,60 +52,91 @@ function UpdateLesson() {
     status: "ACTIVATED",
   });
   const [chapters, setChapters] = useState([]);
-  const [file, setFile] = useState(null); // Generic file state for either video or attached file
-  const [filePreview, setFilePreview] = useState(null); // Preview for video files
-  const [existingFileUrl, setExistingFileUrl] = useState(null); // URL of existing video or file
+  const [file, setFile] = useState(null); // File mới upload
+  const [filePreview, setFilePreview] = useState(null); // Preview cho file mới hoặc hiện tại
+  const [existingFileUrl, setExistingFileUrl] = useState(null); // URL file hiện tại từ server
   const [isChaptersOpen, setIsChaptersOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
   const [error, setError] = useState(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const { apiCall } = useAuth();
+  const [selectedProblems, setSelectedProblems] = useState([]);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch lesson data and chapters on mount
+  // Lấy dữ liệu lesson và chapters khi component mount
   useEffect(() => {
     document.title = `Update Lesson - ${GLOBALS.APPLICATION_NAME}`;
+    fetchLessonDetail();
+    fetchChapters();
+  }, []);
 
-    const fetchData = async () => {
-      try {
-        // Fetch lesson data
-        const lessonData = await getLessonById(id, apiCall);
-        setFormData({
-          title: lessonData.title || "",
-          description: lessonData.description || "",
-          chapterId: String(lessonData.chapterId) || "",
-          displayOrder: lessonData.displayOrder || 1,
-          type: lessonData.type || "VIDEO",
-          status: lessonData.status || "ACTIVATED",
-        });
-
-        // Set existing file URL if available
-        if (lessonData.type === "VIDEO" && lessonData.videoUrl) {
-          setExistingFileUrl(lessonData.videoUrl);
-          setFilePreview(lessonData.videoUrl);
-        } else if (lessonData.type === "DOCUMENT" && lessonData.attachedFile) {
-          setExistingFileUrl(lessonData.attachedFile);
+  const fetchLessonDetail = async () => {
+    try {
+      const response = await apiCall(
+        `${ENDPOINTS.GET_LESSON_DETAIL.replace(":id", id)}`,
+        {
+          method: "GET",
         }
-
-        // Fetch chapters
-        const chapterData = await getChapterList();
-        const chapterArray = Array.isArray(chapterData?.content) ? chapterData.content : [];
-        setChapters(chapterArray);
-        setError(null);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setError(error.message || "Failed to fetch lesson or chapters");
+      );
+      const data = await response.json();
+      const lessonType =
+        data.type === "VIDEO" && data.videoUrl && isYouTubeKey(data.videoUrl)
+          ? "YOUTUBE"
+          : data.type || "VIDEO";
+      setFormData({
+        title: data.title || "",
+        description: data.description || "",
+        chapterId: String(data.chapterId) || "",
+        displayOrder: data.displayOrder || 1,
+        type: lessonType,
+        status: data.status || "ACTIVATED",
+      });
+      // Xử lý problems từ API
+      const formattedProblems = (data.problems || []).map((problem) => ({
+        link: problem.problemLink,
+        title: problem.title || problem.problemLink,
+        difficulty: problem.difficulty || "UNKNOWN",
+      }));
+      console.log("Selected Problems from API:", formattedProblems); // Debug
+      setSelectedProblems(formattedProblems);
+      if (lessonType === "YOUTUBE") {
+        setYoutubeUrl("https://www.youtube.com/watch?v=" + data.videoUrl); // Gán YouTube URL
+      } else if (lessonType === "VIDEO" && data.videoUrl) {
+        setExistingFileUrl(data.videoUrl); // Gán GCS URL
+        setFilePreview(data.videoUrl); // Hiển thị video GCS ngay lập tức
+      } else if (lessonType === "DOCUMENT" && data.attachedFile) {
+        setExistingFileUrl(data.attachedFile); // Nếu là document
       }
-    };
-    fetchData();
-  }, [id, apiCall]);
+
+      setIsLoading(false);
+    } catch (err) {
+      setError(err.message || "Failed to load lesson details");
+      setIsLoading(false);
+    }
+  };
+
+  const isYouTubeKey = (url) => {
+    return (
+      url && url.length === 11 && !url.includes("/") && !url.startsWith("http")
+    );
+  };
+
+  const fetchChapters = async () => {
+    try {
+      const data = await getChapterList();
+      setChapters(Array.isArray(data?.content) ? data.content : []);
+    } catch (err) {
+      setError(err.message || "Failed to fetch chapters");
+    }
+  };
 
   useEffect(() => {
     return () => {
-      if (filePreview && !existingFileUrl) {
+      if (filePreview && filePreview.startsWith("blob:")) {
         URL.revokeObjectURL(filePreview);
       }
     };
-  }, [filePreview, existingFileUrl]);
+  }, [filePreview]);
 
   const filteredChapters = chapters.filter((chapter) =>
     (chapter.title || `Unnamed Chapter (ID: ${chapter.id})`)
@@ -127,7 +148,7 @@ function UpdateLesson() {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "displayOrder" ? parseInt(value) : value,
+      [name]: name === "displayOrder" ? Number.parseInt(value) : value,
     }));
   };
 
@@ -144,35 +165,14 @@ function UpdateLesson() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-
-    const dataToValidate = {
-      title: formData.title,
-      description: formData.description,
-      chapterId: formData.chapterId,
-      displayOrder: formData.displayOrder,
-      type: formData.type,
-      status: formData.status,
-      attachedFile: formData.type === "DOCUMENT" ? file : undefined,
-      videoFile: formData.type === "VIDEO" ? file : undefined,
-    };
-
-    try {
-      formSchema.parse(dataToValidate);
-    } catch (validationError) {
-      if (validationError instanceof z.ZodError) {
-        setError(validationError.errors[0].message);
-        return;
-      }
-      setError("An unexpected validation error occurred");
-      return;
-    }
+    setIsLoading(true);
 
     const lessonData = {
-      chapterId: formData.chapterId,
+      chapterId: Number(formData.chapterId),
       title: formData.title,
       description: formData.description,
-      displayOrder: formData.displayOrder,
-      type: formData.type,
+      displayOrder: Number(formData.displayOrder),
+      type: formData.type === "YOUTUBE" ? "VIDEO" : formData.type, // Gộp YOUTUBE thành VIDEO
       status: formData.status,
     };
 
@@ -182,24 +182,39 @@ function UpdateLesson() {
       formDataPayload.append("title", lessonData.title);
       formDataPayload.append("description", lessonData.description);
       formDataPayload.append("displayOrder", lessonData.displayOrder);
-      formDataPayload.append("type", lessonData.type);
+      formDataPayload.append("type", lessonData.type); // Luôn là VIDEO hoặc DOCUMENT
       formDataPayload.append("status", lessonData.status);
-      if (formData.type === "DOCUMENT" && file) {
-        formDataPayload.append("attachedFile", file);
-      } else if (formData.type === "VIDEO" && file) {
-        formDataPayload.append("videoFile", file);
-      }
-      const result = await updateLesson(id, formDataPayload, apiCall);
-      console.log("Update lesson result:", result);
-      setShowSuccessDialog(true);
-    } catch (error) {
-      console.error("Error updating lesson:", error);
-      setError(error.message || "Failed to update lesson");
-    }
-  };
 
-  const handleDescriptionChange = (value) => {
-    setFormData((prev) => ({ ...prev, "description": value }));
+      if (formData.type === "VIDEO" && file) {
+        formDataPayload.append("videoType", "VIDEO_FILE");
+        formDataPayload.append("videoFile", file);
+      } else if (formData.type === "YOUTUBE" && youtubeUrl) {
+        formDataPayload.append("videoType", "YOUTUBE");
+        formDataPayload.append("youtubeUrl", youtubeUrl);
+      } else if (formData.type === "DOCUMENT" && file) {
+        formDataPayload.append("attachedFile", file);
+      }
+
+      if (selectedProblems.length > 0) {
+        selectedProblems.forEach((p) => {
+          formDataPayload.append("problemIds", p.link);
+        });
+      }
+
+      const url = ENDPOINTS.UPDATE_LESSON.replace(":id", id);
+
+      const response = await apiCall(url, {
+        method: "PUT",
+        body: formDataPayload,
+      });
+
+      if (!response.ok) throw new Error("Failed to update lesson");
+      setShowSuccessDialog(true);
+    } catch (err) {
+      setError(err.message || "Failed to update lesson");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDialogClose = () => {
@@ -218,6 +233,10 @@ function UpdateLesson() {
       </Badge>
     );
   };
+
+  if (isLoading) {
+    return <div>Loading lesson details...</div>;
+  }
 
   return (
     <>
@@ -240,24 +259,22 @@ function UpdateLesson() {
               placeholder="Lesson Title"
               required
             />
-            {/* <Textarea
+            <Textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               placeholder="Lesson Description"
               required
               className="h-40"
-            /> */}
-            <MarkdownEditor
-              value={formData.description}
-              onChange={handleDescriptionChange}
             />
             <Collapsible open={isChaptersOpen} onOpenChange={setIsChaptersOpen}>
               <CollapsibleTrigger asChild>
                 <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
                   <span className="text-black text-sm font-medium">
                     {formData.chapterId
-                      ? chapters.find((ch) => ch.id === parseInt(formData.chapterId))?.title || "Selected Chapter"
+                      ? chapters.find(
+                          (ch) => ch.id === Number.parseInt(formData.chapterId)
+                        )?.title || "Selected Chapter"
                       : "Select Chapter (required)"}
                   </span>
                   {isChaptersOpen ? (
@@ -292,24 +309,31 @@ function UpdateLesson() {
                         <Checkbox
                           id={`chapter-${chapter.id}`}
                           checked={formData.chapterId === String(chapter.id)}
-                          onCheckedChange={() => handleChapterChange(chapter.id)}
+                          onCheckedChange={() =>
+                            handleChapterChange(chapter.id)
+                          }
                         />
                         <Label
                           htmlFor={`chapter-${chapter.id}`}
                           className="text-black text-sm whitespace-nowrap"
                         >
-                          {chapter.title || `Unnamed Chapter (ID: ${chapter.id})`}
+                          {chapter.title ||
+                            `Unnamed Chapter (ID: ${chapter.id})`}
                         </Label>
                       </div>
                     ))
                   ) : (
-                    <span className="text-gray-400 text-sm">No chapters found</span>
+                    <span className="text-gray-400 text-sm">
+                      No chapters found
+                    </span>
                   )}
                 </div>
               </CollapsibleContent>
             </Collapsible>
             <div className="space-y-2">
-              <Label className="text-white text-base font-medium">Display Order</Label>
+              <Label className="text-black text-base font-medium">
+                Display Order
+              </Label>
               <Input
                 type="number"
                 name="displayOrder"
@@ -321,14 +345,21 @@ function UpdateLesson() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white text-base font-medium">Lesson Type</Label>
+              <Label className="text-black text-base font-medium">
+                Lesson Type
+              </Label>
               <Select
                 value={formData.type}
                 onValueChange={(value) => {
                   setFormData((prev) => ({ ...prev, type: value }));
-                  setFile(null); // Clear file when type changes
+                  setFile(null);
                   setFilePreview(null);
-                  setExistingFileUrl(null);
+                  setYoutubeUrl("");
+                  if (value === "VIDEO" && existingFileUrl) {
+                    setFilePreview(existingFileUrl); // Khôi phục preview khi quay lại VIDEO
+                  } else {
+                    setExistingFileUrl(null);
+                  }
                 }}
               >
                 <SelectTrigger>
@@ -336,6 +367,7 @@ function UpdateLesson() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="VIDEO">Video</SelectItem>
+                  <SelectItem value="YOUTUBE">YouTube</SelectItem>
                   <SelectItem value="DOCUMENT">Document</SelectItem>
                 </SelectContent>
               </Select>
@@ -351,15 +383,23 @@ function UpdateLesson() {
                   }))
                 }
               />
-              <Label htmlFor="status" className="text-white text-base font-medium">
+              <Label
+                htmlFor="status"
+                className="text-black text-base font-medium"
+              >
                 Status
               </Label>
               {getStatusBadge(formData.status)}
             </div>
+
+            <UpdateLessonLab
+              selectedProblems={selectedProblems}
+              setSelectedProblems={setSelectedProblems}
+            />
           </div>
 
           <div className="lg:w-2/5 space-y-4">
-            {formData.type === "VIDEO" ? (
+            {formData.type === "VIDEO" && (
               <UpdateLessonVideo
                 file={file}
                 setFile={setFile}
@@ -367,7 +407,14 @@ function UpdateLesson() {
                 setFilePreview={setFilePreview}
                 existingFileUrl={existingFileUrl}
               />
-            ) : (
+            )}
+            {formData.type === "YOUTUBE" && (
+              <YoutubeInput
+                youtubeUrl={youtubeUrl}
+                setYoutubeUrl={setYoutubeUrl}
+              />
+            )}
+            {formData.type === "DOCUMENT" && (
               <UpdateLessonDocument
                 file={file}
                 setFile={setFile}
@@ -381,13 +428,16 @@ function UpdateLesson() {
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>
             Cancel
           </Button>
-          <Button type="submit" className="bg-primary text-white">
-            Update Lesson
+          <Button
+            type="submit"
+            className="bg-primary text-white"
+            disabled={isLoading}
+          >
+            {isLoading ? "Updating..." : "Update Lesson"}
           </Button>
         </div>
       </form>
 
-      {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <DialogContent>
           <DialogHeader>
