@@ -168,6 +168,10 @@ function CreateChapter() {
     );
   };
 
+  const handleDescriptionChange = (value) => {
+    setFormData((prev) => ({ ...prev, "description": value }));
+  };
+
   return (
     <div className="container py-8 px-4 sm:px-6">
       <div className="flex items-center gap-2 mb-6">
@@ -221,7 +225,7 @@ function CreateChapter() {
               <Label htmlFor="description" className="text-sm font-medium">
                 Description <span className="text-red-500">*</span>
               </Label>
-              <Textarea
+              {/* <Textarea
                 id="description"
                 name="description"
                 value={formData.description}
@@ -230,6 +234,10 @@ function CreateChapter() {
                 className="min-h-[120px] border-input/40 resize-y"
                 required
                 disabled={isSubmitting || isSuccessDialogOpen}
+              /> */}
+              <MarkdownEditor
+                value={formData.description}
+                onChange={handleDescriptionChange}
               />
             </div>
 

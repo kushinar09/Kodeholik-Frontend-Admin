@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getChapterList } from "@/lib/api/chapter_api";
 import { useAuth } from "@/provider/AuthProvider";
-import { updateLesson, getLessonById } from "@/lib/api/lesson_api"; 
+import { updateLesson, getLessonById } from "@/lib/api/lesson_api";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import UpdateLessonVideo from "./components/UpdateLessonVideo";
 import UpdateLessonDocument from "./components/UpdateLessonDocument";
+import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor";
 
 // Define the Zod schema for form validation
 const formSchema = z.object({
@@ -197,6 +198,10 @@ function UpdateLesson() {
     }
   };
 
+  const handleDescriptionChange = (value) => {
+    setFormData((prev) => ({ ...prev, "description": value }));
+  };
+
   const handleDialogClose = () => {
     setShowSuccessDialog(false);
     navigate("/lesson");
@@ -235,13 +240,17 @@ function UpdateLesson() {
               placeholder="Lesson Title"
               required
             />
-            <Textarea
+            {/* <Textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               placeholder="Lesson Description"
               required
               className="h-40"
+            /> */}
+            <MarkdownEditor
+              value={formData.description}
+              onChange={handleDescriptionChange}
             />
             <Collapsible open={isChaptersOpen} onOpenChange={setIsChaptersOpen}>
               <CollapsibleTrigger asChild>

@@ -14,6 +14,7 @@ import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
 import * as z from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Added Dialog components
+import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor";
 
 // Define the Zod schema for form validation
 const formSchema = z.object({
@@ -61,9 +62,9 @@ function UpdateCourse() {
         const data = await getTopicsWithId();
         const formattedTopics = Array.isArray(data)
           ? data.map((topic) => ({
-              id: String(topic.id || topic),
-              name: topic.name || topic,
-            }))
+            id: String(topic.id || topic),
+            name: topic.name || topic,
+          }))
           : [];
         setTopics(formattedTopics);
         console.log("Fetched topics:", formattedTopics);
@@ -241,6 +242,10 @@ function UpdateCourse() {
     navigate("/course"); // Navigate after closing the dialog
   };
 
+  const handleDescriptionChange = (value) => {
+    setFormData((prev) => ({ ...prev, "description": value }));
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
       ACTIVATED: "bg-green-500",
@@ -277,13 +282,17 @@ function UpdateCourse() {
                 required
                 className="w-full text-black border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
               />
-              <Textarea
+              {/* <Textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Description"
                 required
                 className="w-full h-40 text-black border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
+              /> */}
+              <MarkdownEditor
+                value={formData.description}
+                onChange={handleDescriptionChange}
               />
               <Collapsible open={isTopicsOpen} onOpenChange={setIsTopicsOpen}>
                 <CollapsibleTrigger asChild>
