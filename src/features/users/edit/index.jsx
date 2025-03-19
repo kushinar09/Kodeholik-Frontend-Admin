@@ -278,20 +278,6 @@ export default function EditUser({ onNavigate }) {
                         <div className="space-y-4 w-full md:w-1/2">
                             <FormField
                                 control={form.control}
-                                name="username"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Username</FormLabel>
-                                        <FormControl>
-                                            <Input value={field.value} onChange={field.onChange} placeholder="Enter username" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
                                 name="fullname"
                                 render={({ field }) => (
                                     <FormItem>
@@ -306,12 +292,26 @@ export default function EditUser({ onNavigate }) {
 
                             <FormField
                                 control={form.control}
+                                name="username"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Username</FormLabel>
+                                        <FormControl>
+                                            <Input value={field.value} disabled onChange={field.onChange} placeholder="Enter username" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
                                 name="email"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Email</FormLabel>
                                         <FormControl>
-                                            <Input type="email" value={field.value} onChange={field.onChange} placeholder="Enter email" {...field} />
+                                            <Input type="email" value={field.value} disabled onChange={field.onChange} placeholder="Enter email" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

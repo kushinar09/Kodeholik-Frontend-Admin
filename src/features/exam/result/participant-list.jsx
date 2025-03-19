@@ -21,7 +21,7 @@ export default function ParticipantList({ participants, selectedParticipantId, o
                                 onClick={() => onSelectParticipant(participant.id)}
                             >
                                 <div className="flex justify-between">
-                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                    <div className="flex justify-center items-center">
                                         <img
                                             src={participant.avatar}
                                             alt="avatar"

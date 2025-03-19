@@ -29,7 +29,7 @@ export function ParticipantResult({ participant, code }) {
       if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
         hljs.highlightBlock(block)
     })
-  }, [])
+  }, [code])
 
   useEffect(() => {
     setCopied(false)

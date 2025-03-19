@@ -64,7 +64,7 @@ export function ExamResult() {
                     size="icon"
                     className="absolute -top-12 left-0 md:hidden"
                     onClick={toggleParticipantList}
-                    aria-label={isParticipantListOpen ? "Close participant list" : "Open participant list"}
+                    aria-label={isParticipantListOpen ? "Hide participant list" : "Show participant list"}
                 >
                     {isParticipantListOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
                 </Button>
@@ -76,7 +76,7 @@ export function ExamResult() {
                     onClick={toggleParticipantList}
                 >
                     {isParticipantListOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-                    {isParticipantListOpen ? "Close participant list" : "Open participant list"}
+                    {isParticipantListOpen ? "Hide participant list" : "Show participant list"}
                 </Button>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-6">
