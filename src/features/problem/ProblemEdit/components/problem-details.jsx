@@ -69,13 +69,55 @@ export function ProblemDetails({ formData, updateFormData, onNext }) {
       status: formData.details.status || "PRIVATE",
       topics: formData.details.topics || [],
       skills: formData.details.skills || [],
-      isActive: formData.details.isActive !== undefined ? formData.details.isActive : true,
+      isActive: formData.details.isActive !== null ? formData.details.isActive : true,
       languageSupport: formData.details.languageSupport || []
     }
   })
 
+  // Update form when formData changes
+  useEffect(() => {
+    if (formData.details) {
+      form.reset(
+        {
+          title: formData.details.title || "",
+          difficulty: formData.details.difficulty || "EASY",
+          description: formData.details.description || "",
+          status: formData.details.status || "PRIVATE",
+          topics: formData.details.topics || [],
+          skills: formData.details.skills || [],
+          isActive: formData.details.isActive !== null ? formData.details.isActive : true,
+          languageSupport: formData.details.languageSupport || []
+        }
+      )
+    }
+  }, [formData.details, form])
+
+  // Watch for form changes and update parent formData
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (Object.keys(form.formState.dirtyFields).length > 0) {
+        // Only update if form has been modified
+        const formValues = form.getValues()
+        // Extract input parameters from form values
+        const transformedData = {
+          title: formValues.title || "",
+          difficulty: formValues.difficulty || "EASY",
+          description: formValues.description || "",
+          status: formValues.status || "PRIVATE",
+          topics: formValues.topics || [],
+          skills: formValues.skills || [],
+          isActive: formValues.isActive !== null ? formValues.isActive : false,
+          languageSupport: formValues.languageSupport || []
+        }
+        // Update the parent's formData with the new inputParameter array
+        updateFormData(transformedData, "details")
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [form, updateFormData])
+
   const handleSubmit = (values) => {
-    console.log("Problem Details submitting:", values)
     updateFormData(values, "details")
     onNext()
   }

@@ -12,13 +12,12 @@ export function MultiSelect({
   selected,
   onChange,
   placeholder = "Select items...",
-  emptyMessage = "No items found.",
+  emptyMessage = "No items found."
 }) {
   const [open, setOpen] = React.useState(false)
 
   const handleUnselect = (item) => {
     const newSelected = selected.filter((i) => i !== item)
-    console.log("MultiSelect unselected:", item, "New selection:", newSelected)
     onChange(newSelected)
   }
 
@@ -29,7 +28,6 @@ export function MultiSelect({
     } else {
       newSelected = [...selected, item]
     }
-    console.log("MultiSelect selected:", item, "New selection:", newSelected)
     onChange(newSelected)
   }
 

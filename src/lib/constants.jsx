@@ -50,9 +50,6 @@ const ENDPOINTS = {
   GET_PROBLEM_SOLUTIONS: `${API_URL}/problem-solution/list/:id`,
   GET_PROBLEM_SUBMISSIONS: `${API_URL}/problem/submissions/:id`,
   GET_SEARCH_PROBLEM: `${API_URL}/problem/search`,
-  POST_CREATE_PROBLEM: `${API_URL}/problem/create`,
-  POST_UPDATE_PROBLEM: `${API_URL}/problem/update/:id`,
-  POST_DELETE_PROBLEM: `${API_URL}/problem/delete/:id`,
 
   GET_TOPICS_PROBLEM: `${API_URL}/tag/all-topic`,
   GET_SKILLS_PROBLEM: `${API_URL}/tag/all-skill`,
@@ -70,11 +67,26 @@ const ENDPOINTS = {
   ENROLL_COURSE: `${API_URL}/course/enroll/:id`,
   UNENROLL_COURSE: `${API_URL}/course/unenroll/:id`,
 
+  //Chapter
+  GET_CHAPTERS: `${API_URL}/chapter/list`,
+  GET_CHAPTER_BY_COURSE_ID: `${API_URL}/chapter/by-course/:id`,
+  GET_CHAPTER_DETAIL: `${API_URL}/chapter/detail/:id`,
+  CREATE_CHAPTER: `${API_URL}/chapter/add`,
+  UPDATE_CHAPTER: `${API_URL}/chapter/update/:id`,
+
+  //Lesson
+  GET_LESSONS: `${API_URL}/lesson/list`,
+  GET_LESSON_BY_CHAPTERID: `${API_URL}/lesson/by-chapter/:id`,
+  GET_LESSON_DETAIL: `${API_URL}/lesson/detail/:id`,
+  CREATE_LESSON: `${API_URL}/lesson/add`,
+  UPDATE_LESSON: `${API_URL}/lesson/update/:id`,
+
   //Topic
   GET_TOPIC_LIST: `${API_URL}/tag/all-topic`,
   GET_tOPICWITHID: `${API_URL}/tag/topic`,
 
-  //image
+  //Image
+  POST_UPLOAD_IMAGE: `${API_URL}/s3/upload`,
   GET_IMAGE: (imageKey) => `${API_URL}/s3/presigned-url?key=${encodeURIComponent(imageKey)}`,
 
   // code
@@ -103,7 +115,21 @@ const ENDPOINTS = {
   POST_TAG_LIST_FOR_ADMIN: `${API_URL}/admin/list-tag`,
   DELETE_TAG: `${API_URL}/admin/delete-tag/`,
   ADD_TAG: `${API_URL}/admin/add-tag`,
-  EDIT_TAG: `${API_URL}/admin/edit-tag/`
+  EDIT_TAG: `${API_URL}/admin/edit-tag/`,
+
+  // Teacher role
+  // Problem
+  GET_TEACHER_PROBLEM_DETAILS: `${API_URL}/problem/basic-for-emp/:id`,
+  GET_TEACHER_PROBLEM_EDITORIAL: `${API_URL}/problem/editorial-for-emp/:id`,
+  GET_TEACHER_PROBLEM_TEMPLATE: `${API_URL}/problem/template-for-emp/:id`,
+  GET_TEACHER_PROBLEM_TESTCASE: `${API_URL}/problem/download-testcase/:id`,
+
+  POST_TEACHER_PROBLEMS_LIST: `${API_URL}/problem/list-problem`,
+  POST_CREATE_PROBLEM: `${API_URL}/problem/add-problem`,
+  POST_UPDATE_PROBLEM: `${API_URL}/problem/edit-problem/:id`,
+  POST_DELETE_PROBLEM: `${API_URL}/problem/delete/:id`,
+  PUT_CHANGE_STATUS_PROBLEM_ACTIVE: `${API_URL}/problem/activate-problem/:id`,
+  PUT_CHANGE_STATUS_PROBLEM_DEACTIVE: `${API_URL}/problem/deactivate-problem/:id`
 }
 
 

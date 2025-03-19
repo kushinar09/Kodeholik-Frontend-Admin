@@ -20,7 +20,6 @@ import {
   SidebarRail
 } from "@/components/ui/sidebar"
 import { NavMain } from "./nav-main"
-import { NavProjects } from "./nav-projects"
 import { NavUser } from "./nav-user"
 import { LOGO } from "@/lib/constants"
 
@@ -62,6 +61,14 @@ const data = {
         {
           title: "Courses",
           url: "/course"
+        },
+        {
+          title: "Chapter",
+          url: "/chapter"
+        },
+        {
+          title: "Lesson",
+          url: "/lesson"
         },
         {
           title: "Examinations",

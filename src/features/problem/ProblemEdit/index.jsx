@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { Check } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
 import { ProblemDetails } from "./components/problem-details"
 import { InputParameters } from "./components/input-parameters"
 import { Editorial } from "./components/editorial"
@@ -12,11 +10,13 @@ import { TestCases } from "./components/test-cases"
 import { ENDPOINTS } from "@/lib/constants"
 import { useAuth } from "@/provider/AuthProvider"
 import { useParams } from "react-router-dom"
+import LoadingScreen from "@/components/layout/loading"
+import { toast } from "sonner"
 
-export default function ProblemEdit({ onNavigate }) {
-  console.log("Edit page")
+export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
   const { id } = useParams()
   const { apiCall } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
 
   const [activeStep, setActiveStep] = useState("details")
   const [formData, setFormData] = useState({
@@ -36,12 +36,155 @@ export default function ProblemEdit({ onNavigate }) {
       editorialTitle: "",
       editorialTextSolution: "",
       editorialSkills: [],
-      solutionCode: []
+      solutionCodes: []
     },
     testCases: {
       excelFile: null
     }
   })
+
+  // Modify your fetch functions to handle loading state
+  const fetchDetails = async () => {
+    try {
+      const response = await apiCall(ENDPOINTS.GET_TEACHER_PROBLEM_DETAILS.replace(":id", id))
+      const text = await response.text()
+      if (text) {
+        const data = JSON.parse(text)
+        setCurrentTitleProblem(data.title)
+        console.log(data.isActive)
+
+        // Update the formData state with the fetched details
+        setFormData(prevState => ({
+          ...prevState,
+          details: {
+            ...prevState.details,
+            title: data.title || "",
+            difficulty: data.difficulty || "EASY",
+            description: data.description || "",
+            status: data.status || "PRIVATE",
+            topics: data.topics || [],
+            skills: data.skills || [],
+            isActive: data.isActive !== null ? data.isActive : true
+          }
+        }))
+      }
+    } catch (error) {
+      console.error("Error fetching problem details:", error)
+    }
+  }
+
+  const fetchEditorial = async () => {
+    try {
+      const response = await apiCall(ENDPOINTS.GET_TEACHER_PROBLEM_EDITORIAL.replace(":id", id))
+      const text = await response.text()
+
+      if (text) {
+        const data = JSON.parse(text).editorialDto
+
+        // Update the formData state with the fetched details
+        setFormData(prevState => ({
+          ...prevState,
+          editorial: {
+            ...prevState.editorial,
+            editorialTitle: data.editorialTitle || "",
+            editorialTextSolution: data.editorialTextSolution || "",
+            editorialSkills: data.editorialSkills || [],
+            solutionCodes: data.solutionCodes || []
+          }
+        }))
+      }
+    } catch (error) {
+      console.error("Error fetching editorial:", error)
+    }
+  }
+
+  const fetchTemplate = async () => {
+    try {
+      const response = await apiCall(ENDPOINTS.GET_TEACHER_PROBLEM_TEMPLATE.replace(":id", id))
+      const text = await response.text()
+
+      if (text) {
+        const data = JSON.parse(text)
+
+        const languages = new Set()
+
+        Object.values(data).forEach((item) => {
+          if (item.language) {
+            languages.add(item.language)
+          }
+          if (item.templateCodes?.language) {
+            languages.add(item.templateCodes.language)
+          }
+        })
+
+        setFormData(prevState => ({
+          ...prevState,
+          details: {
+            ...prevState.details,
+            languageSupport: Array.from(languages) || []
+          }
+        }))
+
+        // Update the formData state with the fetched details
+        setFormData(prevState => ({
+          ...prevState,
+          inputParameter: data.map((i) => ({
+            language: i.language,
+            functionSignature: i.functionSignature,
+            returnType: i.returnType === "OTHER" ? "UNKNOWN" : i.returnType,
+            otherReturnType: i.otherReturnType,
+            noDimension: i.returnType.startsWith("ARR_") ? i.noDimension : null,
+            parameters: i.parameters || [],
+            templateCode: {
+              code: i.templateCodes.templateCode,
+              language: i.language
+            }
+          }))
+        }))
+      }
+    } catch (error) {
+      console.error("Error fetching template:", error)
+    }
+  }
+
+  const fetchFileTestcase = async () => {
+    try {
+      const response = await apiCall(ENDPOINTS.GET_TEACHER_PROBLEM_TESTCASE.replace(":id", id))
+      if (!response.ok) throw new Error("Failed to download file")
+      const blob = await response.blob()
+      setFormData(prevState => ({
+        ...prevState,
+        testCases: {
+          excelFile: blob
+        }
+      }))
+    } catch (error) {
+      console.error("Error fetching testcase:", error)
+    }
+  }
+
+  // Create a function to fetch all data
+  const fetchAllData = async () => {
+    setIsLoading(true)
+    try {
+      // Use Promise.all to run fetches concurrently
+      await Promise.all([
+        fetchDetails(),
+        fetchEditorial(),
+        fetchTemplate(),
+        fetchFileTestcase()
+      ])
+    } catch (error) {
+      console.error("Error fetching data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Update your useEffect to call fetchAllData
+  useEffect(() => {
+    fetchAllData()
+  }, [])
 
   const [completedSteps, setCompletedSteps] = useState({
     details: false,
@@ -65,7 +208,7 @@ export default function ProblemEdit({ onNavigate }) {
         newData.testCases = { ...prev.testCases, ...stepData }
       }
 
-      console.log(`Updated ${step}:`, newData)
+      // console.log(`Updated ${step}:`, newData)
       return newData
     })
     setCompletedSteps((prev) => ({ ...prev, [step]: true }))
@@ -84,6 +227,7 @@ export default function ProblemEdit({ onNavigate }) {
   }
 
   const handleSubmit = async () => {
+    setIsLoading(true)
     try {
       const problemBasicAddDto = {
         title: formData.details.title,
@@ -101,26 +245,14 @@ export default function ProblemEdit({ onNavigate }) {
           editorialTitle: formData.editorial.editorialTitle,
           editorialTextSolution: formData.editorial.editorialTextSolution,
           editorialSkills: formData.editorial.editorialSkills,
-          solutionCodes: formData.editorial.solutionCode.map((solution) => ({
+          solutionCodes: formData.editorial.solutionCodes.map((solution) => ({
             solutionLanguage: solution.solutionLanguage,
             solutionCode: solution.solutionCode
           }))
         }
       }
 
-      const problemInputParameterDto = formData.inputParameter.map((param) => ({
-        templateCode: {
-          code: param.templateCodes,
-          language: param.language
-        },
-        functionSignature: param.functionSignature,
-        returnType: param.returnType,
-        language: param.language,
-        parameters: param.parameters.map((p) => ({
-          inputName: p.inputName,
-          inputType: p.inputType
-        }))
-      }))
+      const problemInputParameterDto = formData.inputParameter
 
       const formdataT = new FormData()
 
@@ -150,123 +282,121 @@ export default function ProblemEdit({ onNavigate }) {
       formdataT.append("testCaseFile", formData.testCases.excelFile)
 
       const requestOptions = {
-        method: "POST",
+        method: "PUT",
         body: formdataT,
         credentials: "include"
       }
 
-      const response = apiCall(ENDPOINTS.POST_CREATE_PROBLEM, requestOptions)
+      const response = await apiCall(ENDPOINTS.POST_UPDATE_PROBLEM.replace(":id", id), requestOptions)
 
       if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Problem created successfully!",
-          variant: "success"
-        })
-      } else throw new Error(response.message)
+        localStorage.setItem("toastMessage", "Problem updated successfully!")
+        onNavigate("/problem")
+      } else {
+        const errorData = await response.json()
+        const errorMessage = errorData.message || "An error occurred"
+        console.log(errorMessage)
+        throw new Error(errorMessage)
+      }
     } catch (error) {
-      console.error("Error creating problem:", error)
-
-      toast("Error", {
-        description: "Sunday, December 03, 2023 at 9:00 AM",
-        variant: "destructive",
-        action: {
-          label: "Undo",
-          onClick: () => console.log("Undo")
-        }
+      toast.error("Error", {
+        description: error.message || "Error updating problem. Please try again."
       })
-
-      toast({
-        title: "Error",
-        description: error.message || "Error creating problem. Please try again.",
-        variant: "destructive"
-      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
-    <div className="container mx-auto px-4 mt-4">
-      {/* Progress Indicator */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <StepIndicator
-            step="details"
-            label="Problem Details"
-            active={activeStep === "details"}
-            completed={completedSteps.details}
-            onClick={() => setActiveStep("details")}
-          />
-          <StepDivider />
-          <StepIndicator
-            step="parameters"
-            label="Input Parameters"
-            active={activeStep === "parameters"}
-            completed={completedSteps.parameters}
-            onClick={() => (completedSteps.details ? setActiveStep("parameters") : null)}
-            disabled={!completedSteps.details}
-          />
-          <StepDivider />
-          <StepIndicator
-            step="editorial"
-            label="Editorial"
-            active={activeStep === "editorial"}
-            completed={completedSteps.editorial}
-            onClick={() => (completedSteps.parameters ? setActiveStep("editorial") : null)}
-            disabled={!completedSteps.parameters}
-          />
-          <StepDivider />
-          <StepIndicator
-            step="testcases"
-            label="Test Cases"
-            active={activeStep === "testcases"}
-            completed={completedSteps.testcases}
-            onClick={() => (completedSteps.editorial ? setActiveStep("testcases") : null)}
-            disabled={!completedSteps.editorial}
-          />
-        </div>
-      </div>
+    <>
+      {isLoading ? (
+        <LoadingScreen />
+      ) : (
+        <div className="container mx-auto px-4 mt-4">
+          {/* Progress Indicator */}
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <StepIndicator
+                step="details"
+                label="Problem Details"
+                active={activeStep === "details"}
+                completed={completedSteps.details}
+                onClick={() => setActiveStep("details")}
+              />
+              <StepDivider />
+              <StepIndicator
+                step="parameters"
+                label="Input Parameters"
+                active={activeStep === "parameters"}
+                completed={completedSteps.parameters}
+                onClick={() => (completedSteps.details ? setActiveStep("parameters") : null)}
+                disabled={!completedSteps.details}
+              />
+              <StepDivider />
+              <StepIndicator
+                step="editorial"
+                label="Editorial"
+                active={activeStep === "editorial"}
+                completed={completedSteps.editorial}
+                onClick={() => (completedSteps.parameters ? setActiveStep("editorial") : null)}
+                disabled={!completedSteps.parameters}
+              />
+              <StepDivider />
+              <StepIndicator
+                step="testcases"
+                label="Test Cases"
+                active={activeStep === "testcases"}
+                completed={completedSteps.testcases}
+                onClick={() => (completedSteps.editorial ? setActiveStep("testcases") : null)}
+                disabled={!completedSteps.editorial}
+              />
+            </div>
+          </div>
 
-      <Card className="mb-8">
-        <CardContent className="pt-6">
-          <Tabs value={activeStep} onValueChange={(val) => {
-            setActiveStep(val)
-          }}
-          >
-            <TabsContent value="details">
-              <ProblemDetails
-                formData={formData}
-                updateFormData={(data) => updateFormData(data, "details")}
-                onNext={handleNext}
-              />
-            </TabsContent>
-            <TabsContent value="parameters">
-              <InputParameters
-                formData={formData}
-                updateFormData={(data) => updateFormData(data, "parameters")}
-                onNext={handleNext}
-                onPrevious={handlePrevious}
-              />
-            </TabsContent>
-            <TabsContent value="editorial">
-              <Editorial
-                formData={formData}
-                updateFormData={(data) => updateFormData(data, "editorial")}
-                onNext={handleNext}
-                onPrevious={handlePrevious}
-              />
-            </TabsContent>
-            <TabsContent value="testcases">
-              <TestCases
-                formData={formData}
-                updateFormData={(data) => updateFormData(data, "testcases")}
-                onPrevious={handlePrevious}
-                onSubmit={handleSubmit}
-              />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+          <Card className="mb-8">
+            <CardContent className="pt-6">
+              <Tabs value={activeStep} onValueChange={(val) => {
+                setActiveStep(val)
+              }}
+              >
+                <TabsContent value="details">
+                  <ProblemDetails
+                    formData={formData}
+                    updateFormData={(data) => updateFormData(data, "details")}
+                    onNext={handleNext}
+                  />
+                </TabsContent>
+                <TabsContent value="parameters">
+                  <InputParameters
+                    formData={formData}
+                    updateFormData={(data) => updateFormData(data, "parameters")}
+                    onNext={handleNext}
+                    onPrevious={handlePrevious}
+                  />
+                </TabsContent>
+                <TabsContent value="editorial">
+                  <Editorial
+                    formData={formData}
+                    updateFormData={(data) => updateFormData(data, "editorial")}
+                    onNext={handleNext}
+                    onPrevious={handlePrevious}
+                  />
+                </TabsContent>
+                <TabsContent value="testcases">
+                  <TestCases
+                    formData={formData}
+                    updateFormData={(data) => updateFormData(data, "testcases")}
+                    onPrevious={handlePrevious}
+                    onSubmit={handleSubmit}
+                    urlGetTestCase={ENDPOINTS.GET_TEACHER_PROBLEM_TESTCASE.replace(":id", id)}
+                  />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -277,15 +407,13 @@ function StepIndicator({ step, label, active, completed, onClick, disabled = fal
       onClick={disabled ? null : onClick}
     >
       <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors
+        className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors bg-muted text-muted-foreground
           ${active
             ? "bg-primary text-primary-foreground"
-            : completed
-              ? "bg-green-500 text-white"
-              : "bg-muted text-muted-foreground"
+            : ""
           }`}
       >
-        {completed ? <Check className="h-5 w-5" /> : step.charAt(0).toUpperCase()}
+        {step.charAt(0).toUpperCase()}
       </div>
       <span className={`text-sm ${active ? "font-medium" : ""}`}>{label}</span>
     </div>

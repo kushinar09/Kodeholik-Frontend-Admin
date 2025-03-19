@@ -7,7 +7,6 @@ import GeneralError from "./features/errors/general-error"
 import MaintenanceError from "./features/errors/maintenance-error"
 import { AuthProvider } from "./provider/AuthProvider"
 import ProblemCreator from "./features/problem/ProblemCreate"
-import ProtectedRoute from "./provider/ProtectedRoute"
 import LoginPage from "./features/auth/login"
 import ForgotPassword from "./features/auth/forgot"
 import ResetPassword from "./features/auth/reset"
@@ -24,6 +23,12 @@ import CreateUser from "./features/users/create"
 import EditUser from "./features/users/edit"
 import TagList from "./features/tag/list"
 import { ExamResult } from "./features/exam/result"
+import ChapterList from "./features/chapter/ChapterList/ChapterList"
+import CreateChapter from "./features/chapter/ChapterCreate/CreateChapter"
+import UpdateChapter from "./features/chapter/ChapterUpdate/UpdateChapter"
+import LessonList from "./features/lesson/LessonList/LessonList"
+import CreateLesson from "./features/lesson/LessonCreate"
+import UpdateLesson from "./features/lesson/LessonUpdate"
 
 function App() {
   return (
@@ -49,16 +54,12 @@ function App() {
               <Route path="/problem/create" element={<ProblemCreator />} />
               <Route path="/problem/:id" element={<ProblemEdit />} />
 
-              {/* Course Page*/}
-              <Route path="/course" element={<ViewListCourse />} />
-              <Route path="/course/add" element={<CreateCourse />} />
-              <Route path="/course/:id" element={<UpdateCourse />} />
-
               {/* Exam Page*/}
               <Route path="/exam" element={<ExamList />} />
               <Route path="/exam/create" element={<CreateExam />} />
               <Route path="/exam/edit/:code" element={<EditExam />} />
               <Route path="/exam/result/:code" element={<ExamResult />} />
+
               {/* User Page*/}
               <Route path="/user" element={<UserList />} />
               <Route path="/user/create" element={<CreateUser />} />
@@ -66,13 +67,26 @@ function App() {
 
               {/* Tag Page*/}
               <Route path="/tag" element={<TagList />} />
+
+              {/* Course Page*/}
+              <Route path="/course" element={<ViewListCourse />} />
+              <Route path="/course/add" element={<CreateCourse />} />
+              <Route path="/course/:id" element={<UpdateCourse />} />
+
+              {/* Chapter Page */}
+              <Route path="/chapter" element={<ChapterList />} />
+              <Route path="/chapter/add" element={<CreateChapter />} />
+              <Route path="/chapter/:id" element={<UpdateChapter />} />
+
+              {/* Lesson Page */}
+              <Route path="/lesson" element={<LessonList />} />
+              <Route path="/lesson/add" element={<CreateLesson />} />
+              <Route path="/lesson/:id" element={<UpdateLesson />} />
             </Route>
-            {/* <Route element={<ProtectedRoute />}>
-            </Route> */}
           </Routes>
         </div>
       </AuthProvider>
-      <Toaster richColors/>
+      <Toaster richColors />
     </Router>
   )
 }

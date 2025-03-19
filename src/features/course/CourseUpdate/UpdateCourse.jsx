@@ -11,6 +11,30 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
+import * as z from "zod";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Added Dialog components
+import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor";
+
+// Define the Zod schema for form validation
+const formSchema = z.object({
+  title: z
+    .string()
+    .min(10, "Title must be at least 10 characters")
+    .max(200, "Title must be less than 200 characters"),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters")
+    .max(5000, "Description must be less than 5000 characters"),
+  topicIds: z
+    .array(z.string())
+    .min(1, "At least one topic must be selected"),
+  status: z.enum(["ACTIVATED", "INACTIVATED"]),
+  imageFile: z
+    .instanceof(File, { message: "Image must be a file" })
+    .optional()
+    .refine((file) => !file || file.size <= 200 * 1024 * 1024, "Image file must be less than 200 MB"),
+});
 
 function UpdateCourse() {
   const navigate = useNavigate();
@@ -24,6 +48,7 @@ function UpdateCourse() {
   const [isTopicsOpen, setIsTopicsOpen] = useState(false);
   const [topicSearch, setTopicSearch] = useState("");
   const [error, setError] = useState(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false); // New state for success dialog
   const { apiCall } = useAuth();
 
   useEffect(() => {
@@ -37,12 +62,12 @@ function UpdateCourse() {
         const data = await getTopicsWithId();
         const formattedTopics = Array.isArray(data)
           ? data.map((topic) => ({
-              id: String(topic.id || topic), // Ensure ID is a string
-              name: topic.name || topic,
-            }))
+            id: String(topic.id || topic),
+            name: topic.name || topic,
+          }))
           : [];
         setTopics(formattedTopics);
-        console.log("Fetched topics:", formattedTopics); // Debug log
+        console.log("Fetched topics:", formattedTopics);
       } catch (error) {
         console.error("Error fetching topics:", error);
         setError(error.message || "Failed to fetch topics");
@@ -54,26 +79,31 @@ function UpdateCourse() {
   // Fetch course data and map topics
   useEffect(() => {
     const fetchCourse = async () => {
-      if (!topics.length) return; // Wait for topics
+      if (!topics.length) return;
       try {
         const data = await getCourse(id);
-        console.log("Fetched course data:", data); // Debug log
-        setCourse(data);
+        console.log("Fetched course data:", data);
 
-        // Map topic names to IDs
-        const topicIds = (data?.topics || []).map((topicName) => {
-          const topic = topics.find((t) => t.name === topicName);
-          return topic ? topic.id : null;
+        const topicIds = (data?.topics || []).map((topic) => {
+          const topicId = String(topic.id);
+          const topicObj = topics.find((t) => t.id === topicId);
+          if (!topicObj) {
+            console.warn(`No matching topic found for ID: ${topicId}`);
+          }
+          return topicObj ? topicObj.id : null;
         }).filter((id) => id !== null);
 
-        console.log("Mapped topicIds:", topicIds); // Debug log
+        console.log("Course topics:", data?.topics);
+        console.log("Available topics:", topics);
+        console.log("Mapped topicIds:", topicIds);
 
         setFormData({
           title: data?.title || "",
           description: data?.description || "",
-          topicIds: topicIds, // Ensure this is an array of strings
+          topicIds: topicIds,
           status: data?.status || "ACTIVATED",
         });
+        setCourse(data);
       } catch (error) {
         console.error("Error fetching course:", error);
         setError(error.message || "Failed to fetch course data");
@@ -129,7 +159,7 @@ function UpdateCourse() {
       const newTopicIds = prev.topicIds.includes(topicId)
         ? prev.topicIds.filter((id) => id !== topicId)
         : [...prev.topicIds, topicId];
-      console.log("Updated topicIds:", newTopicIds); // Debug log
+      console.log("Updated topicIds:", newTopicIds);
       return { ...prev, topicIds: newTopicIds };
     });
   };
@@ -168,6 +198,25 @@ function UpdateCourse() {
     e.preventDefault();
     setError(null);
 
+    const dataToValidate = {
+      title: formData.title,
+      description: formData.description,
+      topicIds: formData.topicIds,
+      status: formData.status,
+      imageFile: imageFile || undefined,
+    };
+
+    try {
+      formSchema.parse(dataToValidate);
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        setError(validationError.errors[0].message);
+        return;
+      }
+      setError("An unexpected validation error occurred");
+      return;
+    }
+
     const courseData = {
       title: formData.title,
       description: formData.description,
@@ -179,12 +228,34 @@ function UpdateCourse() {
       if (typeof id !== "string" || !id) {
         throw new Error("Course ID is invalid or missing");
       }
-      await updateCourse(id, courseData, imageFile, apiCall);
-      navigate("/coursesList");
+      const result = await updateCourse(id, courseData, imageFile, apiCall);
+      console.log("Update result:", result);
+      setShowSuccessDialog(true); // Show success dialog instead of immediate navigation
     } catch (error) {
       console.error("Error updating course:", error);
       setError(error.message || "Failed to update course");
     }
+  };
+
+  const handleDialogClose = () => {
+    setShowSuccessDialog(false);
+    navigate("/course"); // Navigate after closing the dialog
+  };
+
+  const handleDescriptionChange = (value) => {
+    setFormData((prev) => ({ ...prev, "description": value }));
+  };
+
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      ACTIVATED: "bg-green-500",
+      INACTIVATED: "bg-red-500",
+    };
+    return (
+      <Badge className={`${statusMap[status]} text-white`}>
+        {status.toUpperCase()}
+      </Badge>
+    );
   };
 
   return (
@@ -211,13 +282,17 @@ function UpdateCourse() {
                 required
                 className="w-full text-black border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
               />
-              <Textarea
+              {/* <Textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Description"
                 required
                 className="w-full h-40 text-black border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
+              /> */}
+              <MarkdownEditor
+                value={formData.description}
+                onChange={handleDescriptionChange}
               />
               <Collapsible open={isTopicsOpen} onOpenChange={setIsTopicsOpen}>
                 <CollapsibleTrigger asChild>
@@ -225,7 +300,7 @@ function UpdateCourse() {
                     <span className="text-black text-sm font-medium">
                       {formData.topicIds.length > 0
                         ? `${formData.topicIds.length} topic(s) selected`
-                        : "Select Topics"}
+                        : "Select Topics (at least 1 required)"}
                     </span>
                     {isTopicsOpen ? (
                       <ChevronUp className="h-4 w-4 text-gray-400" />
@@ -284,14 +359,15 @@ function UpdateCourse() {
                   onCheckedChange={(checked) =>
                     setFormData((prev) => ({
                       ...prev,
-                      status: checked ? "ACTIVATED" : "DEACTIVATED",
+                      status: checked ? "ACTIVATED" : "INACTIVATED",
                     }))
                   }
                   className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-gray-600"
                 />
                 <Label htmlFor="status" className="text-white text-base font-medium">
-                  {formData.status === "ACTIVATED" ? "Activated" : "Deactivated"}
+                  Status
                 </Label>
+                {getStatusBadge(formData.status)}
               </div>
             </div>
 
@@ -354,7 +430,7 @@ function UpdateCourse() {
                   >
                     <Upload className="h-8 w-8 text-black mb-4" />
                     <p className="text-black text-center">
-                      Drag and drop an image here
+                      Drag and drop an image here (max 200 MB)
                       <br />
                       or click to browse
                     </p>
@@ -390,6 +466,21 @@ function UpdateCourse() {
             </Button>
           </div>
         </form>
+
+        {/* Success Dialog */}
+        <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Course Updated Successfully</DialogTitle>
+              <DialogDescription>
+                Your course "{formData.title}" has been updated successfully!
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button onClick={handleDialogClose}>Go to Courses</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
