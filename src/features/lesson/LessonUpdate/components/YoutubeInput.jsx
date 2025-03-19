@@ -26,7 +26,7 @@ function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
       setYoutubeUrl(trimmedUrl);
       setError("");
     } else {
-      setError("URL không hợp lệ. Hãy nhập một liên kết YouTube hợp lệ.");
+      setError("Invalid URL. Please enter a valid YouTube link.");
     }
   };
 

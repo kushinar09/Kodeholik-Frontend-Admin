@@ -38,6 +38,7 @@ import {
 import CreateLessonVideo from "./components/CreateLessonVideo";
 import CreateLessonDocument from "./components/CreateLessonDocument";
 import CreateLessonLab from "./components/CreateLessonLab";
+import YoutubeInput from "./components/YoutubeInput";
 
 // Define the Zod schema for form validation
 const formSchema = z.object({
@@ -51,8 +52,8 @@ const formSchema = z.object({
     .max(5000, "Description must be less than 5000 characters"),
   chapterId: z.string().min(1, "A chapter must be selected"),
   displayOrder: z.number().int().min(1, "Display order must be at least 1"),
-  type: z.enum(["VIDEO", "DOCUMENT"], {
-    message: "Type must be either VIDEO or DOCUMENT",
+  type: z.enum(["VIDEO", "YOUTUBE", "DOCUMENT"], {
+    message: "Type must be either VIDEO, YOUTUBE, or DOCUMENT",
   }),
   status: z.enum(["ACTIVATED", "INACTIVATED"]),
   attachedFile: z
@@ -90,7 +91,7 @@ function CreateLesson() {
     status: "ACTIVATED",
   });
   const [chapters, setChapters] = useState([]);
-  const [file, setFile] = useState(null); // Generic file state for either video or attached file
+  const [file, setFile] = useState(null); // Generic file state for video or attached file
   const [filePreview, setFilePreview] = useState(null); // Preview for video files
   const [isChaptersOpen, setIsChaptersOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
@@ -157,7 +158,7 @@ function CreateLesson() {
       title: formData.title,
       description: formData.description,
       displayOrder: Number(formData.displayOrder),
-      type: formData.type,
+      type: formData.type === "YOUTUBE" ? "VIDEO" : formData.type, // Gộp YOUTUBE thành VIDEO
       status: formData.status,
     };
 
@@ -167,24 +168,28 @@ function CreateLesson() {
       formDataPayload.append("title", lessonData.title);
       formDataPayload.append("description", lessonData.description);
       formDataPayload.append("displayOrder", lessonData.displayOrder);
-      formDataPayload.append("type", lessonData.type);
+      formDataPayload.append("type", lessonData.type); // Luôn là VIDEO hoặc DOCUMENT
       formDataPayload.append("status", lessonData.status);
 
-      // Handle video type based on input
-      if (formData.type === "VIDEO") {
-        if (file) {
-          formDataPayload.append("videoType", "VIDEO_FILE");
-          formDataPayload.append("videoFile", file);
-        } else if (youtubeUrl) {
-          formDataPayload.append("videoType", "YOUTUBE");
-          formDataPayload.append("youtubeUrl", youtubeUrl);
-        } else {
-          throw new Error(
-            "Please provide a video file or YouTube URL for a VIDEO lesson."
-          );
-        }
+      // Handle lesson type
+      if (formData.type === "VIDEO" && file) {
+        formDataPayload.append("videoType", "VIDEO_FILE");
+        formDataPayload.append("videoFile", file);
+      } else if (formData.type === "YOUTUBE" && youtubeUrl) {
+        formDataPayload.append("videoType", "YOUTUBE");
+        formDataPayload.append("youtubeUrl", youtubeUrl);
       } else if (formData.type === "DOCUMENT" && file) {
         formDataPayload.append("attachedFile", file);
+      } else {
+        throw new Error(
+          `Please provide ${
+            formData.type === "VIDEO"
+              ? "a video file"
+              : formData.type === "YOUTUBE"
+              ? "a YouTube URL"
+              : "a document file"
+          } for this lesson type.`
+        );
       }
 
       // Always include selected problems regardless of lesson type
@@ -348,8 +353,9 @@ function CreateLesson() {
                 value={formData.type}
                 onValueChange={(value) => {
                   setFormData((prev) => ({ ...prev, type: value }));
-                  setFile(null); // Clear file khi đổi type
-                  setFilePreview(null);
+                  setFile(null); // Reset file
+                  setFilePreview(null); // Reset preview
+                  setYoutubeUrl(""); // Reset YouTube URL khi đổi type
                 }}
               >
                 <SelectTrigger>
@@ -357,6 +363,7 @@ function CreateLesson() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="VIDEO">Video</SelectItem>
+                  <SelectItem value="YOUTUBE">YouTube</SelectItem>
                   <SelectItem value="DOCUMENT">Document</SelectItem>
                 </SelectContent>
               </Select>
@@ -389,16 +396,21 @@ function CreateLesson() {
           </div>
 
           <div className="lg:w-2/5 space-y-4">
-            {formData.type === "VIDEO" ? (
+            {formData.type === "VIDEO" && (
               <CreateLessonVideo
                 file={file}
                 setFile={setFile}
                 filePreview={filePreview}
                 setFilePreview={setFilePreview}
+              />
+            )}
+            {formData.type === "YOUTUBE" && (
+              <YoutubeInput
                 youtubeUrl={youtubeUrl}
                 setYoutubeUrl={setYoutubeUrl}
               />
-            ) : (
+            )}
+            {formData.type === "DOCUMENT" && (
               <CreateLessonDocument file={file} setFile={setFile} />
             )}
           </div>

@@ -36,6 +36,7 @@ import {
 import UpdateLessonVideo from "./components/UpdateLessonVideo";
 import UpdateLessonDocument from "./components/UpdateLessonDocument";
 import UpdateLessonLab from "./components/UpdateLessonLab";
+import YoutubeInput from "./components/YoutubeInput";
 import { ENDPOINTS } from "@/lib/constants";
 
 function UpdateLesson() {
@@ -52,7 +53,7 @@ function UpdateLesson() {
   });
   const [chapters, setChapters] = useState([]);
   const [file, setFile] = useState(null); // File mới upload
-  const [filePreview, setFilePreview] = useState(null); // Preview cho file mới
+  const [filePreview, setFilePreview] = useState(null); // Preview cho file mới hoặc hiện tại
   const [existingFileUrl, setExistingFileUrl] = useState(null); // URL file hiện tại từ server
   const [isChaptersOpen, setIsChaptersOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
@@ -78,12 +79,16 @@ function UpdateLesson() {
         }
       );
       const data = await response.json();
+      const lessonType =
+        data.type === "VIDEO" && data.videoUrl && isYouTubeKey(data.videoUrl)
+          ? "YOUTUBE"
+          : data.type || "VIDEO";
       setFormData({
         title: data.title || "",
         description: data.description || "",
         chapterId: String(data.chapterId) || "",
         displayOrder: data.displayOrder || 1,
-        type: data.type || "VIDEO",
+        type: lessonType,
         status: data.status || "ACTIVATED",
       });
       // Xử lý problems từ API
@@ -94,14 +99,12 @@ function UpdateLesson() {
       }));
       console.log("Selected Problems from API:", formattedProblems); // Debug
       setSelectedProblems(formattedProblems);
-      if (data.type === "VIDEO" && data.videoUrl) {
-        if (isYouTubeKey(data.videoUrl)) {
-          setYoutubeUrl("https://www.youtube.com/watch?v=" + data.videoUrl); // Gán YouTube key vào input
-        } else if (isGcsUrl(data.videoUrl)) {
-          setExistingFileUrl(data.videoUrl); // Gán GCS URL
-          setFilePreview(data.videoUrl); // Hiển thị video GCS
-        }
-      } else if (data.type === "DOCUMENT" && data.attachedFile) {
+      if (lessonType === "YOUTUBE") {
+        setYoutubeUrl("https://www.youtube.com/watch?v=" + data.videoUrl); // Gán YouTube URL
+      } else if (lessonType === "VIDEO" && data.videoUrl) {
+        setExistingFileUrl(data.videoUrl); // Gán GCS URL
+        setFilePreview(data.videoUrl); // Hiển thị video GCS ngay lập tức
+      } else if (lessonType === "DOCUMENT" && data.attachedFile) {
         setExistingFileUrl(data.attachedFile); // Nếu là document
       }
 
@@ -116,11 +119,6 @@ function UpdateLesson() {
     return (
       url && url.length === 11 && !url.includes("/") && !url.startsWith("http")
     );
-  };
-
-  // Hàm kiểm tra GCS URL
-  const isGcsUrl = (url) => {
-    return url && url.startsWith("https://storage.googleapis.com");
   };
 
   const fetchChapters = async () => {
@@ -174,7 +172,7 @@ function UpdateLesson() {
       title: formData.title,
       description: formData.description,
       displayOrder: Number(formData.displayOrder),
-      type: formData.type,
+      type: formData.type === "YOUTUBE" ? "VIDEO" : formData.type, // Gộp YOUTUBE thành VIDEO
       status: formData.status,
     };
 
@@ -184,17 +182,15 @@ function UpdateLesson() {
       formDataPayload.append("title", lessonData.title);
       formDataPayload.append("description", lessonData.description);
       formDataPayload.append("displayOrder", lessonData.displayOrder);
-      formDataPayload.append("type", lessonData.type);
+      formDataPayload.append("type", lessonData.type); // Luôn là VIDEO hoặc DOCUMENT
       formDataPayload.append("status", lessonData.status);
 
-      if (formData.type === "VIDEO") {
-        if (file) {
-          formDataPayload.append("videoType", "VIDEO_FILE");
-          formDataPayload.append("videoFile", file);
-        } else if (youtubeUrl) {
-          formDataPayload.append("videoType", "YOUTUBE");
-          formDataPayload.append("youtubeUrl", youtubeUrl);
-        }
+      if (formData.type === "VIDEO" && file) {
+        formDataPayload.append("videoType", "VIDEO_FILE");
+        formDataPayload.append("videoFile", file);
+      } else if (formData.type === "YOUTUBE" && youtubeUrl) {
+        formDataPayload.append("videoType", "YOUTUBE");
+        formDataPayload.append("youtubeUrl", youtubeUrl);
       } else if (formData.type === "DOCUMENT" && file) {
         formDataPayload.append("attachedFile", file);
       }
@@ -359,7 +355,11 @@ function UpdateLesson() {
                   setFile(null);
                   setFilePreview(null);
                   setYoutubeUrl("");
-                  setExistingFileUrl(null);
+                  if (value === "VIDEO" && existingFileUrl) {
+                    setFilePreview(existingFileUrl); // Khôi phục preview khi quay lại VIDEO
+                  } else {
+                    setExistingFileUrl(null);
+                  }
                 }}
               >
                 <SelectTrigger>
@@ -367,6 +367,7 @@ function UpdateLesson() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="VIDEO">Video</SelectItem>
+                  <SelectItem value="YOUTUBE">YouTube</SelectItem>
                   <SelectItem value="DOCUMENT">Document</SelectItem>
                 </SelectContent>
               </Select>
@@ -398,17 +399,22 @@ function UpdateLesson() {
           </div>
 
           <div className="lg:w-2/5 space-y-4">
-            {formData.type === "VIDEO" ? (
+            {formData.type === "VIDEO" && (
               <UpdateLessonVideo
                 file={file}
                 setFile={setFile}
                 filePreview={filePreview}
                 setFilePreview={setFilePreview}
-                youtubeUrl={youtubeUrl}
-                setYoutubeUrl={setYoutubeUrl}
                 existingFileUrl={existingFileUrl}
               />
-            ) : (
+            )}
+            {formData.type === "YOUTUBE" && (
+              <YoutubeInput
+                youtubeUrl={youtubeUrl}
+                setYoutubeUrl={setYoutubeUrl}
+              />
+            )}
+            {formData.type === "DOCUMENT" && (
               <UpdateLessonDocument
                 file={file}
                 setFile={setFile}
