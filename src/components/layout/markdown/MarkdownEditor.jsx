@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef} from "react"
 import { EditorView, basicSetup } from "codemirror"
 import { keymap } from "@codemirror/view"
 import { indentWithTab } from "@codemirror/commands"
@@ -620,8 +620,8 @@ const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
         </TooltipProvider>
       </div>
 
-      <div className="flex-1 grid grid-cols-2 divide-x h-fit max-h-[500px]">
-        <div id="editor" className="min-h-[500px] overflow-auto focus-within:ring-1 focus-within:ring-ring" />
+      <div className="flex-1 grid grid-cols-2 divide-x h-full">
+        <div id="editor" className="h-full overflow-auto focus-within:ring-1 focus-within:ring-ring" />
         <div className="min-h-0 overflow-auto">
           {/* <div
             className="markdown prose prose-sm dark:prose-invert max-w-none p-4"
