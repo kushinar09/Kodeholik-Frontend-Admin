@@ -14,6 +14,7 @@ import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Added Dialog components
+import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor";
 
 // Define the Zod schema for form validation
 const formSchema = z.object({
@@ -55,6 +56,8 @@ function CreateCourse() {
   const [error, setError] = useState(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false); // New state for success dialog
   const { apiCall } = useAuth();
+
+
 
   useEffect(() => {
     const fetchTopics = async () => {
@@ -196,6 +199,10 @@ function CreateCourse() {
     );
   };
 
+  const handleDescriptionChange = (value) => {
+    setFormData((prev) => ({ ...prev, "description": value }));
+  };
+
   return (
     <>
       <form
@@ -217,13 +224,17 @@ function CreateCourse() {
               placeholder="Title"
               required
             />
-            <Textarea
+            {/* <Textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               placeholder="Description"
               required
               className="h-40"
+            /> */}
+            <MarkdownEditor 
+            value={formData.description}
+            onChange={handleDescriptionChange}  
             />
             <Collapsible open={isTopicsOpen} onOpenChange={setIsTopicsOpen}>
               <CollapsibleTrigger asChild>

@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor";
 
 // Define the Zod schema for form validation
 const formSchema = z.object({
@@ -190,6 +191,10 @@ function UpdateChapter() {
     }
   };
 
+  const handleDescriptionChange = (value) => {
+    setFormData((prev) => ({ ...prev, "description": value }));
+  };
+
   const getStatusBadge = (status) => {
     return status === "ACTIVATED" ? (
       <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white">ACTIVATED</Badge>
@@ -259,7 +264,7 @@ function UpdateChapter() {
               <Label htmlFor="description" className="text-sm font-medium">
                 Description <span className="text-red-500">*</span>
               </Label>
-              <Textarea
+              {/* <Textarea
                 id="description"
                 name="description"
                 value={formData.description}
@@ -268,6 +273,10 @@ function UpdateChapter() {
                 className="min-h-[120px] border-input/40 resize-y"
                 required
                 disabled={isSubmitting || isSuccessDialogOpen}
+              /> */}
+              <MarkdownEditor
+                value={formData.description}
+                onChange={handleDescriptionChange}
               />
             </div>
 

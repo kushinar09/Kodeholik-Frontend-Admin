@@ -18,6 +18,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CreateLessonVideo from "./components/CreateLessonVideo";
 import CreateLessonDocument from "./components/CreateLessonDocument";
+import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor";
 
 // Define the Zod schema for form validation
 const formSchema = z.object({
@@ -183,11 +184,16 @@ function CreateLesson() {
     navigate("/lesson");
   };
 
+  const handleDescriptionChange = (value) => {
+    setFormData((prev) => ({ ...prev, "description": value }));
+  };
+
   const getStatusBadge = (status) => {
     const statusMap = {
       ACTIVATED: "bg-green-500",
       INACTIVATED: "bg-red-500",
     };
+
     return (
       <Badge className={`${statusMap[status]} text-white`}>
         {status.toUpperCase()}
@@ -216,13 +222,17 @@ function CreateLesson() {
               placeholder="Lesson Title"
               required
             />
-            <Textarea
+            {/* <Textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               placeholder="Lesson Description"
               required
               className="h-40"
+            /> */}
+            <MarkdownEditor
+              value={formData.description}
+              onChange={handleDescriptionChange}
             />
             <Collapsible open={isChaptersOpen} onOpenChange={setIsChaptersOpen}>
               <CollapsibleTrigger asChild>
