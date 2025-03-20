@@ -64,7 +64,7 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
             status: data.status || "PRIVATE",
             topics: data.topics || [],
             skills: data.skills || [],
-            isActive: data.isActive !== null ? data.isActive : true
+            isActive: data.active !== null ? data.active : true
           }
         }))
       }
@@ -138,7 +138,8 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
             templateCode: {
               code: i.templateCodes.templateCode,
               language: i.language
-            }
+            },
+            functionCode: i.templateCodes.functionCode
           }))
         }))
       }
