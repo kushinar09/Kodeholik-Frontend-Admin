@@ -45,7 +45,7 @@ export function MultiSelect({
               <span className="text-muted-foreground">{placeholder}</span>
             ) : (
               selected.map((item) => (
-                <Badge key={item} variant="secondary" className="mr-1 mb-1">
+                <Badge key={item} variant="secondary">
                   {item}
                   <button
                     className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"

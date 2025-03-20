@@ -40,14 +40,6 @@ const formSchema = z.object({
 })
 
 export function InputParameters({ formData, updateFormData, onNext, otherType = false, onPrevious }) {
-  console.log(formData.inputParameter)
-  useEffect(() => {
-    document.querySelectorAll("pre code").forEach((block) => {
-      if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
-        hljs.highlightBlock(block)
-    })
-  }, [formData])
-
   // Use formData.details.languageSupport if it exists and has items
   const languages =
     formData.details?.languageSupport && formData.details.languageSupport.length > 0
@@ -78,6 +70,13 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
     "OBJECT",
     "OTHER"
   ])
+
+  useEffect(() => {
+    document.querySelectorAll("pre code").forEach((block) => {
+      if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
+        hljs.highlightBlock(block)
+    })
+  }, [formData, activeLanguage])
 
   // Initialize form with existing data or create new entries for each language
   const getDefaultValues = () => {

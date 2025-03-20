@@ -261,10 +261,10 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
           </CardContent>
         </Card>
 
-        <Tabs value={activeLanguage} onValueChange={setActiveLanguage}>
-          <TabsList className="w-full">
+        <Tabs value={activeLanguage} onValueChange={setActiveLanguage} className="bg-muted rounded-md">
+          <TabsList>
             {formData.details.languageSupport.map((language) => (
-              <TabsTrigger key={language} value={language} className="flex-1">
+              <TabsTrigger key={language} value={language} className="flex-1 min-w-24">
                 {language}
               </TabsTrigger>
             ))}
@@ -272,7 +272,7 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
 
           {formData.details.languageSupport.map((language, index) => {
             return (
-              <TabsContent key={language} value={language} className="space-y-6">
+              <TabsContent key={language} value={language} className="space-y-6 mt-0">
                 <Card>
                   <CardHeader>
                     <CardTitle>{language} Implementation</CardTitle>
