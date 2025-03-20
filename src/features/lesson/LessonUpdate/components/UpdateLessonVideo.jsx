@@ -35,7 +35,65 @@ function UpdateLessonVideo({
       URL.revokeObjectURL(filePreview);
     }
     setFile(null);
-    setFilePreview(existingFileUrl); // Khôi phục preview về file hiện tại nếu có
+    setFilePreview(existingFileUrl); // Restore to existing file URL or ID
+  };
+
+  const isYouTubeKey = (url) => {
+    return (
+      url && url.length === 11 && !url.includes("/") && !url.startsWith("http")
+    );
+  };
+
+  const renderPreview = () => {
+    // Check if there's a new file uploaded
+    if (file && filePreview && filePreview.startsWith("blob:")) {
+      return (
+        <video
+          src={filePreview}
+          controls
+          className="w-full h-full object-cover"
+        />
+      );
+    }
+
+    // Check if existingFileUrl is a YouTube video ID
+    if (existingFileUrl && isYouTubeKey(existingFileUrl)) {
+      return (
+        <iframe
+          className="w-full h-full"
+          src={`https://www.youtube.com/embed/${existingFileUrl}`}
+          title="YouTube Video"
+          allowFullScreen
+        ></iframe>
+      );
+    }
+
+    // Check if existingFileUrl is a regular video file
+    if (existingFileUrl && !isYouTubeKey(existingFileUrl)) {
+      return (
+        <video
+          src={existingFileUrl}
+          controls
+          className="w-full h-full object-cover"
+        />
+      );
+    }
+
+    // No file or URL, show upload prompt
+    return (
+      <div
+        className="flex flex-col items-center justify-center h-full w-full p-6 cursor-pointer"
+        onClick={() => document.getElementById("videoUpload").click()}
+      >
+        <Upload className="h-8 w-8 text-black mb-4" />
+        <p className="text-black text-center">
+          Drag and drop a video here\n(max 500 MB)\nor click to browse
+        </p>
+        <Button type="button" variant="outline" size="sm" className="mt-4">
+          Select Video
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -51,13 +109,9 @@ function UpdateLessonVideo({
         />
       </div>
       <div className="w-full aspect-video rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center">
-        {(file && filePreview) || existingFileUrl ? (
-          <div className="relative w-full h-full">
-            <video
-              src={filePreview || existingFileUrl}
-              controls
-              className="w-full h-full object-cover"
-            />
+        <div className="relative w-full h-full">
+          {renderPreview()}
+          {((file && filePreview) || existingFileUrl) && (
             <div className="absolute top-2 right-2 flex gap-2">
               <Button
                 type="button"
@@ -76,26 +130,13 @@ function UpdateLessonVideo({
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            {file && (
-              <div className="absolute bottom-0 left-0 right-0 text-xs text-black p-2 truncate bg-gray-800/70">
-                {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-              </div>
-            )}
-          </div>
-        ) : (
-          <div
-            className="flex flex-col items-center justify-center h-full w-full p-6 cursor-pointer"
-            onClick={() => document.getElementById("videoUpload").click()}
-          >
-            <Upload className="h-8 w-8 text-black mb-4" />
-            <p className="text-black text-center">
-              Drag and drop a video here\n(max 500 MB)\nor click to browse
-            </p>
-            <Button type="button" variant="outline" size="sm" className="mt-4">
-              Select Video
-            </Button>
-          </div>
-        )}
+          )}
+          {file && filePreview && filePreview.startsWith("blob:") && (
+            <div className="absolute bottom-0 left-0 right-0 text-xs text-black p-2 truncate bg-gray-800/70">
+              {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
