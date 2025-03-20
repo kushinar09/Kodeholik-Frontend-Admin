@@ -306,7 +306,7 @@ function LessonList() {
                 <div className="flex gap-2">
                   <Button
                     variant="ghost"
-                    className="text-primary font-bold hover:bg-primary transition hover:text-black"
+                    className="text-primary font-bold hover:bg-primary transition hover:text-white"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 0}
                   >
@@ -319,8 +319,8 @@ function LessonList() {
                         key={index}
                         onClick={() => handlePageChange(index)}
                         className={cn(
-                          "text-primary font-bold hover:bg-primary transition hover:text-black",
-                          currentPage === index && "bg-button-primary text-bg-primary hover:bg-button-hover"
+                          "text-primary font-bold hover:bg-primary transition hover:text-white",
+                            currentPage === index && "bg-primary text-white hover:bg-primary"
                         )}
                       >
                         {index + 1}
@@ -329,7 +329,7 @@ function LessonList() {
                   </div>
                   <Button
                     variant="ghost"
-                    className="text-primary font-bold hover:bg-primary transition hover:text-black"
+                    className="text-primary font-bold hover:bg-primary transition hover:text-white"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages - 1}
                   >

@@ -1,7 +1,7 @@
 import { GLOBALS } from "@/lib/constants";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { updateCourse, getTopicsWithId, getImage, getCourse } from "@/lib/api/course_api";
+import { updateCourse, getTopicsWithId, getCourse } from "@/lib/api/course_api"; // Removed getImage
 import { useAuth } from "@/provider/AuthProvider";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
 import * as z from "zod";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Added Dialog components
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor";
 
 // Define the Zod schema for form validation
@@ -48,7 +48,7 @@ function UpdateCourse() {
   const [isTopicsOpen, setIsTopicsOpen] = useState(false);
   const [topicSearch, setTopicSearch] = useState("");
   const [error, setError] = useState(null);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false); // New state for success dialog
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const { apiCall } = useAuth();
 
   useEffect(() => {
@@ -62,9 +62,9 @@ function UpdateCourse() {
         const data = await getTopicsWithId();
         const formattedTopics = Array.isArray(data)
           ? data.map((topic) => ({
-            id: String(topic.id || topic),
-            name: topic.name || topic,
-          }))
+              id: String(topic.id || topic),
+              name: topic.name || topic,
+            }))
           : [];
         setTopics(formattedTopics);
         console.log("Fetched topics:", formattedTopics);
@@ -112,20 +112,11 @@ function UpdateCourse() {
     fetchCourse();
   }, [id, topics]);
 
-  // Fetch existing image URL
+  // Set existing image URL directly from course data
   useEffect(() => {
-    const fetchImage = async () => {
-      if (course?.image) {
-        try {
-          const url = await getImage(course.image);
-          setImageUrl(url);
-        } catch (error) {
-          console.error("Error fetching image:", error);
-          setError(error.message || "Failed to fetch course image");
-        }
-      }
-    };
-    if (course) fetchImage();
+    if (course?.image) {
+      setImageUrl(course.image); // Assuming course.image is a direct URL
+    }
   }, [course]);
 
   // Clean up imagePreview URL
@@ -230,7 +221,7 @@ function UpdateCourse() {
       }
       const result = await updateCourse(id, courseData, imageFile, apiCall);
       console.log("Update result:", result);
-      setShowSuccessDialog(true); // Show success dialog instead of immediate navigation
+      setShowSuccessDialog(true);
     } catch (error) {
       console.error("Error updating course:", error);
       setError(error.message || "Failed to update course");
@@ -239,7 +230,7 @@ function UpdateCourse() {
 
   const handleDialogClose = () => {
     setShowSuccessDialog(false);
-    navigate("/course"); // Navigate after closing the dialog
+    navigate("/course");
   };
 
   const handleDescriptionChange = (value) => {
@@ -282,14 +273,6 @@ function UpdateCourse() {
                 required
                 className="w-full text-black border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
               />
-              {/* <Textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Description"
-                required
-                className="w-full h-40 text-black border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
-              /> */}
               <MarkdownEditor
                 value={formData.description}
                 onChange={handleDescriptionChange}
@@ -393,6 +376,7 @@ function UpdateCourse() {
                       src={imagePreview || imageUrl}
                       alt="Course preview"
                       className="w-full h-full object-cover"
+                      onError={() => setImageUrl(null)} // Fallback if image URL fails
                     />
                     <div className="absolute top-2 right-2 flex gap-2">
                       <Button

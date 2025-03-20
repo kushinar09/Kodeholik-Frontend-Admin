@@ -213,7 +213,7 @@ function CourseList() {
                   <TableHeader className="bg-bg-secondary">
                     <TableRow className="hover:bg-bg-secondary/80">
                       <TableHead>
-                        ID 
+                        ID
                       </TableHead>
                       <TableHead
                         className="text-text-secondary font-semibold cursor-pointer"
@@ -229,8 +229,8 @@ function CourseList() {
                         {sortBy === "numberOfParticipant" && (sortOrder === "asc" ? "▲" : "▼")}
                       </TableHead>
                       <TableHead
-                      className="text-text-secondary font-semibold cursor-pointer"
-                      onClick={() => handleSort("createdAt")}
+                        className="text-text-secondary font-semibold cursor-pointer"
+                        onClick={() => handleSort("createdAt")}
                       >
                         Created At {sortBy === "createdAt" && (sortOrder === "asc" ? "▲" : "▼")}
                       </TableHead>
@@ -276,7 +276,7 @@ function CourseList() {
               <div className="flex justify-center mt-6 gap-2">
                 <Button
                   variant="ghost"
-                  className="text-primary font-bold hover:bg-primary transition hover:text-black"
+                  className="text-primary font-bold hover:bg-primary transition hover:text-white"
                   onClick={() => handlePageChange(currentPage)}
                   disabled={currentPage === 0}
                 >
@@ -296,8 +296,8 @@ function CourseList() {
                           key={index}
                           onClick={() => handlePageChange(index + 1)}
                           className={cn(
-                            "text-primary font-bold hover:bg-primary transition hover:text-black",
-                            currentPage === index && "bg-button-primary text-bg-primary hover:bg-button-hover"
+                            "text-primary font-bold hover:bg-primary transition hover:text-white",
+                            currentPage === index && "bg-primary text-white hover:bg-primary"
                           )}
                         >
                           {index + 1}
@@ -318,7 +318,7 @@ function CourseList() {
                 </div>
                 <Button
                   variant="ghost"
-                  className="text-primary font-bold hover:bg-primary transition hover:text-black"
+                  className="text-primary font-bold hover:bg-primary transition hover:text-white"
                   onClick={() => handlePageChange(currentPage + 2)}
                   disabled={currentPage === totalPages - 1}
                 >
