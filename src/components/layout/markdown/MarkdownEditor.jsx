@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef} from "react"
+import { useState, useEffect, useRef } from "react"
 import { EditorView, basicSetup } from "codemirror"
 import { keymap } from "@codemirror/view"
 import { indentWithTab } from "@codemirror/commands"
@@ -37,7 +37,6 @@ import { toast } from "sonner"
 import { ENDPOINTS } from "@/lib/constants"
 import { useAuth } from "@/provider/AuthProvider"
 import RenderMarkdown from "./RenderMarkdown"
-
 
 // Cache for storing image URLs
 const imageUrlCache = new Map()
@@ -119,8 +118,9 @@ const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
           }
         }),
         EditorView.theme({
-          "&": { height: "100%" },
-          ".cm-content": { fontFamily: "monospace" },
+          "&": { height: "100%", width: "100%" },
+          ".cm-scroller": { overflow: "auto", height: "100%" },
+          ".cm-content": { fontFamily: "monospace", minHeight: "100%" },
           ".cm-cursor, .cm-dropCursor": {
             borderLeftColor: "#000000",
             borderLeftWidth: "2px",
@@ -442,7 +442,7 @@ const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
   }
 
   return (
-    <div className="flex flex-col bg-background h-fit">
+    <div className="flex flex-col bg-background h-full w-full">
       <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
 
       <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
@@ -620,14 +620,10 @@ const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
         </TooltipProvider>
       </div>
 
-      <div className="flex-1 grid grid-cols-2 divide-x h-full">
-        <div id="editor" className="h-full overflow-auto focus-within:ring-1 focus-within:ring-ring" />
-        <div className="min-h-0 overflow-auto">
-          {/* <div
-            className="markdown prose prose-sm dark:prose-invert max-w-none p-4"
-            dangerouslySetInnerHTML={{ __html: renderedMarkdown }}
-          /> */}
-          <RenderMarkdown content={markdownContent} className="p-4"/>
+      <div className="flex-1 grid grid-cols-2 divide-x min-h-0">
+        <div id="editor" className="h-full w-full overflow-auto focus-within:ring-1 focus-within:ring-ring" />
+        <div className="h-full overflow-auto">
+          <RenderMarkdown content={markdownContent} className="p-4" />
         </div>
       </div>
     </div>

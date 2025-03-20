@@ -7,7 +7,6 @@ import { getChapterList } from "@/lib/api/chapter_api"
 import { createLesson } from "@/lib/api/lesson_api"
 import { useAuth } from "@/provider/AuthProvider"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
@@ -183,12 +182,11 @@ function CreateLesson() {
         formDataPayload.append("attachedFile", file)
       } else {
         throw new Error(
-          `Please provide ${
-            formData.type === "VIDEO"
-              ? "a video file"
-              : formData.type === "YOUTUBE"
-                ? "a YouTube URL"
-                : "a document file"
+          `Please provide ${formData.type === "VIDEO"
+            ? "a video file"
+            : formData.type === "YOUTUBE"
+              ? "a YouTube URL"
+              : "a document file"
           } for this lesson type.`
         )
       }
@@ -257,174 +255,180 @@ function CreateLesson() {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1 space-y-5">
-            <Input
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Lesson Title"
-              required
-            />
-            {/* <Textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Lesson Description"
-              required
-              className="h-40"
-            /> */}
-            <MarkdownEditor
-              value={formData.description}
-              onChange={handleDescriptionChange}
-            />
-            <Collapsible open={isChaptersOpen} onOpenChange={setIsChaptersOpen}>
-              <CollapsibleTrigger asChild>
-                <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
-                  <span className="text-black text-sm font-medium">
-                    {formData.chapterId
-                      ? chapters.find(
-                        (ch) => ch.id === Number.parseInt(formData.chapterId)
-                      )?.title || "Selected Chapter"
-                      : "Select Chapter (required)"}
-                  </span>
-                  {isChaptersOpen ? (
-                    <ChevronUp className="h-4 w-4 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-gray-400" />
-                  )}
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 space-y-5">
+              <div className="flex justify-between">
+                <div className="w-2/3">
+                  <h4 className="text-md font-semibold text-primary mb-4">
+                    Title
+                  </h4>
+                  <Input
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="Lesson Title"
+                    required
+                  />
                 </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium text-black">Chapters</h4>
-                  <span
-                    onClick={clearChapterSelection}
-                    className="cursor-pointer text-sm text-gray-400 hover:underline"
-                  >
-                    Clear Selection
-                  </span>
+                <div className="flex items-center space-x-3">
+                  {getStatusBadge(formData.status)}
+                  <Switch
+                    id="status"
+                    checked={formData.status === "ACTIVATED"}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        status: checked ? "ACTIVATED" : "INACTIVATED"
+                      }))
+                    }
+                  />
                 </div>
-                <Input
-                  placeholder="Search chapters..."
-                  value={chapterSearch}
-                  onChange={(e) => setChapterSearch(e.target.value)}
-                />
-                <div className="max-h-[6rem] overflow-y-auto overflow-x-hidden flex flex-wrap gap-3 pb-2">
-                  {filteredChapters.length > 0 ? (
-                    filteredChapters.map((chapter) => (
-                      <div
-                        key={chapter.id}
-                        className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
-                      >
-                        <Checkbox
-                          id={`chapter-${chapter.id}`}
-                          checked={formData.chapterId === String(chapter.id)}
-                          onCheckedChange={() =>
-                            handleChapterChange(chapter.id)
-                          }
-                        />
-                        <Label
-                          htmlFor={`chapter-${chapter.id}`}
-                          className="text-black text-sm whitespace-nowrap"
-                        >
-                          {chapter.title ||
-                            `Unnamed Chapter (ID: ${chapter.id})`}
-                        </Label>
-                      </div>
-                    ))
-                  ) : (
-                    <span className="text-gray-400 text-sm">
-                      No chapters found
+              </div>
+              <Collapsible open={isChaptersOpen} onOpenChange={setIsChaptersOpen}>
+                <h4 className="text-md font-semibold text-primary mb-4">
+                  Chapter
+                </h4>
+                <CollapsibleTrigger asChild>
+                  <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
+                    <span className="text-primary text-sm font-medium">
+                      {formData.chapterId
+                        ? chapters.find(
+                          (ch) => ch.id === Number.parseInt(formData.chapterId)
+                        )?.title || "Selected Chapter"
+                        : "Select Chapter (required)"}
                     </span>
-                  )}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-            <div className="space-y-2">
-              <Label className="text-black text-base font-medium">
-                Display Order
-              </Label>
-              <Input
-                type="number"
-                name="displayOrder"
-                value={formData.displayOrder}
-                onChange={handleChange}
-                placeholder="Display Order"
-                min="1"
-                required
+                    {isChaptersOpen ? (
+                      <ChevronUp className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-gray-400" />
+                    )}
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-primary">Chapters</h4>
+                    <span
+                      onClick={clearChapterSelection}
+                      className="cursor-pointer text-sm text-gray-400 hover:underline"
+                    >
+                      Clear Selection
+                    </span>
+                  </div>
+                  <Input
+                    placeholder="Search chapters..."
+                    value={chapterSearch}
+                    onChange={(e) => setChapterSearch(e.target.value)}
+                  />
+                  <div className="max-h-[6rem] overflow-y-auto overflow-x-hidden flex flex-wrap gap-3 pb-2">
+                    {filteredChapters.length > 0 ? (
+                      filteredChapters.map((chapter) => (
+                        <div
+                          key={chapter.id}
+                          className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
+                        >
+                          <Checkbox
+                            id={`chapter-${chapter.id}`}
+                            checked={formData.chapterId === String(chapter.id)}
+                            onCheckedChange={() =>
+                              handleChapterChange(chapter.id)
+                            }
+                          />
+                          <Label
+                            htmlFor={`chapter-${chapter.id}`}
+                            className="text-primary text-sm whitespace-nowrap"
+                          >
+                            {chapter.title ||
+                              `Unnamed Chapter (ID: ${chapter.id})`}
+                          </Label>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-gray-400 text-sm">
+                        No chapters found
+                      </span>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+              <div className="space-y-2">
+                <Label className="text-primary text-base font-semibold">
+                  Display Order
+                </Label>
+                <Input
+                  type="number"
+                  name="displayOrder"
+                  value={formData.displayOrder}
+                  onChange={handleChange}
+                  placeholder="Display Order"
+                  min="1"
+                  required
+                />
+              </div>
+              {/* Always display CreateLessonLab component */}
+              <CreateLessonLab
+                selectedProblems={selectedProblems}
+                setSelectedProblems={setSelectedProblems}
               />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-black text-base font-medium">
-                Lesson Type
-              </Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => {
-                  setFormData((prev) => ({ ...prev, type: value }))
-                  setFile(null) // Reset file
-                  setFilePreview(null) // Reset preview
-                  setYoutubeUrl("") // Reset YouTube URL khi đổi type
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="VIDEO">Video</SelectItem>
-                  <SelectItem value="YOUTUBE">YouTube</SelectItem>
-                  <SelectItem value="DOCUMENT">Document</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Switch
-                id="status"
-                checked={formData.status === "ACTIVATED"}
-                onCheckedChange={(checked) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    status: checked ? "ACTIVATED" : "INACTIVATED"
-                  }))
-                }
-              />
-              <Label
-                htmlFor="status"
-                className="text-black text-base font-medium"
-              >
-                Status
-              </Label>
-              {getStatusBadge(formData.status)}
             </div>
 
-            {/* Always display CreateLessonLab component */}
-            <CreateLessonLab
-              selectedProblems={selectedProblems}
-              setSelectedProblems={setSelectedProblems}
-            />
+            <div className="lg:w-2/5 space-y-4">
+              <div className="space-y-2">
+                <Label className="text-primary text-base font-semibold">
+                  Lesson Type
+                </Label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value) => {
+                    setFormData((prev) => ({ ...prev, type: value }))
+                    setFile(null) // Reset file
+                    setFilePreview(null) // Reset preview
+                    setYoutubeUrl("") // Reset YouTube URL khi đổi type
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="VIDEO">Video</SelectItem>
+                    <SelectItem value="YOUTUBE">YouTube</SelectItem>
+                    <SelectItem value="DOCUMENT">Document</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.type === "VIDEO" && (
+                <CreateLessonVideo
+                  file={file}
+                  setFile={setFile}
+                  filePreview={filePreview}
+                  setFilePreview={setFilePreview}
+                />
+              )}
+              {formData.type === "YOUTUBE" && (
+                <YoutubeInput
+                  youtubeUrl={youtubeUrl}
+                  setYoutubeUrl={setYoutubeUrl}
+                />
+              )}
+              {formData.type === "DOCUMENT" && (
+                <CreateLessonDocument file={file} setFile={setFile} />
+              )}
+            </div>
           </div>
+          <div className="flex flex-col gap-4">
+            <h4 className="text-md font-semibold text-primary">
+              Description
+            </h4>
+            <div className="h-[400px]">
+              <MarkdownEditor
+                value={formData.description}
+                onChange={handleDescriptionChange}
+              />
+            </div>
 
-          <div className="lg:w-2/5 space-y-4">
-            {formData.type === "VIDEO" && (
-              <CreateLessonVideo
-                file={file}
-                setFile={setFile}
-                filePreview={filePreview}
-                setFilePreview={setFilePreview}
-              />
-            )}
-            {formData.type === "YOUTUBE" && (
-              <YoutubeInput
-                youtubeUrl={youtubeUrl}
-                setYoutubeUrl={setYoutubeUrl}
-              />
-            )}
-            {formData.type === "DOCUMENT" && (
-              <CreateLessonDocument file={file} setFile={setFile} />
-            )}
           </div>
         </div>
+
 
         <div className="flex justify-end space-x-4 pt-6 mt-6 border-t border-gray-800">
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>
@@ -442,7 +446,7 @@ function CreateLesson() {
           <DialogHeader>
             <DialogTitle>Lesson Created Successfully</DialogTitle>
             <DialogDescription>
-              Your lesson "{formData.title}" has been created successfully!
+              Your lesson &quot;{formData.title}&quot; has been created successfully!
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

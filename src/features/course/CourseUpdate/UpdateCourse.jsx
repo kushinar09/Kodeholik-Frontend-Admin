@@ -1,10 +1,9 @@
 import { GLOBALS } from "@/lib/constants"
 import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { updateCourse, getTopicsWithId, getImage, getCourse } from "@/lib/api/course_api"
+import { updateCourse, getTopicsWithId, getCourse } from "@/lib/api/course_api"
 import { useAuth } from "@/provider/AuthProvider"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -13,10 +12,9 @@ import { Switch } from "@/components/ui/switch"
 import { ChevronDown, ChevronUp, Upload, X } from "lucide-react"
 import * as z from "zod"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog" // Added Dialog components
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog" 
 import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor"
 
-// Define the Zod schema for form validation
 const formSchema = z.object({
   title: z
     .string()
@@ -117,8 +115,8 @@ function UpdateCourse() {
     const fetchImage = async () => {
       if (course?.image) {
         try {
-          const url = await getImage(course.image)
-          setImageUrl(url)
+          // const url = await getImage(course.image)
+          setImageUrl(course.image)
         } catch (error) {
           console.error("Error fetching image:", error)
           setError(error.message || "Failed to fetch course image")
@@ -260,7 +258,7 @@ function UpdateCourse() {
 
   return (
     <div className="min-h-screen bg-bg-primary">
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-6 pt-0">
         <h1 className="text-2xl text-text-primary font-bold mb-4">Update Course</h1>
         <form
           onSubmit={handleSubmit}
@@ -272,180 +270,191 @@ function UpdateCourse() {
             </div>
           )}
 
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="flex-1 space-y-5">
-              <Input
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="Title"
-                required
-                className="w-full text-black border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-              {/* <Textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Description"
-                required
-                className="w-full h-40 text-black border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
-              /> */}
-              <MarkdownEditor
-                value={formData.description}
-                onChange={handleDescriptionChange}
-              />
-              <Collapsible open={isTopicsOpen} onOpenChange={setIsTopicsOpen}>
-                <CollapsibleTrigger asChild>
-                  <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 transition-colors hover:bg-gray-700/50 cursor-pointer">
-                    <span className="text-black text-sm font-medium">
-                      {formData.topicIds.length > 0
-                        ? `${formData.topicIds.length} topic(s) selected`
-                        : "Select Topics (at least 1 required)"}
-                    </span>
-                    {isTopicsOpen ? (
-                      <ChevronUp className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
-                    )}
-                  </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-black">Topics</h4>
-                    <span
-                      onClick={clearAllTopics}
-                      className="cursor-pointer text-sm text-gray-400 hover:underline transition"
-                    >
-                      Clear All
-                    </span>
-                  </div>
-                  <Input
-                    placeholder="Search topics..."
-                    value={topicSearch}
-                    onChange={(e) => setTopicSearch(e.target.value)}
-                    className="w-full text-black border-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent placeholder-gray-500"
-                  />
-                  <div className="max-h-[6rem] overflow-y-auto overflow-x-hidden flex flex-wrap gap-3 pb-2">
-                    {filteredTopics.length > 0 ? (
-                      filteredTopics.map((topic) => (
-                        <div
-                          key={topic.id}
-                          className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-gray-700/50 border border-gray-700/50"
-                        >
-                          <Checkbox
-                            id={`topic-${topic.id}`}
-                            checked={formData.topicIds.includes(topic.id)}
-                            onCheckedChange={() => handleTopicChange(topic.id)}
-                            className="border-gray-600"
-                          />
-                          <Label
-                            htmlFor={`topic-${topic.id}`}
-                            className="text-black cursor-pointer text-sm whitespace-nowrap"
-                          >
-                            {topic.name}
-                          </Label>
-                        </div>
-                      ))
-                    ) : (
-                      <span className="text-gray-400 text-sm">No topics found</span>
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-              <div className="flex items-center space-x-3">
-                <Switch
-                  id="status"
-                  checked={formData.status === "ACTIVATED"}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      status: checked ? "ACTIVATED" : "INACTIVATED"
-                    }))
-                  }
-                  className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-gray-600"
-                />
-                <Label htmlFor="status" className="text-white text-base font-medium">
-                  Status
-                </Label>
-                {getStatusBadge(formData.status)}
-              </div>
-            </div>
-
-            <div className="lg:w-2/5 space-y-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-black">Course Image</h4>
-                <input
-                  type="file"
-                  id="imageUpload"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </div>
-              <div
-                className="w-full aspect-video rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center"
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              >
-                {imagePreview || imageUrl ? (
-                  <div className="relative w-full h-full">
-                    <img
-                      src={imagePreview || imageUrl}
-                      alt="Course preview"
-                      className="w-full h-full object-cover"
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="flex-1 space-y-5">
+                <div className="flex justify-between">
+                  <div className="w-2/3">
+                    <h4 className="text-md font-semibold text-primary mb-4">
+                      Title
+                    </h4>
+                    <Input
+                      name="title"
+                      className="w-full"
+                      value={formData.title}
+                      onChange={handleChange}
+                      placeholder="Enter title of course..."
+                      required
                     />
-                    <div className="absolute top-2 right-2 flex gap-2">
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="secondary"
-                        className="h-8 w-8 rounded-full hover:bg-gray-700 text-black hover:text-white"
-                        onClick={() => document.getElementById("imageUpload").click()}
-                      >
-                        <Upload className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        className="h-8 w-8 rounded-full bg-red-600/80 hover:bg-red-700 text-white"
-                        onClick={() => {
-                          setImageFile(null)
-                          setImagePreview(null)
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {imageFile && (
-                      <div className="absolute bottom-0 left-0 right-0 text-xs text-black p-2 truncate">
-                        {imageFile.name} ({(imageFile.size / (1024 * 1024)).toFixed(2)} MB)
-                      </div>
-                    )}
                   </div>
-                ) : (
-                  <div
-                    className="flex flex-col items-center justify-center h-full w-full p-6 cursor-pointer"
-                    onClick={() => document.getElementById("imageUpload").click()}
-                  >
-                    <Upload className="h-8 w-8 text-black mb-4" />
-                    <p className="text-black text-center">
-                      Drag and drop an image here (max 200 MB)
-                      <br />
-                      or click to browse
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="mt-4 text-black border-gray-700"
+                  <div className="flex items-center space-x-3">
+                    <Label
+                      htmlFor="status"
+                      className="text-primary text-base font-semibold"
+                    >
+                      {getStatusBadge(formData.status)}
+                    </Label>
+                    <Switch
+                      id="status"
+                      checked={formData.status === "ACTIVATED"}
+                      onCheckedChange={(checked) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          status: checked ? "ACTIVATED" : "INACTIVATED"
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+                <Collapsible open={isTopicsOpen} onOpenChange={setIsTopicsOpen}>
+                  <h4 className="text-md font-semibold text-primary mb-4">Topics</h4>
+                  <CollapsibleTrigger asChild>
+                    <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
+                      <span className="text-black text-sm font-medium">
+                        {formData.topicIds.length > 0
+                          ? `${formData.topicIds.length} topic(s) selected`
+                          : "Select Topics (at least 1 required)"}
+                      </span>
+                      {isTopicsOpen ? (
+                        <ChevronUp className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-black">Topics</h4>
+                      <span
+                        onClick={clearAllTopics}
+                        className="cursor-pointer text-sm text-gray-400 hover:underline"
+                      >
+                        Clear All
+                      </span>
+                    </div>
+                    <Input
+                      placeholder="Search topics..."
+                      value={topicSearch}
+                      onChange={(e) => setTopicSearch(e.target.value)}
+                    />
+                    <div className="max-h-[6rem] overflow-y-auto overflow-x-hidden flex flex-wrap gap-3 pb-2">
+                      {filteredTopics.length > 0 ? (
+                        filteredTopics.map((topic) => (
+                          <div
+                            key={topic.id}
+                            className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
+                          >
+                            <Checkbox
+                              id={`topic-${topic.id}`}
+                              checked={formData.topicIds.includes(topic.id)}
+                              onCheckedChange={() => handleTopicChange(topic.id)}
+                            />
+                            <Label
+                              htmlFor={`topic-${topic.id}`}
+                              className="text-black text-sm whitespace-nowrap"
+                            >
+                              {topic.name}
+                            </Label>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 text-sm">
+                          No topics found
+                        </span>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+
+              <div className="lg:w-2/5 space-y-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-md font-semibold text-primary">Course Image</h4>
+                  <input
+                    type="file"
+                    id="imageUpload"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </div>
+                <div
+                  className="w-full aspect-video rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center"
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                >
+                  {imagePreview || imageUrl ? (
+                    <div className="relative w-full h-full">
+                      <img
+                        src={imagePreview || imageUrl}
+                        alt="Course preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="secondary"
+                          className="h-8 w-8 rounded-full hover:bg-gray-700 text-black hover:text-white"
+                          onClick={() => document.getElementById("imageUpload").click()}
+                        >
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="destructive"
+                          className="h-8 w-8 rounded-full bg-red-600/80 hover:bg-red-700 text-white"
+                          onClick={() => {
+                            setImageFile(null)
+                            setImagePreview(null)
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {imageFile && (
+                        <div className="absolute bottom-0 left-0 right-0 text-xs text-black p-2 truncate">
+                          {imageFile.name} ({(imageFile.size / (1024 * 1024)).toFixed(2)} MB)
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div
+                      className="flex flex-col items-center justify-center h-full w-full p-6 cursor-pointer"
                       onClick={() => document.getElementById("imageUpload").click()}
                     >
-                      Select Image
-                    </Button>
-                  </div>
-                )}
+                      <Upload className="h-8 w-8 text-black mb-4" />
+                      <p className="text-black text-center">
+                        Drag and drop an image here (max 200 MB)
+                        <br />
+                        or click to browse
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-4 text-black border-gray-700"
+                        onClick={() => document.getElementById("imageUpload").click()}
+                      >
+                        Select Image
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
+            </div>
+            <div className="flex flex-col gap-4">
+              <h4 className="text-md font-semibold text-primary">
+                Description
+              </h4>
+              <div className="h-[400px]">
+                <MarkdownEditor
+                  value={formData.description}
+                  onChange={handleDescriptionChange}
+                />
+              </div>
+
             </div>
           </div>
 

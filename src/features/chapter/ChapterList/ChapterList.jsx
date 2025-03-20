@@ -1,51 +1,51 @@
-import { useState, useEffect } from "react";
-import { getChapterByCourseId } from "@/lib/api/chapter_api";
-import { getCourseSearch } from "@/lib/api/course_api";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { GLOBALS } from "@/lib/constants";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { Search, Plus, Edit } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect } from "react"
+import { getChapterByCourseId } from "@/lib/api/chapter_api"
+import { getCourseSearch } from "@/lib/api/course_api"
+import { Link } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { GLOBALS } from "@/lib/constants"
+import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
+import { Search, Plus, Edit } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 function ChapterList() {
-  const [chapters, setChapters] = useState([]);
-  const [courseId, setCourseId] = useState(1); // Default course ID
-  const [courses, setCourses] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(""); // Search for chapters
-  const [courseSearchQuery, setCourseSearchQuery] = useState(""); // Search for courses in filter
-  const [isLoading, setIsLoading] = useState(true);
-  const [itemsPerPage, setItemsPerPage] = useState(6);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [sortBy, setSortBy] = useState("id");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false); // State for filter expansion
-  const [selectedCourse, setSelectedCourse] = useState(null); // Track selected course name
+  const [chapters, setChapters] = useState([])
+  const [courseId, setCourseId] = useState(1)
+  const [courses, setCourses] = useState([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [courseSearchQuery, setCourseSearchQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [itemsPerPage, setItemsPerPage] = useState(6)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [sortBy, setSortBy] = useState("id")
+  const [sortOrder, setSortOrder] = useState("asc")
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false)
+  const [selectedCourse, setSelectedCourse] = useState(null)
 
   useEffect(() => {
-    document.title = `Chapter List - ${GLOBALS.APPLICATION_NAME}`;
-  }, []);
+    document.title = `Chapter List - ${GLOBALS.APPLICATION_NAME}`
+  }, [])
 
   // Fetch chapters
   useEffect(() => {
     const fetchChapters = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        const data = await getChapterByCourseId(courseId);
-        setChapters(Array.isArray(data) ? data : []);
+        const data = await getChapterByCourseId(courseId)
+        setChapters(Array.isArray(data) ? data : [])
       } catch (error) {
-        console.error("Error fetching chapters:", error);
-        setChapters([]);
+        console.error("Error fetching chapters:", error)
+        setChapters([])
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-    if (courseId) fetchChapters(); // Only fetch if courseId is set
-  }, [courseId]);
+    }
+    if (courseId) fetchChapters() // Only fetch if courseId is set
+  }, [courseId])
 
   // Fetch courses for filter
   useEffect(() => {
@@ -55,91 +55,91 @@ function ChapterList() {
           page: 0,
           size: 100,
           sortBy: "title",
-          ascending: true,
-        });
-        setCourses(data.content || []);
+          ascending: true
+        })
+        setCourses(data.content || [])
         // Set initial selected course based on default courseId
-        const initialCourse = (data.content || []).find((course) => course.id === courseId);
-        setSelectedCourse(initialCourse?.title || `Unnamed Course (ID: ${courseId})`);
+        const initialCourse = (data.content || []).find((course) => course.id === courseId)
+        setSelectedCourse(initialCourse?.title || `Unnamed Course (ID: ${courseId})`)
       } catch (error) {
-        console.error("Error fetching courses:", error);
-        setCourses([]);
+        console.error("Error fetching courses:", error)
+        setCourses([])
       }
-    };
-    fetchCourses();
-  }, []);
+    }
+    fetchCourses()
+  }, [])
 
   // Client-side sorting
   const sortedChapters = [...chapters].sort((a, b) => {
-    const order = sortOrder === "asc" ? 1 : -1;
-    if (sortBy === "id") return order * (a.id - b.id);
-    if (sortBy === "title") return order * (a.title.localeCompare(b.title));
-    return 0;
-  });
+    const order = sortOrder === "asc" ? 1 : -1
+    if (sortBy === "id") return order * (a.id - b.id)
+    if (sortBy === "title") return order * (a.title.localeCompare(b.title))
+    return 0
+  })
 
   // Client-side search for chapters
   const filteredChapters = sortedChapters.filter((chapter) =>
     chapter.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  )
 
   // Client-side pagination
-  const totalItems = filteredChapters.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalItems = filteredChapters.length
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
   const paginatedChapters = filteredChapters.slice(
     currentPage * itemsPerPage,
     (currentPage + 1) * itemsPerPage
-  );
+  )
 
   // Filter courses based on search query in the filter
   const filteredCourses = courses.filter((course) =>
     (course.title || `Unnamed Course (ID: ${course.id})`)
       .toLowerCase()
       .includes(courseSearchQuery.toLowerCase())
-  );
+  )
 
   const handleSort = (field) => {
     if (sortBy === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
     } else {
-      setSortBy(field);
-      setSortOrder("asc");
+      setSortBy(field)
+      setSortOrder("asc")
     }
-    setCurrentPage(0);
-  };
+    setCurrentPage(0)
+  }
 
   const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+    setCurrentPage(page)
+  }
 
   const handleItemsPerPageChange = (value) => {
-    setItemsPerPage(Number(value));
-    setCurrentPage(0);
-  };
+    setItemsPerPage(Number(value))
+    setCurrentPage(0)
+  }
 
   const getStatusBadge = (status) => {
     const statusMap = {
       ACTIVATED: "bg-green-500",
-      INACTIVATED: "bg-red-500",
-    };
+      INACTIVATED: "bg-red-500"
+    }
     return (
       <Badge className={`${statusMap[status] || "bg-gray-500"} text-white`}>
         {status?.toUpperCase()}
       </Badge>
-    );
-  };
+    )
+  }
 
   // Handle filter toggle
   const handleFilterClick = () => {
-    setIsFilterExpanded(!isFilterExpanded);
-  };
+    setIsFilterExpanded(!isFilterExpanded)
+  }
 
   // Handle course selection
   const handleCourseClick = (course) => {
-    setCourseId(course.id);
-    setSelectedCourse(course.title || `Unnamed Course (ID: ${course.id})`);
-    setIsFilterExpanded(false); // Close filter after selection
-    setCourseSearchQuery(""); // Reset course search query
-  };
+    setCourseId(course.id)
+    setSelectedCourse(course.title || `Unnamed Course (ID: ${course.id})`)
+    setIsFilterExpanded(false) // Close filter after selection
+    setCourseSearchQuery("") // Reset course search query
+  }
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col">
@@ -147,9 +147,9 @@ function ChapterList() {
         <Card className="border-border-muted bg-bg-card shadow-lg">
           <CardHeader className="pb-4 border-b border-border-muted">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle className="text-3xl font-bold text-text-primary">Chapter List</CardTitle>
+              <CardTitle className="text-xl font-bold text-text-primary">Chapter List</CardTitle>
               <Link to="/chapter/add">
-                <Button className="bg-primary text-white font-bold hover:bg-primary/90 transition-colors text-base py-2 px-4 w-full md:w-auto">
+                <Button className="bg-primary text-white font-semibold hover:bg-primary/90 transition-colors text-base py-2 px-4 w-full md:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   Create New Chapter
                 </Button>
@@ -173,8 +173,7 @@ function ChapterList() {
                     variant="ghost"
                     onClick={handleFilterClick}
                     className={cn(
-                      "text-primary font-bold hover:bg-primary transition hover:text-white",
-                      isFilterExpanded && "bg-button-primary text-bg-primary hover:bg-button-hover"
+                      "text-primary font-bold transition hover:bg-primary hover:text-white"
                     )}
                   >
                     Filter by Course
@@ -300,7 +299,7 @@ function ChapterList() {
                 <div className="flex gap-2">
                   <Button
                     variant="ghost"
-                    className="text-primary font-bold hover:bg-primary transition hover:text-black"
+                    className="text-primary font-bold transition hover:bg-primary hover:text-primary-foreground"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 0}
                   >
@@ -309,12 +308,11 @@ function ChapterList() {
                   <div className="flex gap-1">
                     {[...Array(totalPages)].map((_, index) => (
                       <Button
-                        variant="ghost"
                         key={index}
                         onClick={() => handlePageChange(index)}
                         className={cn(
-                          "text-primary font-bold hover:bg-primary transition hover:text-black",
-                          currentPage === index && "bg-button-primary text-bg-primary hover:bg-button-hover"
+                          "font-semibold transition",
+                          currentPage === index ? "bg-primary text-primary-foreground" : "text-primary bg-transparent hover:bg-primary hover:text-primary-foreground"
                         )}
                       >
                         {index + 1}
@@ -323,7 +321,7 @@ function ChapterList() {
                   </div>
                   <Button
                     variant="ghost"
-                    className="text-primary font-bold hover:bg-primary transition hover:text-black"
+                    className="text-primary font-bold transition hover:bg-primary hover:text-primary-foreground"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages - 1}
                   >
@@ -336,7 +334,7 @@ function ChapterList() {
         </Card>
       </main>
     </div>
-  );
+  )
 }
 
-export default ChapterList;
+export default ChapterList

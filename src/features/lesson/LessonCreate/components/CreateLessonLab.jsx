@@ -208,9 +208,9 @@ export default function CreateLessonLab({
 
   return (
     <div className="space-y-4">
-      <Label className="text-base font-medium">Select Problems</Label>
+      <Label className="text-primary text-base font-semibold">Select Problems</Label>
 
-      <div className="border rounded-lg p-4 space-y-4">
+      <div className="relative rounded-lg space-y-4">
         <Collapsible open={isProblemsOpen} onOpenChange={setIsProblemsOpen}>
           <CollapsibleTrigger asChild>
             <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
@@ -226,7 +226,7 @@ export default function CreateLessonLab({
               )}
             </div>
           </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
+          <CollapsibleContent className="z-10 absolute top-10 w-full bg-white space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium text-black">Problems</h4>
               {selectedProblems.length > 0 && (
