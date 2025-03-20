@@ -317,7 +317,7 @@ function CourseList() {
                 </div>
                 <Button
                   variant="ghost"
-                  className="text-primary font-bold hover:bg-primary transition hover:text-black"
+                  className="text-primary font-bold hover:bg-primary transition hover:text-white"
                   onClick={() => handlePageChange(currentPage + 2)}
                   disabled={currentPage === totalPages - 1}
                 >

@@ -313,6 +313,8 @@ function ChapterList() {
                         className={cn(
                           "font-semibold transition",
                           currentPage === index ? "bg-primary text-primary-foreground" : "text-primary bg-transparent hover:bg-primary hover:text-primary-foreground"
+                          "text-primary font-bold hover:bg-primary transition hover:text-white",
+                            currentPage === index && "bg-primary text-white hover:bg-primary"
                         )}
                       >
                         {index + 1}
@@ -322,6 +324,7 @@ function ChapterList() {
                   <Button
                     variant="ghost"
                     className="text-primary font-bold transition hover:bg-primary hover:text-primary-foreground"
+                    className="text-primary font-bold hover:bg-primary transition hover:text-white"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages - 1}
                   >
