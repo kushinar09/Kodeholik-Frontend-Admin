@@ -230,6 +230,7 @@ function CreateCourse() {
   
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1 space-y-5">
+          <h4 className="text-sm font-medium text-black">Title</h4>
             <Input
               name="title"
               value={formData.title}
@@ -237,13 +238,14 @@ function CreateCourse() {
               placeholder="Title"
               required
             />
+            <h4 className="text-sm font-medium text-black">Description</h4>
             <MarkdownEditor
               value={formData.description}
               onChange={handleDescriptionChange}
             />
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="flex-1 space-y-5">
-              <h4 className="text-sm font-medium text-black">Course Topic</h4>
+              <h4 className="text-sm font-medium text-black">Topic</h4>
                 <Collapsible open={isTopicsOpen} onOpenChange={setIsTopicsOpen}>
                   <CollapsibleTrigger asChild>
                     <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
