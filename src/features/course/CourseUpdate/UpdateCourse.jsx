@@ -33,8 +33,8 @@ const formSchema = z.object({
   imageFile: z
     .instanceof(File, { message: "Image must be a file" })
     .optional()
-    .refine((file) => !file || file.size <= 200 * 1024 * 1024, "Image file must be less than 200 MB"),
-});
+    .refine((file) => !file || file.size <= 200 * 1024 * 1024, "Image file must be less than 200 MB")
+})
 
 function UpdateCourse() {
   const navigate = useNavigate();
@@ -52,14 +52,14 @@ function UpdateCourse() {
   const { apiCall } = useAuth();
 
   useEffect(() => {
-    document.title = `Update Course - ${GLOBALS.APPLICATION_NAME}`;
-  }, []);
+    document.title = `Update Course - ${GLOBALS.APPLICATION_NAME}`
+  }, [])
 
   // Fetch topics
   useEffect(() => {
     const fetchTopics = async () => {
       try {
-        const data = await getTopicsWithId();
+        const data = await getTopicsWithId()
         const formattedTopics = Array.isArray(data)
           ? data.map((topic) => ({
               id: String(topic.id || topic),
@@ -69,48 +69,48 @@ function UpdateCourse() {
         setTopics(formattedTopics);
         console.log("Fetched topics:", formattedTopics);
       } catch (error) {
-        console.error("Error fetching topics:", error);
-        setError(error.message || "Failed to fetch topics");
+        console.error("Error fetching topics:", error)
+        setError(error.message || "Failed to fetch topics")
       }
-    };
-    fetchTopics();
-  }, []);
+    }
+    fetchTopics()
+  }, [])
 
   // Fetch course data and map topics
   useEffect(() => {
     const fetchCourse = async () => {
-      if (!topics.length) return;
+      if (!topics.length) return
       try {
-        const data = await getCourse(id);
-        console.log("Fetched course data:", data);
+        const data = await getCourse(id)
+        console.log("Fetched course data:", data)
 
         const topicIds = (data?.topics || []).map((topic) => {
-          const topicId = String(topic.id);
-          const topicObj = topics.find((t) => t.id === topicId);
+          const topicId = String(topic.id)
+          const topicObj = topics.find((t) => t.id === topicId)
           if (!topicObj) {
-            console.warn(`No matching topic found for ID: ${topicId}`);
+            console.warn(`No matching topic found for ID: ${topicId}`)
           }
-          return topicObj ? topicObj.id : null;
-        }).filter((id) => id !== null);
+          return topicObj ? topicObj.id : null
+        }).filter((id) => id !== null)
 
-        console.log("Course topics:", data?.topics);
-        console.log("Available topics:", topics);
-        console.log("Mapped topicIds:", topicIds);
+        console.log("Course topics:", data?.topics)
+        console.log("Available topics:", topics)
+        console.log("Mapped topicIds:", topicIds)
 
         setFormData({
           title: data?.title || "",
           description: data?.description || "",
           topicIds: topicIds,
-          status: data?.status || "ACTIVATED",
-        });
-        setCourse(data);
+          status: data?.status || "ACTIVATED"
+        })
+        setCourse(data)
       } catch (error) {
-        console.error("Error fetching course:", error);
-        setError(error.message || "Failed to fetch course data");
+        console.error("Error fetching course:", error)
+        setError(error.message || "Failed to fetch course data")
       }
-    };
-    fetchCourse();
-  }, [id, topics]);
+    }
+    fetchCourse()
+  }, [id, topics])
 
   // Set existing image URL directly from course data
   useEffect(() => {
@@ -123,131 +123,131 @@ function UpdateCourse() {
   useEffect(() => {
     return () => {
       if (imagePreview) {
-        URL.revokeObjectURL(imagePreview);
+        URL.revokeObjectURL(imagePreview)
       }
-    };
-  }, [imagePreview]);
+    }
+  }, [imagePreview])
 
   if (!course || !formData || !topics.length) {
     return (
       <div className="min-h-screen bg-bg-primary flex items-center justify-center text-text-primary">
         Loading...
       </div>
-    );
+    )
   }
 
   const filteredTopics = topics.filter((topic) =>
     topic.name.toLowerCase().includes(topicSearch.toLowerCase())
-  );
+  )
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleTopicChange = (topicId) => {
     setFormData((prev) => {
       const newTopicIds = prev.topicIds.includes(topicId)
         ? prev.topicIds.filter((id) => id !== topicId)
-        : [...prev.topicIds, topicId];
-      console.log("Updated topicIds:", newTopicIds);
-      return { ...prev, topicIds: newTopicIds };
-    });
-  };
+        : [...prev.topicIds, topicId]
+      console.log("Updated topicIds:", newTopicIds)
+      return { ...prev, topicIds: newTopicIds }
+    })
+  }
 
   const clearAllTopics = () => {
-    setFormData((prev) => ({ ...prev, topicIds: [] }));
-    setTopicSearch("");
-  };
+    setFormData((prev) => ({ ...prev, topicIds: [] }))
+    setTopicSearch("")
+  }
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files[0]
     if (file) {
-      setImageFile(file);
-      if (imagePreview) URL.revokeObjectURL(imagePreview);
-      setImagePreview(URL.createObjectURL(file));
+      setImageFile(file)
+      if (imagePreview) URL.revokeObjectURL(imagePreview)
+      setImagePreview(URL.createObjectURL(file))
     }
-  };
+  }
 
   const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+    e.preventDefault()
+    e.stopPropagation()
+  }
 
   const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault()
+    e.stopPropagation()
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      setImageFile(file);
-      if (imagePreview) URL.revokeObjectURL(imagePreview);
-      setImagePreview(URL.createObjectURL(file));
+      const file = e.dataTransfer.files[0]
+      setImageFile(file)
+      if (imagePreview) URL.revokeObjectURL(imagePreview)
+      setImagePreview(URL.createObjectURL(file))
     }
-  };
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault()
+    setError(null)
 
     const dataToValidate = {
       title: formData.title,
       description: formData.description,
       topicIds: formData.topicIds,
       status: formData.status,
-      imageFile: imageFile || undefined,
-    };
+      imageFile: imageFile || undefined
+    }
 
     try {
-      formSchema.parse(dataToValidate);
+      formSchema.parse(dataToValidate)
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
-        setError(validationError.errors[0].message);
-        return;
+        setError(validationError.errors[0].message)
+        return
       }
-      setError("An unexpected validation error occurred");
-      return;
+      setError("An unexpected validation error occurred")
+      return
     }
 
     const courseData = {
       title: formData.title,
       description: formData.description,
       status: formData.status,
-      topicIds: formData.topicIds,
-    };
+      topicIds: formData.topicIds
+    }
 
     try {
       if (typeof id !== "string" || !id) {
-        throw new Error("Course ID is invalid or missing");
+        throw new Error("Course ID is invalid or missing")
       }
       const result = await updateCourse(id, courseData, imageFile, apiCall);
       console.log("Update result:", result);
       setShowSuccessDialog(true);
     } catch (error) {
-      console.error("Error updating course:", error);
-      setError(error.message || "Failed to update course");
+      console.error("Error updating course:", error)
+      setError(error.message || "Failed to update course")
     }
-  };
+  }
 
   const handleDialogClose = () => {
     setShowSuccessDialog(false);
-    navigate("/course");
+    navigate("/course"); // Navigate after closing the dialog
   };
 
   const handleDescriptionChange = (value) => {
-    setFormData((prev) => ({ ...prev, "description": value }));
-  };
+    setFormData((prev) => ({ ...prev, "description": value }))
+  }
 
   const getStatusBadge = (status) => {
     const statusMap = {
       ACTIVATED: "bg-green-500",
-      INACTIVATED: "bg-red-500",
-    };
+      INACTIVATED: "bg-red-500"
+    }
     return (
       <Badge className={`${statusMap[status]} text-white`}>
         {status.toUpperCase()}
       </Badge>
-    );
-  };
+    )
+  }
 
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -342,7 +342,7 @@ function UpdateCourse() {
                   onCheckedChange={(checked) =>
                     setFormData((prev) => ({
                       ...prev,
-                      status: checked ? "ACTIVATED" : "INACTIVATED",
+                      status: checked ? "ACTIVATED" : "INACTIVATED"
                     }))
                   }
                   className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-gray-600"
@@ -394,8 +394,8 @@ function UpdateCourse() {
                         variant="destructive"
                         className="h-8 w-8 rounded-full bg-red-600/80 hover:bg-red-700 text-white"
                         onClick={() => {
-                          setImageFile(null);
-                          setImagePreview(null);
+                          setImageFile(null)
+                          setImagePreview(null)
                         }}
                       >
                         <X className="h-4 w-4" />
@@ -457,7 +457,7 @@ function UpdateCourse() {
             <DialogHeader>
               <DialogTitle>Course Updated Successfully</DialogTitle>
               <DialogDescription>
-                Your course "{formData.title}" has been updated successfully!
+                Your course &quot;{formData.title}&quot; has been updated successfully!
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -467,7 +467,7 @@ function UpdateCourse() {
         </Dialog>
       </div>
     </div>
-  );
+  )
 }
 
-export default UpdateCourse;
+export default UpdateCourse

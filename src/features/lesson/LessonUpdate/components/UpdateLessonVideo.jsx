@@ -1,34 +1,45 @@
+"use client";
+
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, X } from "lucide-react";
 
-function UpdateLessonVideo({ file, setFile, filePreview, setFilePreview, existingFileUrl }) {
+function UpdateLessonVideo({
+  file,
+  setFile,
+  filePreview,
+  setFilePreview,
+  existingFileUrl,
+}) {
+  useEffect(() => {
+    return () => {
+      if (filePreview && filePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(filePreview);
+      }
+    };
+  }, [filePreview]);
+
   const handleFileUpload = (e) => {
     const uploadedFile = e.target.files[0];
     if (uploadedFile) {
+      if (filePreview && filePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(filePreview);
+      }
       setFile(uploadedFile);
-      if (filePreview && !existingFileUrl) URL.revokeObjectURL(filePreview);
       setFilePreview(URL.createObjectURL(uploadedFile));
     }
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const uploadedFile = e.dataTransfer.files[0];
-      setFile(uploadedFile);
-      if (filePreview && !existingFileUrl) URL.revokeObjectURL(filePreview);
-      setFilePreview(URL.createObjectURL(uploadedFile));
+  const handleRemoveFile = () => {
+    if (filePreview && filePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(filePreview);
     }
+    setFile(null);
+    setFilePreview(existingFileUrl); // Khôi phục preview về file hiện tại nếu có
   };
 
   return (
-    <>
+    <div>
       <div className="flex items-center justify-between mb-2">
         <h4 className="text-sm font-medium text-black">Lesson Video</h4>
         <input
@@ -39,12 +50,8 @@ function UpdateLessonVideo({ file, setFile, filePreview, setFilePreview, existin
           className="hidden"
         />
       </div>
-      <div
-        className="w-full aspect-video rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center"
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
-        {file || existingFileUrl ? (
+      <div className="w-full aspect-video rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center">
+        {(file && filePreview) || existingFileUrl ? (
           <div className="relative w-full h-full">
             <video
               src={filePreview || existingFileUrl}
@@ -64,10 +71,7 @@ function UpdateLessonVideo({ file, setFile, filePreview, setFilePreview, existin
                 type="button"
                 size="icon"
                 variant="destructive"
-                onClick={() => {
-                  setFile(null);
-                  setFilePreview(existingFileUrl);
-                }}
+                onClick={handleRemoveFile}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -85,11 +89,7 @@ function UpdateLessonVideo({ file, setFile, filePreview, setFilePreview, existin
           >
             <Upload className="h-8 w-8 text-black mb-4" />
             <p className="text-black text-center">
-              Drag and drop a video here
-              <br />
-              (max 500 MB)
-              <br />
-              or click to browse
+              Drag and drop a video here\n(max 500 MB)\nor click to browse
             </p>
             <Button type="button" variant="outline" size="sm" className="mt-4">
               Select Video
@@ -97,7 +97,7 @@ function UpdateLessonVideo({ file, setFile, filePreview, setFilePreview, existin
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 

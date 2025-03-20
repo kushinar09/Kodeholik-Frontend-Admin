@@ -24,10 +24,12 @@ const GLOBALS = {
   ]
 }
 
+const FRONTEND_PORT = import.meta.env.VITE_FRONTEND_PORT
 const API_URL = import.meta.env.VITE_API_URL
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
 const ENDPOINTS = {
+  FRONTEND: `http://localhost:${FRONTEND_PORT}`,
   // Auth
   POST_LOGIN: `${API_URL}/auth/login`,
   LOGIN_GOOGLE: `${BACKEND_URL}/oauth2/authorization/google`,
@@ -72,7 +74,7 @@ const ENDPOINTS = {
   GET_CHAPTER_BY_COURSE_ID: `${API_URL}/chapter/by-course/:id`,
   GET_CHAPTER_DETAIL: `${API_URL}/chapter/detail/:id`,
   CREATE_CHAPTER: `${API_URL}/chapter/add`,
-  UPDATE_CHAPTER: `${API_URL}/chapter/update/:id`, 
+  UPDATE_CHAPTER: `${API_URL}/chapter/update/:id`,
 
   //Lesson
   GET_LESSONS: `${API_URL}/lesson/list`,
@@ -96,6 +98,26 @@ const ENDPOINTS = {
   //Exam
   POST_EXAM_LIST_FOR_EXAMINER: `${API_URL}/examiner/list`,
   GET_EXAM_DETAIL_FOR_EXAMINER: `${API_URL}/examiner/detail/`,
+  GET_PRIVATE_PROBLEM_FOR_EXAMINER: `${API_URL}/examiner/private-problem`,
+  DELETE_EXAM: `${API_URL}/examiner/delete/`,
+  POST_CREATE_EXAM: `${API_URL}/examiner/create`,
+  POST_EDIT_EXAM: `${API_URL}/examiner/edit/`,
+  GET_EXAM_LIST_PARTICIPANT: `${API_URL}/examiner/list-participant/`,
+  GET_EXAM_PARTICIPANT_RESULT: `${API_URL}/examiner/result/`,
+
+  //User
+  POST_USER_LIST_FOR_ADMIN: `${API_URL}/admin/list-user`,
+  BAN_USER: `${API_URL}/admin/ban-user/`,
+  UNBAN_USER: `${API_URL}/admin/unban-user/`,
+  CREATE_USER: `${API_URL}/admin/add-user`,
+  EDIT_USER: `${API_URL}/admin/edit-user/`,
+  DETAIL_USER: `${API_URL}/admin/detail/`,
+
+  //Tag
+  POST_TAG_LIST_FOR_ADMIN: `${API_URL}/admin/list-tag`,
+  DELETE_TAG: `${API_URL}/admin/delete-tag/`,
+  ADD_TAG: `${API_URL}/admin/add-tag`,
+  EDIT_TAG: `${API_URL}/admin/edit-tag/`,
 
   // Teacher role
   // Problem

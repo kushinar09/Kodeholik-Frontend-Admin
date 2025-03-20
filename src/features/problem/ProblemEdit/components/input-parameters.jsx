@@ -13,6 +13,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
 import * as z from "zod"
 import CodeEditor from "@/components/layout/editor-code/CodeEditor"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import hljs from "highlight.js"
 
 // Update schema to handle multiple languages
 const formSchema = z.object({
@@ -27,7 +29,8 @@ const formSchema = z.object({
           noDimension: z.number().nullable().optional()
         })
       ),
-      templateCode: z.string().min(1, "Template code is required")
+      templateCode: z.string(),
+      functionCode: z.string()
     })
   ),
   sharedFunctionSignature: z.string().min(1, "Function signature is required"),
@@ -68,6 +71,13 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
     "OTHER"
   ])
 
+  useEffect(() => {
+    document.querySelectorAll("pre code").forEach((block) => {
+      if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
+        hljs.highlightBlock(block)
+    })
+  }, [formData, activeLanguage])
+
   // Initialize form with existing data or create new entries for each language
   const getDefaultValues = () => {
     // If we have existing inputParameter data, use it
@@ -82,7 +92,8 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
           return {
             language: lang,
             parameters: existingParam?.parameters || [],
-            templateCode: existingParam?.templateCode?.code || ""
+            templateCode: existingParam?.templateCode?.code || "",
+            functionCode: existingParam?.functionCode || ""
           }
         }),
         // Add shared fields with values from the first item
@@ -98,7 +109,8 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
       problemInputParameterDto: languages.map((lang) => ({
         language: lang,
         parameters: [],
-        templateCode: ""
+        templateCode: "",
+        functionCode: ""
       })),
       sharedFunctionSignature: "",
       sharedReturnType: "",
@@ -137,7 +149,8 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
           templateCode: {
             code: param.templateCode,
             language: param.language
-          }
+          },
+          functionCode: param.functionCode
         }))
 
         // Update the parent's formData with the new inputParameter array
@@ -179,7 +192,8 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
       templateCode: {
         code: param.templateCode,
         language: param.language
-      }
+      },
+      functionCode: param.functionCode || ""
     }))
 
     // Update the parent's formData with the new inputParameter array
@@ -334,13 +348,13 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
                                   />
                                   {form.formState.errors.problemInputParameterDto?.[index]?.parameters?.[paramIndex]
                                     ?.inputName && (
-                                    <p className="text-sm text-destructive mt-1">
-                                      {
-                                        form.formState.errors.problemInputParameterDto[index].parameters[paramIndex]
-                                          .inputName.message
-                                      }
-                                    </p>
-                                  )}
+                                      <p className="text-sm text-destructive mt-1">
+                                        {
+                                          form.formState.errors.problemInputParameterDto[index].parameters[paramIndex]
+                                            .inputName.message
+                                        }
+                                      </p>
+                                    )}
                                 </div>
                                 <div className="flex-1">
                                   <Label className="text-xs">Parameter Type</Label>
@@ -364,54 +378,54 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
                                   />
                                   {form.formState.errors.problemInputParameterDto?.[index]?.parameters?.[paramIndex]
                                     ?.inputType && (
-                                    <p className="text-sm text-destructive mt-1">
-                                      {
-                                        form.formState.errors.problemInputParameterDto[index].parameters[paramIndex]
-                                          .inputType.message
-                                      }
-                                    </p>
-                                  )}
+                                      <p className="text-sm text-destructive mt-1">
+                                        {
+                                          form.formState.errors.problemInputParameterDto[index].parameters[paramIndex]
+                                            .inputType.message
+                                        }
+                                      </p>
+                                    )}
                                   {/* Other Input Type - only show if "OTHER" is selected */}
                                   {form.watch(
                                     `problemInputParameterDto.${index}.parameters.${paramIndex}.inputType`
                                   ) === "OTHER" && (
-                                    <FormField
-                                      control={form.control}
-                                      name={`problemInputParameterDto.${index}.parameters.${paramIndex}.otherInputType`}
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>Custom Input Type</FormLabel>
-                                          <FormControl>
-                                            <Input placeholder="Enter custom input type" {...field} />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                  )}
+                                      <FormField
+                                        control={form.control}
+                                        name={`problemInputParameterDto.${index}.parameters.${paramIndex}.otherInputType`}
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Custom Input Type</FormLabel>
+                                            <FormControl>
+                                              <Input placeholder="Enter custom input type" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                    )}
                                   {form
                                     .watch(`problemInputParameterDto.${index}.parameters.${paramIndex}.inputType`)
                                     ?.startsWith("ARR_") && (
-                                    <FormField
-                                      control={form.control}
-                                      name={`problemInputParameterDto.${index}.parameters.${paramIndex}.noDimension`}
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>Number of Dimensions</FormLabel>
-                                          <FormControl>
-                                            <Input
-                                              type="number"
-                                              min="1"
-                                              placeholder="Enter number of dimensions"
-                                              {...field}
-                                              onChange={(e) => field.onChange(Number.parseInt(e.target.value, 10) || 1)}
-                                            />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                  )}
+                                      <FormField
+                                        control={form.control}
+                                        name={`problemInputParameterDto.${index}.parameters.${paramIndex}.noDimension`}
+                                        render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel>Number of Dimensions</FormLabel>
+                                            <FormControl>
+                                              <Input
+                                                type="number"
+                                                min="1"
+                                                placeholder="Enter number of dimensions"
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number.parseInt(e.target.value, 10) || 1)}
+                                              />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+                                    )}
                                 </div>
                                 <Button
                                   type="button"
@@ -435,7 +449,20 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
                       name={`problemInputParameterDto.${index}.templateCode`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Template Code</FormLabel>
+                          <FormLabel className="flex gap-2 items-center mb-4">
+                            Supplementary Code
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <svg className="size-4" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                  <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94" />
+                                </svg>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-64">This field contains additional comments or supplementary classes to address specific issues. This section will be automatically added to the function code when a problem is successfully created.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </FormLabel>
                           <FormControl>
                             <CodeEditor
                               initialCode={field.value || ""}
@@ -447,6 +474,37 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
                         </FormItem>
                       )}
                     />
+                    {/* <FormField
+                      name={`problemInputParameterDto.${index}.templateCode`}
+                      render={({ field }) => (
+
+                      )}
+                    /> */}
+                    <FormItem>
+                      <FormLabel className="flex gap-2 items-center mb-4">
+                        Function Code
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <svg className="size-4" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                              <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94" />
+                            </svg>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-64">The field where users write code to solve the problem.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </FormLabel>
+                      <FormControl>
+                        <pre>
+                          <code>{formData?.inputParameter && Array.isArray(formData.inputParameter)
+                            ? formData.inputParameter.find((param) => param.language === language)?.functionCode
+                            : ""}
+                          </code>
+                        </pre>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   </CardContent>
                 </Card>
               </TabsContent>

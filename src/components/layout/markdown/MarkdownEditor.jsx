@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef} from "react"
 import { EditorView, basicSetup } from "codemirror"
 import { keymap } from "@codemirror/view"
 import { indentWithTab } from "@codemirror/commands"
@@ -181,144 +181,144 @@ const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
     let linkRegex
     let lines
     switch (syntax) {
-      case "**":
-        if (from === to) {
-          text = "Bold"
-        }
-        if (text.startsWith("**") && text.endsWith("**")) {
-          newText = text.slice(2, -2)
-        } else if (/^#+\s/.test(text)) {
-          let pre
-          let heading = text.replace(/^#+\s/, (match) => {
-            pre = match
-            return ""
-          })
-          if (heading.startsWith("**") && heading.endsWith("**")) {
-            heading = heading.slice(2, -2)
-            newText = pre + heading
-          } else {
-            newText = pre + `**${heading}**`
-          }
+    case "**":
+      if (from === to) {
+        text = "Bold"
+      }
+      if (text.startsWith("**") && text.endsWith("**")) {
+        newText = text.slice(2, -2)
+      } else if (/^#+\s/.test(text)) {
+        let pre
+        let heading = text.replace(/^#+\s/, (match) => {
+          pre = match
+          return ""
+        })
+        if (heading.startsWith("**") && heading.endsWith("**")) {
+          heading = heading.slice(2, -2)
+          newText = pre + heading
         } else {
-          newText = `**${text}**`
+          newText = pre + `**${heading}**`
         }
-        break
-      case "#":
-        if (from === to) {
-          text = "Heading"
+      } else {
+        newText = `**${text}**`
+      }
+      break
+    case "#":
+      if (from === to) {
+        text = "Heading"
+      }
+      if (text.startsWith("#")) {
+        newText = `#${text}`
+      } else {
+        newText = `# ${text}`
+        if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
+          newText = "\n" + newText
         }
-        if (text.startsWith("#")) {
-          newText = `#${text}`
+      }
+      break
+    case "*":
+      if (from === to) {
+        text = "Italic"
+      }
+      if (text.startsWith("*") && text.endsWith("*")) {
+        newText = text.slice(1, -1)
+      } else {
+        newText = `*${text}*`
+      }
+      break
+    case "`":
+      if (from === to) {
+        text = "code"
+      }
+      if (text.startsWith("`") && text.endsWith("`")) {
+        newText = text.slice(1, -1)
+      } else {
+        newText = `\`${text}\``
+      }
+      break
+    case "```":
+      if (from === to) {
+        text = "public static void main(String[] args) {\n  System.out.println(\"Hello, World!\");\n}"
+      }
+      if (text.startsWith("```\n") && text.endsWith("\n```")) {
+        newText = text.slice(4, -4)
+      } else {
+        newText = `\`\`\`\n${text}\n\`\`\``
+        if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
+          newText = "\n" + newText
+        }
+        newText = newText + "\n"
+      }
+      break
+    case "[]()":
+      if (from === to) {
+        text = "link"
+      }
+      linkRegex = /^\[(.+)\]$$(.+)$$$/
+      if (linkRegex.test(text)) {
+        newText = text.match(linkRegex)[1]
+      } else {
+        newText = `[${text}](url)`
+      }
+      break
+    case ">":
+      if (from === to) {
+        text = "Quote"
+      }
+      if (text.startsWith("> ")) {
+        newText = text.slice(2)
+      } else {
+        newText = `> ${text}`
+        if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
+          newText = "\n" + newText
+        }
+      }
+      break
+    case "1.":
+      lines = text.split("\n")
+      if (lines.length > 1) {
+        const numberMatch = lines[0].match(/^\d+\.\s/)
+        if (numberMatch) {
+          newText = lines.map((line) => line.replace(/^\d+\.\s/, "")).join("\n")
         } else {
-          newText = `# ${text}`
+          newText = lines.map((line, index) => `${index + 1}. ${line}`).join("\n")
           if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
             newText = "\n" + newText
           }
         }
-        break
-      case "*":
-        if (from === to) {
-          text = "Italic"
-        }
-        if (text.startsWith("*") && text.endsWith("*")) {
-          newText = text.slice(1, -1)
+      } else {
+        const numberMatch = text.match(/^\d+\.\s/)
+        if (numberMatch) {
+          newText = text.replace(/^\d+\.\s/, "")
         } else {
-          newText = `*${text}*`
-        }
-        break
-      case "`":
-        if (from === to) {
-          text = "code"
-        }
-        if (text.startsWith("`") && text.endsWith("`")) {
-          newText = text.slice(1, -1)
-        } else {
-          newText = `\`${text}\``
-        }
-        break
-      case "```":
-        if (from === to) {
-          text = "public static void main(String[] args) {\n  System.out.println(\"Hello, World!\");\n}"
-        }
-        if (text.startsWith("```\n") && text.endsWith("\n```")) {
-          newText = text.slice(4, -4)
-        } else {
-          newText = `\`\`\`\n${text}\n\`\`\``
-          if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
-            newText = "\n" + newText
-          }
-          newText = newText + "\n"
-        }
-        break
-      case "[]()":
-        if (from === to) {
-          text = "link"
-        }
-        linkRegex = /^\[(.+)\]$$(.+)$$$/
-        if (linkRegex.test(text)) {
-          newText = text.match(linkRegex)[1]
-        } else {
-          newText = `[${text}](url)`
-        }
-        break
-      case ">":
-        if (from === to) {
-          text = "Quote"
-        }
-        if (text.startsWith("> ")) {
-          newText = text.slice(2)
-        } else {
-          newText = `> ${text}`
+          newText = `1. ${text}`
           if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
             newText = "\n" + newText
           }
         }
-        break
-      case "1.":
-        lines = text.split("\n")
-        if (lines.length > 1) {
-          const numberMatch = lines[0].match(/^\d+\.\s/)
-          if (numberMatch) {
-            newText = lines.map((line) => line.replace(/^\d+\.\s/, "")).join("\n")
-          } else {
-            newText = lines.map((line, index) => `${index + 1}. ${line}`).join("\n")
-            if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
-              newText = "\n" + newText
-            }
-          }
-        } else {
-          const numberMatch = text.match(/^\d+\.\s/)
-          if (numberMatch) {
-            newText = text.replace(/^\d+\.\s/, "")
-          } else {
-            newText = `1. ${text}`
-            if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
-              newText = "\n" + newText
-            }
-          }
+      }
+      break
+    case "-":
+      if (text.startsWith("- ")) {
+        newText = text.slice(2)
+      } else {
+        newText = `- ${text}`
+        if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
+          newText = "\n" + newText
         }
-        break
-      case "-":
-        if (text.startsWith("- ")) {
-          newText = text.slice(2)
-        } else {
-          newText = `- ${text}`
-          if (from > 0 && state.doc.sliceString(from - 1, from) !== "\n") {
-            newText = "\n" + newText
-          }
-        }
-        break
-      case "---":
-        newText = "\n---\n"
-        break
-      case "![]()":
-        if (from === to) {
-          text = "Image description"
-        }
-        newText = `\n![${text}](url)\n`
-        break
-      default:
-        newText = text
+      }
+      break
+    case "---":
+      newText = "\n---\n"
+      break
+    case "![]()":
+      if (from === to) {
+        text = "Image description"
+      }
+      newText = `\n![${text}](url)\n`
+      break
+    default:
+      newText = text
     }
 
     const transaction = state.update({
@@ -620,8 +620,8 @@ const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
         </TooltipProvider>
       </div>
 
-      <div className="flex-1 grid grid-cols-2 divide-x h-fit max-h-[500px]">
-        <div id="editor" className="min-h-[500px] overflow-auto focus-within:ring-1 focus-within:ring-ring" />
+      <div className="flex-1 grid grid-cols-2 divide-x h-full">
+        <div id="editor" className="h-full overflow-auto focus-within:ring-1 focus-within:ring-ring" />
         <div className="min-h-0 overflow-auto">
           {/* <div
             className="markdown prose prose-sm dark:prose-invert max-w-none p-4"

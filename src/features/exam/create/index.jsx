@@ -1,106 +1,215 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-
-export function CreateExamDialog({ open, onOpenChange, onSubmit }) {
-  const [exam, setExam] = useState({
+import { useEffect, useState } from "react"
+import { createExam } from "@/lib/api/exam_api"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { Check } from "lucide-react"
+import { toast } from "sonner"
+import { useAuth } from "@/provider/AuthProvider"
+import { CreateExamDetails } from "./components/detail"
+import { CreateExamProblems } from "./components/problems"
+const mockFormData = {
+  details: {
     title: "",
     description: "",
-    startTime: Date.now(),
-    endTime: Date.now() + 3600000, // 1 hour from now
-    languageSupports: [],
-    problemRequests: []
-  })
+    startTime: new Date(),
+    duration: 90
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setExam((prev) => ({ ...prev, [name]: value }))
+  },
+  problems: {
+    languageSupports: [],
+    problems: []
+  }
+}
+
+const requestData = {
+  title: "",
+  description: "",
+  startTime: Date.now(),
+  endTime: Date.now() + 3600000,
+  languageSupports: [],
+  problemRequests: []
+}
+
+export function CreateExam({ onNavigate }) {
+  const [activeStep, setActiveStep] = useState("details");
+  const [formData, setFormData] = useState({
+    details: {
+      title: "",
+      description: "",
+      startTime: new Date(),
+      duration: 90
+  
+    },
+    problems: {
+      languageSupports: [],
+      problems: []
+    }
+  });
+  const { apiCall } = useAuth();
+
+  const [completedSteps, setCompletedSteps] = useState({
+    details: false,
+    problems: false
+  })
+  useEffect(() => {
+    setFormData(
+      {
+        details: {
+          title: "",
+          description: "",
+          startTime: new Date(),
+          duration: 90
+      
+        },
+        problems: {
+          languageSupports: [],
+          problems: []
+        }
+      }
+    )
+  }, [])
+  const updateFormData = (stepData, step) => {
+    if (step === "details") {
+      mockFormData.details = stepData;
+    }
+    else if (step === "problems") {
+      mockFormData.problems = stepData;
+    }
+    setFormData(mockFormData);
+    setCompletedSteps((prev) => ({ ...prev, [step]: true }))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSubmit(exam)
+  const handleNext = async () => {
+    if (activeStep === "details") setActiveStep("problems");
+    if (activeStep === "problems") {
+      await callCreateExam();
+      toast.success("Add exam successful!", { duration: 2000 });
+      onNavigate("/exam");
+
+    }
+  }
+
+  const callCreateExam = async () => {
+    try {
+      requestData.title = formData.details.title;
+      requestData.description = formData.details.description;
+      requestData.startTime = formData.details.startTime.toISOString();
+      requestData.endTime = new Date(formData.details.startTime.getTime() + formData.details.duration * 60000).toISOString();
+      if (formData?.problems?.languageSupports) {
+        requestData.languageSupports = [...formData.problems.languageSupports];
+      }
+
+      if (formData?.problems?.problems && Array.isArray(formData.problems.problems)) {
+        // Map to ensure correct structure and types
+        requestData.problemRequests = formData.problems.problems.map(problem => ({
+          problemLink: problem.problemLink || '',
+          problemPoint: typeof problem.points === 'number' ? problem.points :
+            (parseInt(problem.points, 10) || 0) // Convert to number if it's a string
+        }));
+      }
+      setFormData({
+        details: {
+          title: "",
+          description: "",
+          startTime: new Date(),
+          duration: 90
+      
+        },
+        problems: {
+          languageSupports: [],
+          problems: []
+        }
+      })
+      await createExam(apiCall, requestData);
+      
+    } catch (error) {
+      console.error("Error fetching exams:", error)
+    } finally {
+    }
+  }
+
+  const handlePrevious = () => {
+    if (activeStep === "problems") setActiveStep("details")
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create New Exam</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="title" className="text-right">
-                Title
-              </Label>
-              <Input
-                id="title"
-                name="title"
-                value={exam.title}
-                onChange={handleChange}
-                className="col-span-3"
-                required
-                minLength={10}
-                maxLength={200}
+    <div className="container mx-auto px-4 mt-4">
+      {/* Progress Indicator */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <StepIndicator
+            step="details"
+            label="Exam Details"
+            active={activeStep === "details"}
+            completed={completedSteps.details}
+            onClick={() => setActiveStep("details")}
+          />
+          <StepDivider />
+          <StepIndicator
+            step="problems"
+            label="Exam Problems"
+            active={activeStep === "problems"}
+            completed={completedSteps.problems}
+            onClick={() => (completedSteps.details ? setActiveStep("problems") : null)}
+            disabled={!completedSteps.details}
+          />
+        </div>
+      </div>
+
+      <Card className="mb-8">
+        <CardContent className="pt-6">
+          <Tabs value={activeStep} onValueChange={(val) => {
+            setActiveStep(val)
+          }}
+          >
+            <TabsContent value="details">
+              <CreateExamDetails
+                onNext={handleNext}
+                formData={formData}
+                updateFormData={updateFormData}
               />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={exam.description}
-                onChange={handleChange}
-                className="col-span-3"
-                required
-                minLength={10}
-                maxLength={5000}
+            </TabsContent>
+            <TabsContent value="problems">
+              <CreateExamProblems
+                onNext={handleNext}
+                onPrevious={handlePrevious}
+                formData={formData}
+                updateFormData={updateFormData}
               />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="startTime" className="text-right">
-                Start Time
-              </Label>
-              <Input
-                id="startTime"
-                name="startTime"
-                type="datetime-local"
-                value={new Date(exam.startTime).toISOString().slice(0, 16)}
-                onChange={(e) => setExam((prev) => ({ ...prev, startTime: new Date(e.target.value).getTime() }))}
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="endTime" className="text-right">
-                End Time
-              </Label>
-              <Input
-                id="endTime"
-                name="endTime"
-                type="datetime-local"
-                value={new Date(exam.endTime).toISOString().slice(0, 16)}
-                onChange={(e) => setExam((prev) => ({ ...prev, endTime: new Date(e.target.value).getTime() }))}
-                className="col-span-3"
-                required
-              />
-            </div>
-            {/* Add inputs for languageSupports and problemRequests here */}
-          </div>
-          <DialogFooter>
-            <Button type="submit">Create Exam</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            </TabsContent>
+
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
+
+function StepIndicator({ step, label, active, completed, onClick, disabled = false }) {
+  return (
+    <div
+      className={`flex flex-col items-center cursor-pointer ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      onClick={disabled ? null : onClick}
+    >
+      <div
+        className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors
+          ${active
+            ? "bg-primary text-primary-foreground"
+            : completed
+              ? "bg-green-500 text-white"
+              : "bg-muted text-muted-foreground"
+          }`}
+      >
+        {completed ? <Check className="h-5 w-5" /> : step.charAt(0).toUpperCase()}
+      </div>
+      <span className={`text-sm ${active ? "font-medium" : ""}`}>{label}</span>
+    </div>
+  )
+}
+
+function StepDivider() {
+  return <div className="flex-1 h-0.5 bg-muted mx-2" />
+}

@@ -1,15 +1,9 @@
 /* eslint-disable indent */
-import { CONSTANTS, ENDPOINTS } from "@/lib/constants"
-import React, { createContext, useContext, useState, useEffect } from "react"
+import { ENDPOINTS } from "@/lib/constants"
+import { createContext, useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 
 const AuthContext = createContext()
-
-const authenticatedEndpoints = [
-  ENDPOINTS.GET_INFOR,
-  ENDPOINTS.POST_RUN_CODE,
-  ENDPOINTS.POST_SUBMIT_CODE
-]
 
 const notCallRotateTokenEndpoints = [
   ENDPOINTS.ROTATE_TOKEN,
@@ -19,7 +13,6 @@ const notCallRotateTokenEndpoints = [
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -85,15 +78,13 @@ export const AuthProvider = ({ children }) => {
   }
 
   const apiCall = async (url, options = {}, redirect = false) => {
-    setLoading(true)
-    // console.log(window.location.pathname)
     if (!options.headers) {
       options.headers = {}
     }
 
     options.headers = {
       ...(options.headers || {}),
-      "Access-Control-Allow-Origin": "http://localhost:5174",
+      "Access-Control-Allow-Origin": ENDPOINTS.FRONTEND,
       "Access-Control-Allow-Credentials": "true"
     }
     options.credentials = "include"
@@ -101,6 +92,9 @@ export const AuthProvider = ({ children }) => {
     try {
       let response = await fetch(url, options)
 
+      if (response.ok) {
+        return response
+      }
       // console.log("check", url, !notCallRotateTokenEndpoints.includes(url))
       if (response.status === 401 && !notCallRotateTokenEndpoints.includes(url)) {
         console.warn("Access token expired. Attempting refresh...")
@@ -110,10 +104,8 @@ export const AuthProvider = ({ children }) => {
         if (status == 200) {
           response = await fetch(url, options)
         } else {
+          console.log(url, status)
           switch (status) {
-            case 500:
-              navigate("/500")
-              break
             case 401:
               navigate("/401")
               break
@@ -124,31 +116,27 @@ export const AuthProvider = ({ children }) => {
               navigate("/404")
               break
             default:
-              throw new Error("Authentication failed")
+              navigate("/500")
           }
         }
       }
 
       else {
+        console.log(url, response.status)
         switch (response.status) {
-          case 500:
-            navigate("/500")
-            break
           case 403:
             navigate("/403")
             break
           case 404:
             navigate("/404")
             break
+          default:
+            navigate("/500")
         }
       }
-
-      return response
     } catch (error) {
       console.warn("API call error:", error)
       throw error
-    } finally {
-      setLoading(false)
     }
   }
 

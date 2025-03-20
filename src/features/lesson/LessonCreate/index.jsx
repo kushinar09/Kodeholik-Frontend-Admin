@@ -1,24 +1,45 @@
-import { GLOBALS } from "@/lib/constants";
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { getChapterList } from "@/lib/api/chapter_api";
-import { createLesson } from "@/lib/api/lesson_api";
-import { useAuth } from "@/provider/AuthProvider";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { z } from "zod";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import CreateLessonVideo from "./components/CreateLessonVideo";
-import CreateLessonDocument from "./components/CreateLessonDocument";
-import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor";
+"use client"
+
+import { GLOBALS } from "@/lib/constants"
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { getChapterList } from "@/lib/api/chapter_api"
+import { createLesson } from "@/lib/api/lesson_api"
+import { useAuth } from "@/provider/AuthProvider"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { ChevronDown, ChevronUp } from "lucide-react"
+import { z } from "zod"
+import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from "@/components/ui/collapsible"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
+import CreateLessonVideo from "./components/CreateLessonVideo"
+import CreateLessonDocument from "./components/CreateLessonDocument"
+import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor"
+import CreateLessonLab from "./components/CreateLessonLab"
+import YoutubeInput from "./components/YoutubeInput"
 
 // Define the Zod schema for form validation
 const formSchema = z.object({
@@ -30,176 +51,199 @@ const formSchema = z.object({
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(5000, "Description must be less than 5000 characters"),
-  chapterId: z
-    .string()
-    .min(1, "A chapter must be selected"),
-  displayOrder: z
-    .number()
-    .int()
-    .min(1, "Display order must be at least 1"),
-  type: z.enum(["VIDEO", "DOCUMENT"], { message: "Type must be either VIDEO or DOCUMENT" }),
+  chapterId: z.string().min(1, "A chapter must be selected"),
+  displayOrder: z.number().int().min(1, "Display order must be at least 1"),
+  type: z.enum(["VIDEO", "YOUTUBE", "DOCUMENT"], {
+    message: "Type must be either VIDEO, YOUTUBE, or DOCUMENT"
+  }),
   status: z.enum(["ACTIVATED", "INACTIVATED"]),
   attachedFile: z
     .instanceof(File, { message: "Attached file must be a file" })
     .optional()
-    .refine((file) => !file || file.size <= 100 * 1024 * 1024, "Attached file must be less than 100 MB"),
+    .refine(
+      (file) => !file || file.size <= 100 * 1024 * 1024,
+      "Attached file must be less than 100 MB"
+    ),
   videoFile: z
     .instanceof(File, { message: "Video must be a file" })
     .optional()
-    .refine((file) => !file || file.size <= 500 * 1024 * 1024, "Video file must be less than 500 MB")
-    .refine((file) => !file || file.type.startsWith("video/"), "File must be a video"),
-});
-
+    .refine(
+      (file) => !file || file.size <= 500 * 1024 * 1024,
+      "Video file must be less than 500 MB"
+    )
+    .refine(
+      (file) => !file || file.type.startsWith("video/"),
+      "File must be a video"
+    )
+})
 
 function CreateLesson() {
   useEffect(() => {
-    document.title = `Create Lesson - ${GLOBALS.APPLICATION_NAME}`;
-  }, []);
+    document.title = `Create Lesson - ${GLOBALS.APPLICATION_NAME}`
+  }, [])
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     chapterId: "",
     displayOrder: 1,
     type: "VIDEO",
-    status: "ACTIVATED",
-  });
-  const [chapters, setChapters] = useState([]);
-  const [file, setFile] = useState(null); // Generic file state for either video or attached file
-  const [filePreview, setFilePreview] = useState(null); // Preview for video files
-  const [isChaptersOpen, setIsChaptersOpen] = useState(false);
-  const [chapterSearch, setChapterSearch] = useState("");
-  const [error, setError] = useState(null);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const { apiCall } = useAuth();
+    status: "ACTIVATED"
+  })
+  const [chapters, setChapters] = useState([])
+  const [file, setFile] = useState(null) // Generic file state for video or attached file
+  const [filePreview, setFilePreview] = useState(null) // Preview for video files
+  const [isChaptersOpen, setIsChaptersOpen] = useState(false)
+  const [chapterSearch, setChapterSearch] = useState("")
+  const [error, setError] = useState(null)
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const { apiCall } = useAuth()
+  const [selectedProblems, setSelectedProblems] = useState([])
+  const [youtubeUrl, setYoutubeUrl] = useState("")
 
   useEffect(() => {
     const fetchChapters = async () => {
       try {
-        const data = await getChapterList();
-        const chapterArray = Array.isArray(data?.content) ? data.content : [];
-        setChapters(chapterArray);
-        setError(null);
+        const data = await getChapterList()
+        const chapterArray = Array.isArray(data?.content) ? data.content : []
+        setChapters(chapterArray)
+        setError(null)
       } catch (error) {
-        console.error("Error fetching chapters:", error);
-        setChapters([]);
-        setError(error.message || "Failed to fetch chapters");
+        console.error("Error fetching chapters:", error)
+        setChapters([])
+        setError(error.message || "Failed to fetch chapters")
       }
-    };
-    fetchChapters();
-  }, []);
+    }
+    fetchChapters()
+  }, [])
 
   useEffect(() => {
     return () => {
       if (filePreview) {
-        URL.revokeObjectURL(filePreview);
+        URL.revokeObjectURL(filePreview)
       }
-    };
-  }, [filePreview]);
+    }
+  }, [filePreview])
 
   const filteredChapters = chapters.filter((chapter) =>
     (chapter.title || `Unnamed Chapter (ID: ${chapter.id})`)
       .toLowerCase()
       .includes(chapterSearch.toLowerCase())
-  );
+  )
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "displayOrder" ? parseInt(value) : value,
-    }));
-  };
+      [name]: name === "displayOrder" ? Number.parseInt(value) : value
+    }))
+  }
 
   const handleChapterChange = (chapterId) => {
-    setFormData((prev) => ({ ...prev, chapterId }));
-    setIsChaptersOpen(false);
-  };
+    setFormData((prev) => ({ ...prev, chapterId }))
+    setIsChaptersOpen(false)
+  }
 
   const clearChapterSelection = () => {
-    setFormData((prev) => ({ ...prev, chapterId: "" }));
-    setChapterSearch("");
-  };
+    setFormData((prev) => ({ ...prev, chapterId: "" }))
+    setChapterSearch("")
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-
-    const dataToValidate = {
-      title: formData.title,
-      description: formData.description,
-      chapterId: formData.chapterId,
-      displayOrder: formData.displayOrder,
-      type: formData.type,
-      status: formData.status,
-      attachedFile: formData.type === "DOCUMENT" ? file : undefined,
-      videoFile: formData.type === "VIDEO" ? file : undefined,
-    };
-
-    try {
-      formSchema.parse(dataToValidate);
-    } catch (validationError) {
-      if (validationError instanceof z.ZodError) {
-        setError(validationError.errors[0].message);
-        return;
-      }
-      setError("An unexpected validation error occurred");
-      return;
-    }
+    e.preventDefault()
+    setError(null)
 
     const lessonData = {
-      chapterId: formData.chapterId,
+      chapterId: Number(formData.chapterId),
       title: formData.title,
       description: formData.description,
-      displayOrder: formData.displayOrder,
-      type: formData.type,
-      status: formData.status,
-    };
+      displayOrder: Number(formData.displayOrder),
+      type: formData.type === "YOUTUBE" ? "VIDEO" : formData.type, // Gộp YOUTUBE thành VIDEO
+      status: formData.status
+    }
 
     try {
-      const formDataPayload = new FormData();
-      formDataPayload.append("chapterId", lessonData.chapterId);
-      formDataPayload.append("title", lessonData.title);
-      formDataPayload.append("description", lessonData.description);
-      formDataPayload.append("displayOrder", lessonData.displayOrder);
-      formDataPayload.append("type", lessonData.type);
-      formDataPayload.append("status", lessonData.status);
-      if (formData.type === "DOCUMENT" && file) {
-        formDataPayload.append("attachedFile", file);
-      } else if (formData.type === "VIDEO" && file) {
-        formDataPayload.append("videoFile", file);
+      const formDataPayload = new FormData()
+      formDataPayload.append("chapterId", lessonData.chapterId)
+      formDataPayload.append("title", lessonData.title)
+      formDataPayload.append("description", lessonData.description)
+      formDataPayload.append("displayOrder", lessonData.displayOrder)
+      formDataPayload.append("type", lessonData.type) // Luôn là VIDEO hoặc DOCUMENT
+      formDataPayload.append("status", lessonData.status)
+
+      // Handle lesson type
+      if (formData.type === "VIDEO" && file) {
+        formDataPayload.append("videoType", "VIDEO_FILE")
+        formDataPayload.append("videoFile", file)
+      } else if (formData.type === "YOUTUBE" && youtubeUrl) {
+        formDataPayload.append("videoType", "YOUTUBE")
+        formDataPayload.append("youtubeUrl", youtubeUrl)
+      } else if (formData.type === "DOCUMENT" && file) {
+        formDataPayload.append("attachedFile", file)
+      } else {
+        throw new Error(
+          `Please provide ${
+            formData.type === "VIDEO"
+              ? "a video file"
+              : formData.type === "YOUTUBE"
+                ? "a YouTube URL"
+                : "a document file"
+          } for this lesson type.`
+        )
       }
-      const result = await createLesson(formDataPayload, apiCall);
-      console.log("Create lesson result:", result);
-      setShowSuccessDialog(true);
+
+      // Always include selected problems regardless of lesson type
+      if (selectedProblems.length > 0) {
+        selectedProblems.forEach((p) => {
+          formDataPayload.append("problemIds", p.link)
+        })
+      }
+
+      // Log the form data being sent
+      console.log("Sending form data:")
+      for (const [key, value] of formDataPayload.entries()) {
+        if (key === "videoFile" || key === "attachedFile") {
+          console.log(
+            `${key}: [File] ${value.name}, size: ${(value.size / 1024).toFixed(
+              2
+            )} KB`
+          )
+        } else {
+          console.log(`${key}: ${value}`)
+        }
+      }
+
+      const result = await createLesson(formDataPayload, apiCall)
+      console.log("Create lesson result:", result)
+      setShowSuccessDialog(true)
     } catch (error) {
-      console.error("Error creating lesson:", error);
-      setError(error.message || "Failed to create lesson");
+      console.error("Error creating lesson:", error)
+      setError(error.message || "Failed to create lesson")
     }
-  };
+  }
 
   const handleDialogClose = () => {
-    setShowSuccessDialog(false);
-    navigate("/lesson");
-  };
+    setShowSuccessDialog(false)
+    navigate("/lesson")
+  }
 
   const handleDescriptionChange = (value) => {
-    setFormData((prev) => ({ ...prev, "description": value }));
-  };
+    setFormData((prev) => ({ ...prev, "description": value }))
+  }
 
   const getStatusBadge = (status) => {
     const statusMap = {
       ACTIVATED: "bg-green-500",
-      INACTIVATED: "bg-red-500",
-    };
+      INACTIVATED: "bg-red-500"
+    }
 
     return (
       <Badge className={`${statusMap[status]} text-white`}>
         {status.toUpperCase()}
       </Badge>
-    );
-  };
+    )
+  }
 
   return (
     <>
@@ -239,7 +283,9 @@ function CreateLesson() {
                 <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
                   <span className="text-black text-sm font-medium">
                     {formData.chapterId
-                      ? chapters.find((ch) => ch.id === parseInt(formData.chapterId))?.title || "Selected Chapter"
+                      ? chapters.find(
+                        (ch) => ch.id === Number.parseInt(formData.chapterId)
+                      )?.title || "Selected Chapter"
                       : "Select Chapter (required)"}
                   </span>
                   {isChaptersOpen ? (
@@ -274,24 +320,31 @@ function CreateLesson() {
                         <Checkbox
                           id={`chapter-${chapter.id}`}
                           checked={formData.chapterId === String(chapter.id)}
-                          onCheckedChange={() => handleChapterChange(chapter.id)}
+                          onCheckedChange={() =>
+                            handleChapterChange(chapter.id)
+                          }
                         />
                         <Label
                           htmlFor={`chapter-${chapter.id}`}
                           className="text-black text-sm whitespace-nowrap"
                         >
-                          {chapter.title || `Unnamed Chapter (ID: ${chapter.id})`}
+                          {chapter.title ||
+                            `Unnamed Chapter (ID: ${chapter.id})`}
                         </Label>
                       </div>
                     ))
                   ) : (
-                    <span className="text-gray-400 text-sm">No chapters found</span>
+                    <span className="text-gray-400 text-sm">
+                      No chapters found
+                    </span>
                   )}
                 </div>
               </CollapsibleContent>
             </Collapsible>
             <div className="space-y-2">
-              <Label className="text-white text-base font-medium">Display Order</Label>
+              <Label className="text-black text-base font-medium">
+                Display Order
+              </Label>
               <Input
                 type="number"
                 name="displayOrder"
@@ -303,13 +356,16 @@ function CreateLesson() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-white text-base font-medium">Lesson Type</Label>
+              <Label className="text-black text-base font-medium">
+                Lesson Type
+              </Label>
               <Select
                 value={formData.type}
                 onValueChange={(value) => {
-                  setFormData((prev) => ({ ...prev, type: value }));
-                  setFile(null); // Clear file when type changes
-                  setFilePreview(null);
+                  setFormData((prev) => ({ ...prev, type: value }))
+                  setFile(null) // Reset file
+                  setFilePreview(null) // Reset preview
+                  setYoutubeUrl("") // Reset YouTube URL khi đổi type
                 }}
               >
                 <SelectTrigger>
@@ -317,6 +373,7 @@ function CreateLesson() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="VIDEO">Video</SelectItem>
+                  <SelectItem value="YOUTUBE">YouTube</SelectItem>
                   <SelectItem value="DOCUMENT">Document</SelectItem>
                 </SelectContent>
               </Select>
@@ -328,30 +385,43 @@ function CreateLesson() {
                 onCheckedChange={(checked) =>
                   setFormData((prev) => ({
                     ...prev,
-                    status: checked ? "ACTIVATED" : "INACTIVATED",
+                    status: checked ? "ACTIVATED" : "INACTIVATED"
                   }))
                 }
               />
-              <Label htmlFor="status" className="text-white text-base font-medium">
+              <Label
+                htmlFor="status"
+                className="text-black text-base font-medium"
+              >
                 Status
               </Label>
               {getStatusBadge(formData.status)}
             </div>
+
+            {/* Always display CreateLessonLab component */}
+            <CreateLessonLab
+              selectedProblems={selectedProblems}
+              setSelectedProblems={setSelectedProblems}
+            />
           </div>
 
           <div className="lg:w-2/5 space-y-4">
-            {formData.type === "VIDEO" ? (
+            {formData.type === "VIDEO" && (
               <CreateLessonVideo
                 file={file}
                 setFile={setFile}
                 filePreview={filePreview}
                 setFilePreview={setFilePreview}
               />
-            ) : (
-              <CreateLessonDocument
-                file={file}
-                setFile={setFile}
+            )}
+            {formData.type === "YOUTUBE" && (
+              <YoutubeInput
+                youtubeUrl={youtubeUrl}
+                setYoutubeUrl={setYoutubeUrl}
               />
+            )}
+            {formData.type === "DOCUMENT" && (
+              <CreateLessonDocument file={file} setFile={setFile} />
             )}
           </div>
         </div>
@@ -381,7 +451,7 @@ function CreateLesson() {
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }
 
-export default CreateLesson;
+export default CreateLesson
