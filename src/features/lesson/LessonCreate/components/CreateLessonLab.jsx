@@ -1,36 +1,35 @@
-"use client";
-import { List } from "react-virtualized";
-import { useState, useEffect } from "react";
-import { Search, X, ChevronDown, ChevronUp } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+"use client"
+import { useState, useEffect } from "react"
+import { Search, X, ChevronDown, ChevronUp } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { useAuth } from "@/provider/AuthProvider";
-import { ENDPOINTS } from "@/lib/constants";
-import { toast } from "sonner";
+  PaginationPrevious
+} from "@/components/ui/pagination"
+import { useAuth } from "@/provider/AuthProvider"
+import { ENDPOINTS } from "@/lib/constants"
+import { toast } from "sonner"
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  CollapsibleTrigger
+} from "@/components/ui/collapsible"
 
 export default function CreateLessonLab({
   selectedProblems = [],
-  setSelectedProblems,
+  setSelectedProblems
 }) {
-  const pageSize = 10;
-  const [isLoading, setIsLoading] = useState(false);
-  const [problems, setProblems] = useState([]);
+  const pageSize = 10
+  const [isLoading, setIsLoading] = useState(false)
+  const [problems, setProblems] = useState([])
   const [filters, setFilters] = useState({
     page: 0,
     size: pageSize,
@@ -39,34 +38,34 @@ export default function CreateLessonLab({
     status: null,
     isActive: true,
     sortBy: null,
-    ascending: null,
-  });
+    ascending: null
+  })
   const [pagination, setPagination] = useState({
     totalPages: 1,
     currentPage: 0,
     first: true,
-    last: false,
-  });
-  const [isProblemsOpen, setIsProblemsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const { apiCall } = useAuth();
+    last: false
+  })
+  const [isProblemsOpen, setIsProblemsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const { apiCall } = useAuth()
 
   // Derive problemIds from selectedProblems
-  const problemIds = selectedProblems.map((problem) => String(problem.link));
+  const problemIds = selectedProblems.map((problem) => String(problem.link))
 
   const rowRenderer = ({ index, key, style }) => {
-    const problem = problems[index];
+    const problem = problems[index]
     return (
       <div key={key} style={style} className="flex items-center space-x-2 ...">
         {/* Checkbox và Label */}
       </div>
-    );
-  };
+    )
+  }
 
   // Fetch problems when filters change
   useEffect(() => {
-    fetchProblems();
-  }, [filters]);
+    fetchProblems()
+  }, [filters])
 
   // Debounced search effect
   useEffect(() => {
@@ -74,138 +73,138 @@ export default function CreateLessonLab({
       setFilters((prev) => ({
         ...prev,
         title: searchTerm,
-        page: 0,
-      }));
-    }, 500); // 500ms debounce
+        page: 0
+      }))
+    }, 500) // 500ms debounce
 
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   const fetchProblems = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
       const response = await apiCall(ENDPOINTS.POST_TEACHER_PROBLEMS_LIST, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify(filters),
-      });
+        body: JSON.stringify(filters)
+      })
 
       if (!response.ok) {
         toast.error("Error", {
           description:
             response.json().message ||
-            `Failed to load problems. Catch error ${response.status}.`,
-        });
+            `Failed to load problems. Catch error ${response.status}.`
+        })
       }
 
-      const text = await response.text();
+      const text = await response.text()
       if (text && text.length > 0) {
-        const data = JSON.parse(text);
+        const data = JSON.parse(text)
         // Ensure each problem has a unique link
         const problemsWithUniqueLinks = (data.content || []).map(
           (problem, index) => ({
             ...problem,
-            link: problem.link || `problem-${index}`, // Fallback for missing or duplicate links
+            link: problem.link || `problem-${index}` // Fallback for missing or duplicate links
           })
-        );
-        setProblems(problemsWithUniqueLinks);
+        )
+        setProblems(problemsWithUniqueLinks)
         setPagination({
           totalPages: data.totalPages || 1,
           currentPage: data.number || 0,
           first: data.first || true,
-          last: data.last || false,
-        });
+          last: data.last || false
+        })
       } else {
-        setProblems([]);
+        setProblems([])
         setPagination({
           totalPages: 1,
           currentPage: 0,
           first: true,
-          last: true,
-        });
+          last: true
+        })
       }
     } catch (err) {
       toast.error("Error", {
-        description: "Failed to load problems. Please try again.",
-      });
-      setProblems([]);
+        description: "Failed to load problems. Please try again."
+      })
+      setProblems([])
       setPagination({
         totalPages: 1,
         currentPage: 0,
         first: true,
-        last: true,
-      });
+        last: true
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   // Handle search input change with debounce
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
+    setSearchTerm(e.target.value)
+  }
 
   // Handle problem selection
   const handleSelectProblem = (problem) => {
-    const problemLink = String(problem.link);
+    const problemLink = String(problem.link)
 
-    const isSelected = problemIds.includes(problemLink);
+    const isSelected = problemIds.includes(problemLink)
 
     if (isSelected) {
       // Remove the problem
       setSelectedProblems(
         selectedProblems.filter((p) => String(p.link) !== problemLink)
-      );
+      )
     } else {
       // Add the problem
-      setSelectedProblems([...selectedProblems, problem]);
+      setSelectedProblems([...selectedProblems, problem])
     }
-  };
+  }
 
   // Handle removing a selected problem
   const handleRemoveProblem = (e, problemId) => {
-    e.stopPropagation();
-    const problemIdStr = String(problemId);
+    e.stopPropagation()
+    const problemIdStr = String(problemId)
     setSelectedProblems(
       selectedProblems.filter((p) => String(p.link) !== problemIdStr)
-    );
-  };
+    )
+  }
 
   // Clear all selected problems
   const clearProblemSelection = (e) => {
-    e.stopPropagation();
-    setSelectedProblems([]);
-    setSearchTerm("");
-  };
+    e.stopPropagation()
+    setSelectedProblems([])
+    setSearchTerm("")
+  }
 
   // Get color based on difficulty
   const getDifficultyColor = (difficulty) => {
     const colors = {
       EASY: "bg-green-500",
       MEDIUM: "bg-yellow-500",
-      HARD: "bg-red-500",
-    };
-    return colors[difficulty] || "bg-gray-500";
-  };
+      HARD: "bg-red-500"
+    }
+    return colors[difficulty] || "bg-gray-500"
+  }
 
   // Handle page change
   const handlePageChange = (e, page) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault()
+    e.stopPropagation()
     setFilters((prev) => ({
       ...prev,
-      page: page,
-    }));
-  };
+      page: page
+    }))
+  }
 
   // Check if a problem is selected
   const isProblemSelected = (problemId) => {
-    const problemIdStr = String(problemId);
-    return problemIds.includes(problemIdStr);
-  };
+    const problemIdStr = String(problemId)
+    return problemIds.includes(problemIdStr)
+  }
 
   return (
     <div className="space-y-4">
@@ -308,7 +307,7 @@ export default function CreateLessonLab({
                       href="#"
                       onClick={(e) => {
                         if (!pagination.first) {
-                          handlePageChange(e, pagination.currentPage - 1);
+                          handlePageChange(e, pagination.currentPage - 1)
                         }
                       }}
                       className={
@@ -324,7 +323,7 @@ export default function CreateLessonLab({
                           href="#"
                           isActive={pagination.currentPage === index}
                           onClick={(e) => {
-                            handlePageChange(e, index);
+                            handlePageChange(e, index)
                           }}
                         >
                           {index + 1}
@@ -338,7 +337,7 @@ export default function CreateLessonLab({
                       href="#"
                       onClick={(e) => {
                         if (!pagination.last) {
-                          handlePageChange(e, pagination.currentPage + 1);
+                          handlePageChange(e, pagination.currentPage + 1)
                         }
                       }}
                       className={
@@ -379,7 +378,7 @@ export default function CreateLessonLab({
                     size="icon"
                     className="h-5 w-5 rounded-full"
                     onClick={(e) => {
-                      handleRemoveProblem(e, problem.link);
+                      handleRemoveProblem(e, problem.link)
                     }}
                   >
                     <X className="h-3 w-3" />
@@ -391,5 +390,5 @@ export default function CreateLessonLab({
         )}
       </div>
     </div>
-  );
+  )
 }

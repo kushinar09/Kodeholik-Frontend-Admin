@@ -24,10 +24,12 @@ const GLOBALS = {
   ]
 }
 
+const FRONTEND_PORT = import.meta.env.VITE_FRONTEND_PORT
 const API_URL = import.meta.env.VITE_API_URL
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
 const ENDPOINTS = {
+  FRONTEND: `http://localhost:${FRONTEND_PORT}`,
   // Auth
   POST_LOGIN: `${API_URL}/auth/login`,
   LOGIN_GOOGLE: `${BACKEND_URL}/oauth2/authorization/google`,

@@ -52,33 +52,28 @@ export default function Dashboard() {
       setActiveState("problemCreate")
     } else if (/^\/problem\/[\w-]+$/.test(location.pathname)) {
       setActiveState("problemEdit")
-      // TODO: get title base slug
-      // example
-      // setCurrentTitleProblem("Edit Problem")
     } else if (location.pathname === "/exam") {
       setActiveState("examList")
-      setCurrentTitleExam("Examination");
+      setCurrentTitleExam("Examination")
     } else if (location.pathname === "/exam/create") {
       setActiveState("examCreate")
-      setCurrentTitleExam("Examination");
+      setCurrentTitleExam("Examination")
     } else if (location.pathname.includes("/exam/result")) {
       setActiveState("examResult")
-      setCurrentTitleExam("Examination");
+      setCurrentTitleExam("Examination")
     } else if (location.pathname.includes("/exam/edit")) {
       setActiveState("examEdit")
-      setCurrentTitleExam("Examination");
+      setCurrentTitleExam("Examination")
     } else if (location.pathname === "/user") {
       setActiveState("userList")
-      setCurrentTitleUser("Users");
+      setCurrentTitleUser("Users")
     } else if (location.pathname === "/user/create") {
       setActiveState("userCreate")
-      setCurrentTitleUser("Users");
     } else if (location.pathname.includes("/user/edit")) {
       setActiveState("userEdit")
-      setCurrentTitleUser("Users");
     } else if (location.pathname === "/tag") {
       setActiveState("tagList")
-      setCurrentTitleUser("Tags");
+      setCurrentTitleUser("Tags")
     } else if (location.pathname === "/course") {
       setActiveState("courseList")
     } else if (location.pathname === "/course/add") {
@@ -92,14 +87,12 @@ export default function Dashboard() {
       setActiveState("createChapter")
     } else if (/^\/chapter\/[\w-]+$/.test(location.pathname)) {
       setActiveState("updateChapter")
-      setCurrentTitleCourse("Chương 1: Giới thiệu khóa học")
     } else if (location.pathname === "/lesson") {
       setActiveState("lessonList")
     } else if (location.pathname === "/lesson/add") {
       setActiveState("createLesson")
     } else if (/^\/lesson\/[\w-]+$/.test(location.pathname)) {
       setActiveState("updateLesson")
-      setCurrentTitleCourse("Introduction to Python")
     } else {
       setActiveState("")
     }
@@ -112,7 +105,7 @@ export default function Dashboard() {
       "/problem": [{ title: "Problem", url: "/" }],
       "/problem/create": [
         { title: "Problem", url: "/problem" },
-        { title: "Create Problem", url: "#" },
+        { title: "Create Problem", url: "#" }
       ],
       "/tag": [{ title: "Tags", url: "/" }],
       // Exam
@@ -145,16 +138,16 @@ export default function Dashboard() {
         { title: "Course", url: "/course" },
         { title: "Create Course", url: "#" }
       ],
-      "/chapter": [{ title: "Chapter", url: "/"}],
-      "/lesson": [{ title: "Lesson", url: "/"}],
+      "/chapter": [{ title: "Chapter", url: "/" }],
+      "/lesson": [{ title: "Lesson", url: "/" }],
       "/chapter/add": [
         { title: "Chapter", url: "/chapter" },
-        { title: "Create Chapter", url: "#" },
+        { title: "Create Chapter", url: "#" }
       ],
       "/lesson/add": [
         { title: "Lesson", url: "/lesson" },
-        { title: "Create Lesson", url: "#" },
-      ],
+        { title: "Create Lesson", url: "#" }
+      ]
     }
 
     const examMatch = location.pathname.match(/^\/exam\/[\w-]+$/)
@@ -170,14 +163,14 @@ export default function Dashboard() {
     if (pathname !== "/problem/create" && problemMatch) {
       headerMap[pathname] = [
         { title: "Problem", url: "/problem" },
-        { title: currentTitleProblem, url: "#" },
+        { title: currentTitleProblem, url: "#" }
       ]
     }
 
     if (pathname !== "/course/add" && courseMatch) {
       headerMap[pathname] = [
         { title: "Course", url: "/course" },
-        { title: currentTitleCourse, url: "#" },
+        { title: currentTitleCourse, url: "#" }
       ]
     }
 
@@ -229,24 +222,26 @@ export default function Dashboard() {
         { title: "Tags", url: "/user" },
         { title: currentTitleTag, url: "#" }
       ]
+    }
+
     if (pathname !== "/chapter/add" && chapterMatch) {
       headerMap[pathname] = [
         { title: "Chapter", url: "/chapter" },
-        { title: currentTitleChapter, url: "#" },
+        { title: currentTitleChapter, url: "#" }
       ]
     }
 
     if (pathname !== "/lesson/add" && lessonMatch) {
       headerMap[pathname] = [
         { title: "Lesson", url: "/lesson" },
-        { title: currentTitleLesson, url: "#" },
+        { title: currentTitleLesson, url: "#" }
       ]
     }
 
     if (pathname.startsWith("/users")) {
       setHeaderData([
         { title: "Users", url: "/users" },
-        { title: "Create User", url: "/users/create" },
+        { title: "Create User", url: "/users/create" }
       ])
       return
     }
@@ -269,28 +264,28 @@ export default function Dashboard() {
           {activeState === "problemList" && <ProblemList onNavigate={handleNavigation} />}
           {activeState === "problemCreate" && <ProblemCreator onNavigate={handleNavigation} />}
           {activeState === "problemEdit" && <ProblemEdit onNavigate={handleNavigation} setCurrentTitleProblem={setCurrentTitleProblem} />}
-          
+
           {/* Exam */}
           {activeState === "examList" && <ExamList onNavigate={handleNavigation} />}
           {activeState === "examCreate" && <CreateExam onNavigate={handleNavigation} />}
           {activeState === "examResult" && <ExamResult onNavigate={handleNavigation} />}
           {activeState === "examEdit" && <EditExam onNavigate={handleNavigation} />}
-          
+
           {/* User */}
           {activeState === "userList" && <UserList onNavigate={handleNavigation} />}
           {activeState === "userCreate" && <CreateUser onNavigate={handleNavigation} />}
           {activeState === "userEdit" && <EditUser onNavigate={handleNavigation} />}
           {activeState === "tagList" && <TagList onNavigate={handleNavigation} />}
-          
+
           {/* Course */}
-          {activeState === "courseList" && <CourseList onNavigate={handleNavigation}/>}
-          {activeState === "createCourse" && <CreateCourse onNavigate={handleNavigation}/>}
-          {activeState === "updateCourse" && <UpdateCourse onNavigate={handleNavigation} setCurrentTitleCourse={setCurrentTitleCourse}/>}
-          {activeState === "chapterList" && <ChapterList onNavigate={handleNavigation}/>}
-          {activeState === "createChapter" && <CreateChapter onNavigate={handleNavigation}/>}
-          {activeState === "updateChapter" && <UpdateChapter onNavigate={handleNavigation} setCurrentTitleChapter={setCurrentTitleChapter}/>}
-          {activeState === "lessonList" && <LessonList onNavigate={handleNavigation}/>}
-          {activeState === "createLesson" && <CreateLesson onNavigate={handleNavigation}/>}
+          {activeState === "courseList" && <CourseList onNavigate={handleNavigation} />}
+          {activeState === "createCourse" && <CreateCourse onNavigate={handleNavigation} />}
+          {activeState === "updateCourse" && <UpdateCourse onNavigate={handleNavigation} setCurrentTitleCourse={setCurrentTitleCourse} />}
+          {activeState === "chapterList" && <ChapterList onNavigate={handleNavigation} />}
+          {activeState === "createChapter" && <CreateChapter onNavigate={handleNavigation} />}
+          {activeState === "updateChapter" && <UpdateChapter onNavigate={handleNavigation} setCurrentTitleChapter={setCurrentTitleChapter} />}
+          {activeState === "lessonList" && <LessonList onNavigate={handleNavigation} />}
+          {activeState === "createLesson" && <CreateLesson onNavigate={handleNavigation} />}
           {activeState === "updateLesson" && <UpdateLesson onNavigate={handleNavigation} setCurrentTitleLesson={setCurrentTitleLesson} />}
         </div>
       </SidebarInset>
