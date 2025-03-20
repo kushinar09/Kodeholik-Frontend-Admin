@@ -6,14 +6,25 @@ import { useAuth } from "@/provider/AuthProvider";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ChevronDown, ChevronUp, Upload, X } from "lucide-react";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Added Dialog components
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"; // Added Dialog components
 import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor";
 
 // Define the Zod schema for form validation
@@ -26,14 +37,15 @@ const formSchema = z.object({
     .string()
     .min(10, "Description must be at least 10 characters")
     .max(5000, "Description must be less than 5000 characters"),
-  topicIds: z
-    .array(z.string())
-    .min(1, "At least one topic must be selected"),
+  topicIds: z.array(z.string()).min(1, "At least one topic must be selected"),
   status: z.enum(["ACTIVATED", "INACTIVATED"]),
   imageFile: z
     .instanceof(File, { message: "Image must be a file" })
     .optional()
-    .refine((file) => !file || file.size <= 200 * 1024 * 1024, "Image file must be less than 200 MB"),
+    .refine(
+      (file) => !file || file.size <= 200 * 1024 * 1024,
+      "Image file must be less than 200 MB"
+    ),
 });
 
 function CreateCourse() {
@@ -56,8 +68,6 @@ function CreateCourse() {
   const [error, setError] = useState(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false); // New state for success dialog
   const { apiCall } = useAuth();
-
-
 
   useEffect(() => {
     const fetchTopics = async () => {
@@ -114,6 +124,7 @@ function CreateCourse() {
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
+    console.log(file);
     if (file) {
       setImageFile(file);
       if (imagePreview) URL.revokeObjectURL(imagePreview);
@@ -146,7 +157,7 @@ function CreateCourse() {
       description: formData.description,
       topicIds: formData.topicIds,
       status: formData.status,
-      imageFile: imageFile || undefined,
+      imageFile: formData.imageFile || undefined,
     };
 
     try {
@@ -165,14 +176,16 @@ function CreateCourse() {
       description: formData.description,
       status: formData.status,
       topicIds: formData.topicIds,
+      imageFile: imageFile || undefined,
     };
 
     try {
       const formDataPayload = new FormData();
-      formDataPayload.append("data", new Blob([JSON.stringify(courseData)], { type: "application/json" }));
-      if (imageFile) {
-        formDataPayload.append("image", imageFile);
-      }
+      formDataPayload.append("title", courseData.title);
+      formDataPayload.append("description", courseData.description);
+      formDataPayload.append("topicIds", courseData.topicIds);
+      formDataPayload.append("imageFile", imageFile);
+      formDataPayload.append("status", courseData.status);
       const result = await createCourse(formDataPayload, null, apiCall);
       console.log("Create course result:", result);
       setShowSuccessDialog(true); // Show success dialog instead of immediate navigation
@@ -200,7 +213,7 @@ function CreateCourse() {
   };
 
   const handleDescriptionChange = (value) => {
-    setFormData((prev) => ({ ...prev, "description": value }));
+    setFormData((prev) => ({ ...prev, description: value }));
   };
 
   return (
@@ -232,9 +245,9 @@ function CreateCourse() {
               required
               className="h-40"
             /> */}
-            <MarkdownEditor 
-            value={formData.description}
-            onChange={handleDescriptionChange}  
+            <MarkdownEditor
+              value={formData.description}
+              onChange={handleDescriptionChange}
             />
             <Collapsible open={isTopicsOpen} onOpenChange={setIsTopicsOpen}>
               <CollapsibleTrigger asChild>
@@ -287,7 +300,9 @@ function CreateCourse() {
                       </div>
                     ))
                   ) : (
-                    <span className="text-gray-400 text-sm">No topics found</span>
+                    <span className="text-gray-400 text-sm">
+                      No topics found
+                    </span>
                   )}
                 </div>
               </CollapsibleContent>
@@ -303,7 +318,10 @@ function CreateCourse() {
                   }))
                 }
               />
-              <Label htmlFor="status" className="text-white text-base font-medium">
+              <Label
+                htmlFor="status"
+                className="text-white text-base font-medium"
+              >
                 Status
               </Label>
               {getStatusBadge(formData.status)}
@@ -338,7 +356,9 @@ function CreateCourse() {
                       type="button"
                       size="icon"
                       variant="secondary"
-                      onClick={() => document.getElementById("imageUpload").click()}
+                      onClick={() =>
+                        document.getElementById("imageUpload").click()
+                      }
                     >
                       <Upload className="h-4 w-4" />
                     </Button>
@@ -356,7 +376,8 @@ function CreateCourse() {
                   </div>
                   {imageFile && (
                     <div className="absolute bottom-0 left-0 right-0 text-xs text-black p-2 truncate">
-                      {imageFile.name} ({(imageFile.size / (1024 * 1024)).toFixed(2)} MB)
+                      {imageFile.name} (
+                      {(imageFile.size / (1024 * 1024)).toFixed(2)} MB)
                     </div>
                   )}
                 </div>
@@ -371,7 +392,12 @@ function CreateCourse() {
                     <br />
                     or click to browse
                   </p>
-                  <Button type="button" variant="outline" size="sm" className="mt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-4"
+                  >
                     Select Image
                   </Button>
                 </div>
@@ -396,7 +422,8 @@ function CreateCourse() {
           <DialogHeader>
             <DialogTitle>Course Created Successfully</DialogTitle>
             <DialogDescription>
-              Your course "{formData.title}" has been created successfully!
+              Your course &quot;{formData.title}&quot; has been created
+              successfully!
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
