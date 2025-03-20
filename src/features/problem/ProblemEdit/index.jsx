@@ -138,7 +138,8 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
             templateCode: {
               code: i.templateCodes.templateCode,
               language: i.language
-            }
+            },
+            functionCode: i.templateCodes.functionCode
           }))
         }))
       }
