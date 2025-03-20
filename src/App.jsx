@@ -83,6 +83,7 @@ function App() {
               <Route path="/lesson/add" element={<CreateLesson />} />
               <Route path="/lesson/:id" element={<UpdateLesson />} />
             </Route>
+            <Route path="*" element={<NotFoundError />} />
           </Routes>
         </div>
       </AuthProvider>

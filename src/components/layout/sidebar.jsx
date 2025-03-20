@@ -2,13 +2,19 @@
 
 import "react"
 import {
+  AppWindow,
   AudioWaveform,
+  BookText,
   Command,
+  FileClock,
+  FileLock,
   Frame,
   GalleryVerticalEnd,
   Map,
   PieChart,
-  SquareTerminal
+  Settings,
+  SquareTerminal,
+  User2
 } from "lucide-react"
 
 import {
@@ -22,8 +28,9 @@ import {
 import { NavMain } from "./nav-main"
 import { NavUser } from "./nav-user"
 import { LOGO } from "@/lib/constants"
+import { useAuth } from "@/provider/AuthProvider"
+import { useEffect, useState } from "react"
 
-// This is sample data.
 const data = {
   user: {
     name: "shadcn",
@@ -47,17 +54,60 @@ const data = {
       plan: "Free"
     }
   ],
-  navMain: [
+  navMain: [],
+  navAdmin: [
     {
-      title: "Management",
+      title: "User Managerment",
       url: "#",
-      icon: SquareTerminal,
+      icon: User2,
       isActive: true,
       items: [
         {
-          title: "Problems",
+          title: "User",
+          url: "/user"
+        },
+        {
+          title: "Create User Account",
+          url: "/user/create"
+        }
+      ]
+    },
+    {
+      title: "System Settings",
+      url: "#",
+      icon: Settings,
+      isActive: true,
+      items: [
+        {
+          title: "Tag",
+          url: "/tag"
+        }
+      ]
+    }
+  ],
+  navTeacher: [
+    {
+      title: "Problem Management",
+      url: "#",
+      icon: AppWindow,
+      isActive: true,
+      items: [
+        {
+          title: "Problem",
           url: "/problem"
         },
+        {
+          title: "Create Problem",
+          url: "/problem/create"
+        }
+      ]
+    },
+    {
+      title: "Course Management",
+      url: "#",
+      icon: BookText,
+      isActive: true,
+      items: [
         {
           title: "Courses",
           url: "/course"
@@ -69,18 +119,24 @@ const data = {
         {
           title: "Lesson",
           url: "/lesson"
-        },
+        }
+      ]
+    }
+  ],
+  navExaminer: [
+    {
+      title: "Exam Management",
+      url: "#",
+      icon: FileClock,
+      isActive: true,
+      items: [
         {
           title: "Examinations",
           url: "/exam"
         },
         {
-          title: "User",
-          url: "/user"
-        },
-        {
-          title: "Tag",
-          url: "/tag"
+          title: "Create Examination",
+          url: "/exam/create"
         }
       ]
     }
@@ -104,7 +160,41 @@ const data = {
   ]
 }
 
+const UserRole = {
+  STUDENT: "STUDENT",
+  TEACHER: "TEACHER",
+  EXAMINER: "EXAMINER",
+  ADMIN: "ADMIN"
+}
+
+
 export function AppSidebar({ onNavigate }) {
+
+  const { isAuthenticated, user } = useAuth()
+
+  const [currentNav, setCurrentNav] = useState([])
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      switch (user.role) {
+      case UserRole.TEACHER:
+        setCurrentNav(data.navTeacher)
+        break
+      case UserRole.EXAMINER:
+        setCurrentNav(data.navExaminer)
+        break
+      case UserRole.ADMIN:
+        setCurrentNav(data.navAdmin)
+        break
+      default:
+        setCurrentNav(data.navMain)
+      }
+    } else {
+      setCurrentNav(data.navMain)
+    }
+  }, [isAuthenticated, user])
+
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -127,7 +217,7 @@ export function AppSidebar({ onNavigate }) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} onNavigate={onNavigate} />
+        <NavMain items={currentNav} onNavigate={onNavigate} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
