@@ -131,7 +131,7 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
             <ChevronLeft className="mr-2 h-4 w-4" /> Previous
           </Button>
           <Button type="submit" className="bg-green-600 hover:bg-green-700">
-            Submit Problem
+            Create Problem
           </Button>
         </div>
       </form>
