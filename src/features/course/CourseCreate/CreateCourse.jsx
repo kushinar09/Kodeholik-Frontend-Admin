@@ -122,7 +122,6 @@ function CreateCourse() {
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0]
-    console.log(file)
     if (file) {
       setImageFile(file)
       if (imagePreview) URL.revokeObjectURL(imagePreview)
@@ -184,9 +183,8 @@ function CreateCourse() {
       formDataPayload.append("topicIds", courseData.topicIds)
       formDataPayload.append("imageFile", imageFile)
       formDataPayload.append("status", courseData.status)
-      const result = await createCourse(formDataPayload, null, apiCall)
-      console.log("Create course result:", result)
-      setShowSuccessDialog(true) // Show success dialog instead of immediate navigation
+      await createCourse(formDataPayload, null, apiCall)
+      setShowSuccessDialog(true)
     } catch (error) {
       console.error("Error creating course:", error)
       setError(error.message || "Failed to create course")

@@ -124,7 +124,6 @@ export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
 
   // Watch for form changes and update parent formData
   useEffect(() => {
-    console.log("editorial", form.getValues())
     const subscription = form.watch((value) => {
       if (Object.keys(form.formState.dirtyFields).length > 0) {
         // Only update if form has been modified

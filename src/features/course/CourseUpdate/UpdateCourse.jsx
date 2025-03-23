@@ -35,7 +35,7 @@ const formSchema = z.object({
     .refine((file) => !file || file.size <= 200 * 1024 * 1024, "Image file must be less than 200 MB")
 })
 
-function UpdateCourse() {
+function UpdateCourse({ setCurrentTitleCourse }) {
   const navigate = useNavigate()
   const { id } = useParams()
   const [course, setCourse] = useState(null)
@@ -66,7 +66,6 @@ function UpdateCourse() {
           }))
           : []
         setTopics(formattedTopics)
-        console.log("Fetched topics:", formattedTopics)
       } catch (error) {
         console.error("Error fetching topics:", error)
         setError(error.message || "Failed to fetch topics")
@@ -81,7 +80,6 @@ function UpdateCourse() {
       if (!topics.length) return
       try {
         const data = await getCourse(id)
-        console.log("Fetched course data:", data)
 
         const topicIds = (data?.topics || []).map((topic) => {
           const topicId = String(topic.id)
@@ -92,10 +90,6 @@ function UpdateCourse() {
           return topicObj ? topicObj.id : null
         }).filter((id) => id !== null)
 
-        console.log("Course topics:", data?.topics)
-        console.log("Available topics:", topics)
-        console.log("Mapped topicIds:", topicIds)
-
         setFormData({
           title: data?.title || "",
           description: data?.description || "",
@@ -103,6 +97,7 @@ function UpdateCourse() {
           status: data?.status || "ACTIVATED"
         })
         setCourse(data)
+        setCurrentTitleCourse(data?.title || "Edit Course")
       } catch (error) {
         console.error("Error fetching course:", error)
         setError(error.message || "Failed to fetch course data")
@@ -149,7 +144,6 @@ function UpdateCourse() {
       const newTopicIds = prev.topicIds.includes(topicId)
         ? prev.topicIds.filter((id) => id !== topicId)
         : [...prev.topicIds, topicId]
-      console.log("Updated topicIds:", newTopicIds)
       return { ...prev, topicIds: newTopicIds }
     })
   }
@@ -218,8 +212,7 @@ function UpdateCourse() {
       if (typeof id !== "string" || !id) {
         throw new Error("Course ID is invalid or missing")
       }
-      const result = await updateCourse(id, courseData, imageFile, apiCall)
-      console.log("Update result:", result)
+      await updateCourse(id, courseData, imageFile, apiCall)
       setShowSuccessDialog(true)
     } catch (error) {
       console.error("Error updating course:", error)

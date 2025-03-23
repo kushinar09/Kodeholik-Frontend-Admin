@@ -1,3 +1,5 @@
+"use client"
+
 /* eslint-disable indent */
 import { ENDPOINTS } from "@/lib/constants"
 import { createContext, useContext, useState, useEffect } from "react"
@@ -5,45 +7,53 @@ import { useNavigate } from "react-router-dom"
 
 const AuthContext = createContext()
 
-const notCallRotateTokenEndpoints = [
-  ENDPOINTS.ROTATE_TOKEN,
-  ENDPOINTS.POST_LOGOUT,
-  ENDPOINTS.POST_LOGIN
-]
+const notCallRotateTokenEndpoints = [ENDPOINTS.ROTATE_TOKEN, ENDPOINTS.POST_LOGOUT, ENDPOINTS.POST_LOGIN]
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
+  const [isLoading, setIsLoading] = useState(true) // Add loading state
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshPromise, setRefreshPromise] = useState(null)
 
   const checkAuthStatus = async () => {
+    setIsLoading(true)
     try {
       const response = await apiCall(ENDPOINTS.GET_INFOR)
-      if (response.ok) {
+      if (response && response.ok) {
         const data = await response.json()
         setIsAuthenticated(true)
         setUser(data)
       } else {
         setIsAuthenticated(false)
+        setUser(null)
       }
-    } catch {
+    } catch (error) {
+      console.error("Auth check failed:", error)
       setIsAuthenticated(false)
+      setUser(null)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   useEffect(() => {
     checkAuthStatus()
-  }, [isAuthenticated])
+  }, [])
 
   const logout = async (redirect = false) => {
-    await apiCall(ENDPOINTS.POST_LOGOUT, {
-      method: "POST"
-    })
-    setIsAuthenticated(false)
-    if (redirect)
-      navigate("/login", { state: { loginRequire: true, redirectPath: window.location.pathname } })
+    try {
+      await apiCall(ENDPOINTS.POST_LOGOUT, {
+        method: "POST"
+      })
+    } catch (error) {
+      console.error("Logout error:", error)
+    } finally {
+      setIsAuthenticated(false)
+      setUser(null)
+      if (redirect) navigate("/login", { state: { loginRequire: true, redirectPath: window.location.pathname } })
+    }
   }
 
   const refreshAccessToken = async (redirect) => {
@@ -57,16 +67,16 @@ export const AuthProvider = ({ children }) => {
       credentials: "include",
       headers: { "Content-Type": "application/json" }
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
-          return response.status
+          throw new Error(`Token refresh failed with status: ${response.status}`)
         }
         return 200
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Refresh token failed:", error)
         logout(redirect)
-        return 500
+        return error.message.includes("401") ? 401 : 500
       })
       .finally(() => {
         setIsRefreshing(false)
@@ -74,7 +84,7 @@ export const AuthProvider = ({ children }) => {
       })
 
     setRefreshPromise(promise)
-    return 200
+    return promise // Return the actual promise instead of always 200
   }
 
   const apiCall = async (url, options = {}, redirect = false) => {
@@ -95,16 +105,18 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         return response
       }
-      // console.log("check", url, !notCallRotateTokenEndpoints.includes(url))
+
       if (response.status === 401 && !notCallRotateTokenEndpoints.includes(url)) {
         console.warn("Access token expired. Attempting refresh...")
 
         const status = await refreshAccessToken(redirect)
 
-        if (status == 200) {
+        if (status === 200) {
+          // Try the original request again after token refresh
           response = await fetch(url, options)
+          return response
         } else {
-          console.log(url, status)
+          // Handle different error statuses
           switch (status) {
             case 401:
               navigate("/401")
@@ -118,11 +130,10 @@ export const AuthProvider = ({ children }) => {
             default:
               navigate("/500")
           }
+          return response // Return the response even in error cases
         }
-      }
-
-      else {
-        console.log(url, response.status)
+      } else {
+        // Handle other error statuses
         switch (response.status) {
           case 403:
             navigate("/403")
@@ -131,8 +142,11 @@ export const AuthProvider = ({ children }) => {
             navigate("/404")
             break
           default:
-            navigate("/500")
+            if (response.status >= 500) {
+              navigate("/500")
+            }
         }
+        return response // Return the response
       }
     } catch (error) {
       console.warn("API call error:", error)
@@ -141,7 +155,17 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ apiCall, logout, isAuthenticated, user, setIsAuthenticated }}>
+    <AuthContext.Provider
+      value={{
+        apiCall,
+        logout,
+        isAuthenticated,
+        user,
+        isLoading, // Expose loading state
+        setIsAuthenticated,
+        checkAuthStatus // Expose this so it can be called after login
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
@@ -154,3 +178,4 @@ export const useAuth = () => {
   }
   return context
 }
+

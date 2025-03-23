@@ -37,7 +37,6 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
       excelFile: values.excelFile
     }
 
-    console.log("Test Cases submitting:", transformedData)
     updateFormData(transformedData, "testcases")
     onSubmit()
   }

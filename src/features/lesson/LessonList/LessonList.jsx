@@ -37,7 +37,6 @@ function LessonList() {
       try {
         const data = await getLessonByChapterId(chapterId)
         const lessonArray = Array.isArray(data) ? data : []
-        console.log("Fetched lessons:", lessonArray)
         setLessons(lessonArray)
       } catch (error) {
         console.error("Error fetching lessons:", error)
@@ -55,7 +54,6 @@ function LessonList() {
       try {
         const data = await getChapterList()
         const chapterArray = Array.isArray(data?.content) ? data.content : []
-        console.log("Fetched chapters:", chapterArray)
         setChapters(chapterArray)
         const initialChapter = chapterArray.find((chapter) => chapter.id === chapterId)
         setSelectedChapter(initialChapter?.title || `Unnamed Chapter (ID: ${chapterId})`)

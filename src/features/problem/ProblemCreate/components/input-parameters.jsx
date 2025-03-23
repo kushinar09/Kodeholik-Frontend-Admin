@@ -144,7 +144,6 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
 
   // Handle form submission
   const handleSubmit = (values) => {
-    console.log("Input Parameters submitting:", values)
     // Extract input parameters from form values
     const inputParameters = values.problemInputParameterDto.map((param) => ({
       language: param.language,

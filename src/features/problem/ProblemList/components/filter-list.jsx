@@ -62,7 +62,6 @@ export function FilterBar({ onFilterChange, initialFilters, pageSize }) {
 
   const handleFilterChange = (key, value) => {
     if (value === "ALL" || value === "NONE") value = null
-    console.log(value)
     const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
     onFilterChange(newFilters)

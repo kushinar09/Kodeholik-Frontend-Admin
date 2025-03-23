@@ -14,8 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { Plus, MoreHorizontal, Pencil, Trash, ArrowDown, ArrowUp } from "lucide-react"
-import { format } from "date-fns"
+import { Plus, MoreHorizontal, Pencil, Trash, ArrowDown, ArrowUp, StopCircleIcon } from "lucide-react"
 import { useAuth } from "@/provider/AuthProvider"
 import { deleteExamForExaminer, getListExamForExaminer } from "@/lib/api/exam_api"
 import { cn } from "@/lib/utils"
@@ -58,8 +57,6 @@ const mockExams = [
 
 export default function ExamList({ onNavigate }) {
   const [exams, setExams] = useState(mockExams)
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [currentExam, setCurrentExam] = useState(null)
   const { apiCall } = useAuth()
@@ -78,7 +75,6 @@ export default function ExamList({ onNavigate }) {
 
 
   const handleFilterChange = (newFilters) => {
-    console.log(newFilters)
     setFilters(newFilters)
     requestData.title = newFilters.title
     if (newFilters.status === "all") {
@@ -109,7 +105,6 @@ export default function ExamList({ onNavigate }) {
         setNoContent(false)
         setTotalElements(data.totalElements)
       }
-      console.log("API Response:", data)
     } catch (error) {
       console.error("Error fetching exams:", error)
     } finally {
@@ -131,7 +126,7 @@ export default function ExamList({ onNavigate }) {
     requestData.page = 0
     setCurrentPage(1)
     setSize(size)
-    requestData.size = Number(size);
+    requestData.size = Number(size)
     fetchExamList()
   }
   const allStatuses = Array.from(new Set("Not Started", "Inprogress", "End"))
@@ -295,29 +290,51 @@ export default function ExamList({ onNavigate }) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {exam.status === "NOT_STARTED" && <DropdownMenuItem className="cursor-pointer"
-                        onClick={() => onNavigate("/exam/edit/" + exam.code)}
-                      >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>}
                       {exam.status === "NOT_STARTED" &&
-                        <DropdownMenuItem
-                          className="text-red-500 hover:text-red-700 focus:text-red-700"
-                          onClick={() => {
-                            setCurrentExam(exam)
-                            setIsDeleteDialogOpen(true)
-                          }}
-                        >
-                          <Trash className="mr-2 h-4 w-4" onClick={() => { handleDeleteExam(exam) }} />Delete
+                        <>
+                          <DropdownMenuItem className="cursor-pointer"
+                            onClick={() => onNavigate("/exam/edit/" + exam.code)}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="cursor-pointer text-red-500 hover:text-red-700 focus:text-red-700"
+                            onClick={() => {
+                              setCurrentExam(exam)
+                              setIsDeleteDialogOpen(true)
+                            }}
+                          >
+                            <Trash className="mr-2 h-4 w-4" onClick={() => { handleDeleteExam(exam) }} />Delete
+                          </DropdownMenuItem>
+                        </>
+                      }
+                      {/* {exam.status === "END" && exam.noParticipant === 0 &&
+                        <>
+                          <DropdownMenuItem
+                            className="cursor-pointer text-red-500 hover:text-red-700 focus:text-red-700"
+                            onClick={() => {
+                              setCurrentExam(exam)
+                              setIsDeleteDialogOpen(true)
+                            }}
+                          >
+                            <Trash className="mr-2 h-4 w-4" onClick={() => { handleDeleteExam(exam) }} />Delete
+                          </DropdownMenuItem>
+                        </>
+                      } */}
+                      {
+                        exam.status === "IN_PROGRESS" && exam.noParticipant > 0 &&
+                        <DropdownMenuItem className="cursor-pointer text-red-500 hover:text-red-700 focus:text-red-700">
+                          <StopCircleIcon />
+                          Force End
                         </DropdownMenuItem>
                       }
-
-                      {exam.status === "END" && exam.noParticipant > 0 &&
+                      {
+                        exam.status === "END" && exam.noParticipant > 0 &&
                         <DropdownMenuItem className="cursor-pointer"
                           onClick={() => onNavigate("/exam/result/" + exam.code)}
                         >
-                          <svg class="mr-2 h-4 w-4 text-black" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">  <path stroke="none" d="M0 0h24v24H0z" />  <rect x="5" y="3" width="14" height="18" rx="2" />  <line x1="9" y1="7" x2="15" y2="7" />  <line x1="9" y1="11" x2="15" y2="11" />  <line x1="9" y1="15" x2="13" y2="15" /></svg>
+                          <svg className="mr-2 h-4 w-4 text-black" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">  <path stroke="none" d="M0 0h24v24H0z" />  <rect x="5" y="3" width="14" height="18" rx="2" />  <line x1="9" y1="7" x2="15" y2="7" />  <line x1="9" y1="11" x2="15" y2="11" />  <line x1="9" y1="15" x2="13" y2="15" /></svg>
                           View Result
                         </DropdownMenuItem>
                       }
@@ -336,7 +353,7 @@ export default function ExamList({ onNavigate }) {
       }
 
       {
-        !isLoading && totalPages > 1 && !noContent && (
+        totalPages > 1 && !noContent && (
           <div className="flex justify-between items-center mt-4 w-full">
             <div className="flex-1 flex justify-center gap-2">
               <Button
@@ -394,8 +411,6 @@ export default function ExamList({ onNavigate }) {
           </div>
         )
       }
-
-
 
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

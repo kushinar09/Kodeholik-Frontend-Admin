@@ -51,7 +51,6 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
       if (text) {
         const data = JSON.parse(text)
         setCurrentTitleProblem(data.title)
-        console.log(data.isActive)
 
         // Update the formData state with the fetched details
         setFormData(prevState => ({
@@ -296,7 +295,6 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
       } else {
         const errorData = await response.json()
         const errorMessage = errorData.message || "An error occurred"
-        console.log(errorMessage)
         throw new Error(errorMessage)
       }
     } catch (error) {

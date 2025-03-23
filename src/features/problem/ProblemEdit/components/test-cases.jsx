@@ -93,7 +93,6 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit, urlG
   }
 
   const handleSubmit = (values) => {
-    console.log("Submitting:", values)
     updateFormData({ testCase: values.testCase })
     onSubmit()
   }

@@ -34,7 +34,6 @@ export async function getProblemSolutions(apiCall, id, page = 0, size = 15, titl
   })
   if (response.ok) {
     const data = await response.json()
-    console.log(data)
     return { status: true, data: data }
   }
 

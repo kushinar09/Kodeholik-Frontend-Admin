@@ -150,7 +150,6 @@ export default function TagList({ onNavigate }) {
         setNoContent(false)
         setTotalElements(data.totalElements)
       }
-      console.log("API Response:", data)
     } catch (error) {
       console.error("Error fetching exams:", error)
     } finally {

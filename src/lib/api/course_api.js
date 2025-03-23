@@ -11,8 +11,8 @@ export const getCourseSearch = async ({ page, size, sortBy = "title", ascending 
   if (query) body.title = query
   if (topic && topic !== "All") body.topics = [topic] // Convert single topic to array
 
-  console.log("Fetching courses from:", url.toString())
-  console.log("Request body:", body)
+  // console.log("Fetching courses from:", url.toString())
+  // console.log("Request body:", body)
 
   try {
     const response = await fetch(url, {
@@ -22,8 +22,8 @@ export const getCourseSearch = async ({ page, size, sortBy = "title", ascending 
       body: JSON.stringify(body)
     })
 
-    console.log("Response status:", response.status)
-    console.log("Response headers:", Object.fromEntries(response.headers.entries()))
+    // console.log("Response status:", response.status)
+    // console.log("Response headers:", Object.fromEntries(response.headers.entries()))
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -32,7 +32,6 @@ export const getCourseSearch = async ({ page, size, sortBy = "title", ascending 
     }
 
     const text = await response.text()
-    console.log("Raw response:", text)
 
     try {
       const jsonData = JSON.parse(text)
@@ -86,15 +85,12 @@ export async function getCourse(id) {
 
 export async function getImage(imageKey) {
   const imageUrl = ENDPOINTS.GET_IMAGE(imageKey)
-  console.log("Fetching image from:", imageUrl) // Debugging
 
   try {
     const response = await fetch(imageUrl, {
       method: "GET",
       credentials: "include"
     })
-
-    console.log("Response Status:", response.status) // Log the status
 
     if (!response.ok) {
       throw new Error(`Failed to fetch image. Status: ${response.status}`)
@@ -140,13 +136,12 @@ export const createCourse = async (courseData, imageFile, apiCall) => {
       throw new Error(`Failed to create course: ${JSON.stringify(errorResponse)}`)
     }
 
-    // Log response details for debugging
-    console.log("Response status:", response.status)
-    console.log("Response headers:", Object.fromEntries(response.headers.entries()))
+    // // Log response details for debugging
+    // console.log("Response status:", response.status)
+    // console.log("Response headers:", Object.fromEntries(response.headers.entries()))
 
     // Get the response as text first
     const text = await response.text()
-    console.log("Raw response:", text)
 
     // Handle the known case where backend returns "1" for success
     if (text.trim() === "1") {
@@ -199,13 +194,12 @@ export async function updateCourse(id, courseData, imageFile, apiCall) {
       throw new Error(`Failed to update course: ${JSON.stringify(errorResponse)}`)
     }
 
-    // Log response details for debugging
-    console.log("Response status:", response.status)
-    console.log("Response headers:", Object.fromEntries(response.headers.entries()))
+    // // Log response details for debugging
+    // console.log("Response status:", response.status)
+    // console.log("Response headers:", Object.fromEntries(response.headers.entries()))
 
     // Get the response as text first
     const text = await response.text()
-    console.log("Raw response:", text)
 
     // Handle the known case where backend returns "1" for success
     if (text.trim() === "1") {
