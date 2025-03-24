@@ -263,6 +263,16 @@ function CourseList() {
                               Edit
                             </Button>
                           </Link>
+                          <Link to={`/course/detail/${course.id}`}>
+                            <Button
+                              variant="outline"
+                              className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+                              size="sm"
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Details
+                            </Button>
+                          </Link>
                         </TableCell>
                       </TableRow>
                     ))}

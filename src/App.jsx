@@ -29,6 +29,7 @@ import UpdateChapter from "./features/chapter/ChapterUpdate/UpdateChapter"
 import LessonList from "./features/lesson/LessonList/LessonList"
 import CreateLesson from "./features/lesson/LessonCreate"
 import UpdateLesson from "./features/lesson/LessonUpdate"
+import CourseDetail from "./features/course/CourseDetail/CourseDetail"
 
 function App() {
   return (
@@ -72,6 +73,7 @@ function App() {
               <Route path="/course" element={<ViewListCourse />} />
               <Route path="/course/add" element={<CreateCourse />} />
               <Route path="/course/:id" element={<UpdateCourse />} />
+              <Route path="/course/detail/:id" element={<CourseDetail/>}/>
 
               {/* Chapter Page */}
               <Route path="/chapter" element={<ChapterList />} />

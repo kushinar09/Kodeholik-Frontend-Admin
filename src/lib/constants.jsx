@@ -68,6 +68,17 @@ const ENDPOINTS = {
   DELETE_COURSE: `${API_URL}/course/delete/:id`,
   ENROLL_COURSE: `${API_URL}/course/enroll/:id`,
   UNENROLL_COURSE: `${API_URL}/course/unenroll/:id`,
+  RATE_COMMENT_COURSE: `${API_URL}/course/rate`,
+  GET_COMMENT_COURSE: `${API_URL}/course/rating/:id`,
+  CHECK_ENROLL: `${API_URL}/course/enroll/check/:id`,
+  
+  GET_USER_ENROLLED: `${API_URL}/course/enrolled-users/:id`,
+
+  GET_COURSE_DISCUSSION: `${API_URL}/course/discussion/:id`,
+  GET_DISCUSSION_REPLY: `${API_URL}/course/list-reply/:id`,
+  POST_COURSE_DISCUSSION: `${API_URL}/course/comment`,
+  UPVOTE_COURSE_DISCUSSION: `${API_URL}/comment/upvote/:id`,
+  UN_UPVOTE_COURSE_DISCUSSION: `${API_URL}/comment/unupvote/:id`,
 
   //Chapter
   GET_CHAPTERS: `${API_URL}/chapter/list`,

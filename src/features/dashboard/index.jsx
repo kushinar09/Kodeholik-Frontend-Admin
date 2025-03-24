@@ -28,6 +28,7 @@ import UpdateChapter from "../chapter/ChapterUpdate/UpdateChapter"
 import LessonList from "../lesson/LessonList/LessonList"
 import CreateLesson from "../lesson/LessonCreate"
 import UpdateLesson from "../lesson/LessonUpdate"
+import CourseDetail from "../course/CourseDetail/CourseDetail"
 
 
 export default function Dashboard() {
@@ -39,6 +40,7 @@ export default function Dashboard() {
 
   const [currentTitleProblem, setCurrentTitleProblem] = useState("")
   const [currentTitleCourse, setCurrentTitleCourse] = useState("")
+  const [currentTitleCourseDetail, setCurrentTitleCourseDetail] = useState("")
   const [currentTitleExam, setCurrentTitleExam] = useState("")
   const [currentTitleUser, setCurrentTitleUser] = useState("")
   const [currentTitleTag, setCurrentTitleTag] = useState("")
@@ -81,6 +83,9 @@ export default function Dashboard() {
     } else if (/^\/course\/[\w-]+$/.test(location.pathname)) {
       setActiveState("updateCourse")
       setCurrentTitleCourse("Java Beginner")
+    } else if (/^\/course\/detail\/\w+$/.test(location.pathname)) {
+      setActiveState("courseDetail")
+      setCurrentTitleCourseDetail("Course Details")
     } else if (location.pathname === "/chapter") {
       setActiveState("chapterList")
     } else if (location.pathname === "/chapter/add") {
@@ -138,12 +143,20 @@ export default function Dashboard() {
         { title: "Course", url: "/course" },
         { title: "Create Course", url: "#" }
       ],
+      "/course/edit": [
+        { title: "Course", url: "/course" },
+        { title: "Edit Course", url: "#" }
+      ],
+
+      //chapter
       "/chapter": [{ title: "Chapter", url: "/" }],
-      "/lesson": [{ title: "Lesson", url: "/" }],
       "/chapter/add": [
         { title: "Chapter", url: "/chapter" },
         { title: "Create Chapter", url: "#" }
       ],
+      
+      //lesson
+      "/lesson": [{ title: "Lesson", url: "/" }],
       "/lesson/add": [
         { title: "Lesson", url: "/lesson" },
         { title: "Create Lesson", url: "#" }
@@ -157,6 +170,7 @@ export default function Dashboard() {
     const tagMatch = location.pathname.match(/^\/tag\/[\w-]+$/)
     const problemMatch = pathname.match(/^\/problem\/[\w-]+$/)
     const courseMatch = pathname.match(/^\/course\/[\w-]+$/)
+    const courseDetailMatch = pathname.match(/^\/course\/detail\/\w+$/)
     const chapterMatch = pathname.match(/^\/chapter\/[\w-]+$/)
     const lessonMatch = pathname.match(/^\/lesson\/[\w-]+$/)
 
@@ -173,6 +187,7 @@ export default function Dashboard() {
         { title: currentTitleCourse, url: "#" }
       ]
     }
+
 
     if (location.pathname !== "/exam/create" && examMatch) {
       headerMap[location.pathname] = [
@@ -246,8 +261,16 @@ export default function Dashboard() {
       return
     }
 
+    if(courseDetailMatch){
+      setHeaderData([
+        { title: "Course", url: "/course" },
+        { title: currentTitleCourseDetail, url: "#" }
+      ])
+      return
+    }
+
     setHeaderData(headerMap[pathname] || [{ title: "Dashboard", url: "/" }])
-  }, [location.pathname, currentTitleProblem, currentTitleCourse, currentTitleChapter, currentTitleLesson])
+  }, [location.pathname, currentTitleProblem, currentTitleCourse, currentTitleChapter, currentTitleLesson, currentTitleCourseDetail])
 
   const handleNavigation = (newPath) => {
     navigate(newPath)
@@ -281,12 +304,18 @@ export default function Dashboard() {
           {activeState === "courseList" && <CourseList onNavigate={handleNavigation} />}
           {activeState === "createCourse" && <CreateCourse onNavigate={handleNavigation} />}
           {activeState === "updateCourse" && <UpdateCourse onNavigate={handleNavigation} setCurrentTitleCourse={setCurrentTitleCourse} />}
+          {activeState === "courseDetail" && <CourseDetail onNavigate={handleNavigation} setCurrentTitleCourseDetail={setCurrentTitleCourseDetail}/>}
+
+          {/* Chapter */}
           {activeState === "chapterList" && <ChapterList onNavigate={handleNavigation} />}
           {activeState === "createChapter" && <CreateChapter onNavigate={handleNavigation} />}
           {activeState === "updateChapter" && <UpdateChapter onNavigate={handleNavigation} setCurrentTitleChapter={setCurrentTitleChapter} />}
+
+          {/* Lesson */}
           {activeState === "lessonList" && <LessonList onNavigate={handleNavigation} />}
           {activeState === "createLesson" && <CreateLesson onNavigate={handleNavigation} />}
           {activeState === "updateLesson" && <UpdateLesson onNavigate={handleNavigation} setCurrentTitleLesson={setCurrentTitleLesson} />}
+          
         </div>
       </SidebarInset>
     </SidebarProvider>
