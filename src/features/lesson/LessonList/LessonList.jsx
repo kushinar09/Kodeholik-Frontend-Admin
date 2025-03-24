@@ -7,12 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { GLOBALS } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { Search, Plus, Edit } from "lucide-react"
+import { Search, Plus, Edit, MoreHorizontal } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-function LessonList() {
+function LessonList({ onNavigate }) {
   const [lessons, setLessons] = useState([])
   const [chapterId, setChapterId] = useState(1) // Default chapter ID
   const [chapters, setChapters] = useState([])
@@ -270,16 +271,22 @@ function LessonList() {
                         <TableCell className="text-text-primary">{lesson.type}</TableCell>
                         <TableCell>{getStatusBadge(lesson.status)}</TableCell>
                         <TableCell>
-                          <Link to={`/lesson/${lesson.id}`}>
-                            <Button
-                              variant="outline"
-                              className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
-                              size="sm"
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                          </Link>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem className="cursor-pointer"
+                                onClick={() => onNavigate(`/lesson/${lesson.id}`)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}

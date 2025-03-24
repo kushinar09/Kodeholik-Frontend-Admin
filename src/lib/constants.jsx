@@ -71,7 +71,7 @@ const ENDPOINTS = {
   RATE_COMMENT_COURSE: `${API_URL}/course/rate`,
   GET_COMMENT_COURSE: `${API_URL}/course/rating/:id`,
   CHECK_ENROLL: `${API_URL}/course/enroll/check/:id`,
-  
+
   GET_USER_ENROLLED: `${API_URL}/course/enrolled-users/:id`,
 
   GET_COURSE_DISCUSSION: `${API_URL}/course/discussion/:id`,
@@ -96,15 +96,11 @@ const ENDPOINTS = {
 
   //Topic
   GET_TOPIC_LIST: `${API_URL}/tag/all-topic`,
-  GET_tOPICWITHID: `${API_URL}/tag/topic`,
+  GET_TOPICWITHID: `${API_URL}/tag/topic`,
 
   //Image
   POST_UPLOAD_IMAGE: `${API_URL}/s3/upload`,
   GET_IMAGE: (imageKey) => `${API_URL}/s3/presigned-url?key=${encodeURIComponent(imageKey)}`,
-
-  // code
-  POST_RUN_CODE: `${API_URL}/problem-submission/run/:id`,
-  POST_SUBMIT_CODE: `${API_URL}/problem-submission/submit/:id`,
 
   //Exam
   POST_EXAM_LIST_FOR_EXAMINER: `${API_URL}/examiner/list`,
@@ -153,9 +149,17 @@ const CONSTANTS = {
   USER_ID: "uid"
 }
 
+const ROLES = {
+  ADMIN: "ADMIN",
+  STUDENT: "STUDENT",
+  TEACHER: "TEACHER",
+  EXAMINER: "EXAMINER"
+}
+
 export {
   LOGO,
   GLOBALS,
   ENDPOINTS,
-  CONSTANTS
+  CONSTANTS,
+  ROLES
 }

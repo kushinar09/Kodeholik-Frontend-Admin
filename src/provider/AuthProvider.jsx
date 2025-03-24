@@ -1,7 +1,7 @@
 "use client"
 
 /* eslint-disable indent */
-import { ENDPOINTS } from "@/lib/constants"
+import { ENDPOINTS, ROLES } from "@/lib/constants"
 import { createContext, useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 
@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(true) // Add loading state
+  const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshPromise, setRefreshPromise] = useState(null)
 
@@ -53,6 +53,31 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false)
       setUser(null)
       if (redirect) navigate("/login", { state: { loginRequire: true, redirectPath: window.location.pathname } })
+    }
+  }
+
+  const login = async (credentials) => {
+    try {
+      const response = await fetch(ENDPOINTS.POST_LOGIN, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "http://localhost:5174",
+          "Access-Control-Allow-Credentials": "true"
+        },
+        body: JSON.stringify(credentials)
+      })
+
+      if (response.ok) {
+        await checkAuthStatus()
+        return { success: true }
+      } else {
+        return { success: false, error: await response.json() }
+      }
+    } catch (error) {
+      console.error("Login failed:", error)
+      return { success: false, error }
     }
   }
 
@@ -159,6 +184,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         apiCall,
         logout,
+        login,
         isAuthenticated,
         user,
         isLoading, // Expose loading state
