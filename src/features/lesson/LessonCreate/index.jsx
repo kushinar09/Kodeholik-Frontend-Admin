@@ -198,22 +198,21 @@ function CreateLesson() {
         })
       }
 
-      // Log the form data being sent
-      console.log("Sending form data:")
-      for (const [key, value] of formDataPayload.entries()) {
-        if (key === "videoFile" || key === "attachedFile") {
-          console.log(
-            `${key}: [File] ${value.name}, size: ${(value.size / 1024).toFixed(
-              2
-            )} KB`
-          )
-        } else {
-          console.log(`${key}: ${value}`)
-        }
-      }
+      // // Log the form data being sent
+      // console.log("Sending form data:")
+      // for (const [key, value] of formDataPayload.entries()) {
+      //   if (key === "videoFile" || key === "attachedFile") {
+      //     console.log(
+      //       `${key}: [File] ${value.name}, size: ${(value.size / 1024).toFixed(
+      //         2
+      //       )} KB`
+      //     )
+      //   } else {
+      //     console.log(`${key}: ${value}`)
+      //   }
+      // }
 
-      const result = await createLesson(formDataPayload, apiCall)
-      console.log("Create lesson result:", result)
+      await createLesson(formDataPayload, apiCall)
       setShowSuccessDialog(true)
     } catch (error) {
       console.error("Error creating lesson:", error)

@@ -6,15 +6,9 @@ import NotFoundError from "./features/errors/not-found-error"
 import GeneralError from "./features/errors/general-error"
 import MaintenanceError from "./features/errors/maintenance-error"
 import { AuthProvider } from "./provider/AuthProvider"
-import ProblemCreator from "./features/problem/ProblemCreate"
 import LoginPage from "./features/auth/login"
 import ForgotPassword from "./features/auth/forgot"
 import ResetPassword from "./features/auth/reset"
-import ProblemEdit from "./features/problem/ProblemEdit"
-import ViewListCourse from "./features/course/CourseList/ViewListCourse"
-import CreateCourse from "./features/course/CourseCreate/CreateCourse"
-import UpdateCourse from "./features/course/CourseUpdate/UpdateCourse"
-import ExamList from "./features/exam/list"
 import { Toaster } from "sonner"
 import { CreateExam } from "./features/exam/create"
 import { EditExam } from "./features/exam/edit"
@@ -29,7 +23,6 @@ import UpdateChapter from "./features/chapter/ChapterUpdate/UpdateChapter"
 import LessonList from "./features/lesson/LessonList/LessonList"
 import CreateLesson from "./features/lesson/LessonCreate"
 import UpdateLesson from "./features/lesson/LessonUpdate"
-import CourseDetail from "./features/course/CourseDetail/CourseDetail"
 
 function App() {
   return (
@@ -73,7 +66,6 @@ function App() {
               <Route path="/course" element={<ViewListCourse />} />
               <Route path="/course/add" element={<CreateCourse />} />
               <Route path="/course/:id" element={<UpdateCourse />} />
-              <Route path="/course/detail/:id" element={<CourseDetail/>}/>
 
               {/* Chapter Page */}
               <Route path="/chapter" element={<ChapterList />} />
@@ -95,3 +87,4 @@ function App() {
 }
 
 export default App
+

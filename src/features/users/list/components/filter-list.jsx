@@ -52,7 +52,7 @@ export function FilterBar({ onFilterChange }) {
   }
 
   const handleDateChange = () => {
-    console.log(date)
+    // console.log(date)
   }
 
   const clearFilters = () => {

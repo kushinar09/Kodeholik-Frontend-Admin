@@ -61,8 +61,6 @@ export default function ProblemCreator({ onNavigate }) {
       } else if (step === "testcases") {
         newData.testCases = { ...prev.testCases, ...stepData }
       }
-
-      console.log(`Updated ${step}:`, newData)
       return newData
     })
     setCompletedSteps((prev) => ({ ...prev, [step]: true }))

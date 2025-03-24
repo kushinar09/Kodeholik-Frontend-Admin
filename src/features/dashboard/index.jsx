@@ -1,27 +1,28 @@
+"use client"
 
+import { useEffect, useState, memo, useMemo } from "react"
+import { useLocation, useNavigate, Routes, Route, Navigate, useParams } from "react-router-dom"
 import Header from "@/components/layout/header"
 import { AppSidebar } from "@/components/layout/sidebar"
-import {
-  SidebarInset,
-  SidebarProvider
-} from "@/components/ui/sidebar"
-import { useEffect, useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { ProtectedRoute } from "@/provider/ProtectRoute"
+
+// Import all your page components
+import Overview from "../overview"
 import ProblemList from "../problem/ProblemList"
 import ProblemCreator from "../problem/ProblemCreate"
 import ProblemEdit from "../problem/ProblemEdit"
-import Overview from "../overview"
 import CourseList from "../course/CourseList/ViewListCourse"
 import CreateCourse from "../course/CourseCreate/CreateCourse"
 import UpdateCourse from "../course/CourseUpdate/UpdateCourse"
 import ExamList from "../exam/list"
 import { CreateExam } from "../exam/create"
 import { EditExam } from "../exam/edit"
+import { ExamResult } from "../exam/result"
 import UserList from "../users/list"
 import CreateUser from "../users/create"
 import EditUser from "../users/edit"
 import TagList from "../tag/list"
-import { ExamResult } from "../exam/result"
 import ChapterList from "../chapter/ChapterList/ChapterList"
 import CreateChapter from "../chapter/ChapterCreate/CreateChapter"
 import UpdateChapter from "../chapter/ChapterUpdate/UpdateChapter"
@@ -30,14 +31,206 @@ import CreateLesson from "../lesson/LessonCreate"
 import UpdateLesson from "../lesson/LessonUpdate"
 import CourseDetail from "../course/CourseDetail/CourseDetail"
 
+// Memoized sidebar to prevent re-renders
+const MemoizedSidebar = memo(function MemoizedSidebar({ onNavigate }) {
+  return <AppSidebar onNavigate={onNavigate} />
+})
+
+// Define route configuration
+const routeConfig = [
+  // Dashboard
+  {
+    path: "/",
+    component: Overview,
+    breadcrumb: [{ title: "Dashboard", url: "/" }],
+    role: null
+  },
+
+  // Problem routes
+  {
+    path: "/problem",
+    component: ProblemList,
+    breadcrumb: [{ title: "Problem", url: "/problem" }],
+    role: "TEACHER"
+  },
+  {
+    path: "/problem/create",
+    component: ProblemCreator,
+    breadcrumb: [
+      { title: "Problem", url: "/problem" },
+      { title: "Create Problem", url: "#" }
+    ],
+    role: "TEACHER"
+  },
+  {
+    path: "/problem/:id",
+    component: ProblemEdit,
+    breadcrumb: [
+      { title: "Problem", url: "/problem" },
+      { title: "Edit Problem", url: "#", dynamic: true }
+    ],
+    role: "TEACHER",
+    setTitle: "setCurrentTitleProblem"
+  },
+
+  // Course routes
+  {
+    path: "/course",
+    component: CourseList,
+    breadcrumb: [{ title: "Course", url: "/course" }],
+    role: "TEACHER"
+  },
+  {
+    path: "/course/add",
+    component: CreateCourse,
+    breadcrumb: [
+      { title: "Course", url: "/course" },
+      { title: "Create Course", url: "#" }
+    ],
+    role: "TEACHER"
+  },
+  {
+    path: "/course/:id",
+    component: UpdateCourse,
+    breadcrumb: [
+      { title: "Course", url: "/course" },
+      { title: "Edit Course", url: "#", dynamic: true }
+    ],
+    role: "TEACHER",
+    setTitle: "setCurrentTitleCourse"
+  },
+
+  // Chapter routes
+  {
+    path: "/chapter",
+    component: ChapterList,
+    breadcrumb: [{ title: "Chapter", url: "/chapter" }],
+    role: "TEACHER"
+  },
+  {
+    path: "/chapter/add",
+    component: CreateChapter,
+    breadcrumb: [
+      { title: "Chapter", url: "/chapter" },
+      { title: "Create Chapter", url: "#" }
+    ],
+    role: "TEACHER"
+  },
+  {
+    path: "/chapter/:id",
+    component: UpdateChapter,
+    breadcrumb: [
+      { title: "Chapter", url: "/chapter" },
+      { title: "Edit Chapter", url: "#", dynamic: true }
+    ],
+    role: "TEACHER",
+    setTitle: "setCurrentTitleChapter"
+  },
+
+  // Lesson routes
+  {
+    path: "/lesson",
+    component: LessonList,
+    breadcrumb: [{ title: "Lesson", url: "/lesson" }],
+    role: "TEACHER"
+  },
+  {
+    path: "/lesson/add",
+    component: CreateLesson,
+    breadcrumb: [
+      { title: "Lesson", url: "/lesson" },
+      { title: "Create Lesson", url: "#" }
+    ],
+    role: "TEACHER"
+  },
+  {
+    path: "/lesson/:id",
+    component: UpdateLesson,
+    breadcrumb: [
+      { title: "Lesson", url: "/lesson" },
+      { title: "Edit Lesson", url: "#", dynamic: true }
+    ],
+    role: "TEACHER",
+    setTitle: "setCurrentTitleLesson"
+  },
+
+  // Exam routes
+  {
+    path: "/exam",
+    component: ExamList,
+    breadcrumb: [{ title: "Examination", url: "/exam" }],
+    role: "EXAMINER"
+  },
+  {
+    path: "/exam/create",
+    component: CreateExam,
+    breadcrumb: [
+      { title: "Examination", url: "/exam" },
+      { title: "Create Exam", url: "#" }
+    ],
+    role: "EXAMINER"
+  },
+  {
+    path: "/exam/edit/:code",
+    component: EditExam,
+    breadcrumb: [
+      { title: "Examination", url: "/exam" },
+      { title: "Edit Exam", url: "#", dynamic: true }
+    ],
+    role: "EXAMINER",
+    setTitle: "setCurrentTitleExam"
+  },
+  {
+    path: "/exam/result/:code",
+    component: ExamResult,
+    breadcrumb: [
+      { title: "Examination", url: "/exam" },
+      { title: "Exam Result", url: "#" }
+    ],
+    role: "EXAMINER"
+  },
+
+  // User routes
+  {
+    path: "/user",
+    component: UserList,
+    breadcrumb: [{ title: "Users", url: "/user" }],
+    role: "ADMIN"
+  },
+  {
+    path: "/user/create",
+    component: CreateUser,
+    breadcrumb: [
+      { title: "Users", url: "/user" },
+      { title: "Create User", url: "#" }
+    ],
+    role: "ADMIN"
+  },
+  {
+    path: "/user/edit/:id",
+    component: EditUser,
+    breadcrumb: [
+      { title: "Users", url: "/user" },
+      { title: "Edit User", url: "#" }
+    ],
+    role: "ADMIN",
+    setTitle: "setCurrentTitleUser"
+  },
+
+  // Tag routes
+  {
+    path: "/tag",
+    component: TagList,
+    breadcrumb: [{ title: "Tags", url: "/tag" }],
+    role: "ADMIN"
+  }
+]
 
 export default function Dashboard() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const [activeState, setActiveState] = useState("")
-  const [headerData, setHeaderData] = useState([])
-
+  // State for dynamic titles
   const [currentTitleProblem, setCurrentTitleProblem] = useState("")
   const [currentTitleCourse, setCurrentTitleCourse] = useState("")
   const [currentTitleCourseDetail, setCurrentTitleCourseDetail] = useState("")
@@ -83,9 +276,6 @@ export default function Dashboard() {
     } else if (/^\/course\/[\w-]+$/.test(location.pathname)) {
       setActiveState("updateCourse")
       setCurrentTitleCourse("Java Beginner")
-    } else if (/^\/course\/detail\/\w+$/.test(location.pathname)) {
-      setActiveState("courseDetail")
-      setCurrentTitleCourseDetail("Course Details")
     } else if (location.pathname === "/chapter") {
       setActiveState("chapterList")
     } else if (location.pathname === "/chapter/add") {
@@ -143,20 +333,12 @@ export default function Dashboard() {
         { title: "Course", url: "/course" },
         { title: "Create Course", url: "#" }
       ],
-      "/course/edit": [
-        { title: "Course", url: "/course" },
-        { title: "Edit Course", url: "#" }
-      ],
-
-      //chapter
       "/chapter": [{ title: "Chapter", url: "/" }],
+      "/lesson": [{ title: "Lesson", url: "/" }],
       "/chapter/add": [
         { title: "Chapter", url: "/chapter" },
         { title: "Create Chapter", url: "#" }
       ],
-      
-      //lesson
-      "/lesson": [{ title: "Lesson", url: "/" }],
       "/lesson/add": [
         { title: "Lesson", url: "/lesson" },
         { title: "Create Lesson", url: "#" }
@@ -170,7 +352,6 @@ export default function Dashboard() {
     const tagMatch = location.pathname.match(/^\/tag\/[\w-]+$/)
     const problemMatch = pathname.match(/^\/problem\/[\w-]+$/)
     const courseMatch = pathname.match(/^\/course\/[\w-]+$/)
-    const courseDetailMatch = pathname.match(/^\/course\/detail\/\w+$/)
     const chapterMatch = pathname.match(/^\/chapter\/[\w-]+$/)
     const lessonMatch = pathname.match(/^\/lesson\/[\w-]+$/)
 
@@ -187,7 +368,6 @@ export default function Dashboard() {
         { title: currentTitleCourse, url: "#" }
       ]
     }
-
 
     if (location.pathname !== "/exam/create" && examMatch) {
       headerMap[location.pathname] = [
@@ -261,26 +441,70 @@ export default function Dashboard() {
       return
     }
 
-    if(courseDetailMatch){
-      setHeaderData([
-        { title: "Course", url: "/course" },
-        { title: currentTitleCourseDetail, url: "#" }
-      ])
-      return
-    }
-
     setHeaderData(headerMap[pathname] || [{ title: "Dashboard", url: "/" }])
-  }, [location.pathname, currentTitleProblem, currentTitleCourse, currentTitleChapter, currentTitleLesson, currentTitleCourseDetail])
+  }, [location.pathname, currentTitleProblem, currentTitleCourse, currentTitleChapter, currentTitleLesson])
 
   const handleNavigation = (newPath) => {
     navigate(newPath)
   }
 
+  // Helper component to handle parameter extraction and role protection
+  function RouteWrapper({ Component, route, onNavigate, titleSetters }) {
+    const params = useParams()
+
+    // Create props with navigation handler
+    const componentProps = {
+      onNavigate
+    }
+
+    // Add title setter if specified in route config
+    if (route.setTitle && titleSetters[route.setTitle]) {
+      componentProps[route.setTitle] = titleSetters[route.setTitle]
+    }
+
+    // Apply role protection if needed
+    if (route.role) {
+      return (
+        <ProtectedRoute allowedRoles={[route.role]}>
+          <Component {...componentProps} />
+        </ProtectedRoute>
+      )
+    }
+
+    return <Component {...componentProps} />
+  }
+
+  // Create route components with proper props
+  const routeComponents = useMemo(() => {
+    const handleNavigationMemoized = (newPath) => {
+      navigate(newPath)
+    }
+
+    return routeConfig.map((route) => {
+      const RouteComponent = route.component
+
+      return (
+        <Route
+          key={route.path}
+          path={route.path}
+          element={
+            <RouteWrapper
+              Component={RouteComponent}
+              route={route}
+              onNavigate={handleNavigationMemoized}
+              titleSetters={titleSetters}
+            />
+          }
+        />
+      )
+    })
+  }, [navigate, titleSetters])
+
   return (
     <SidebarProvider>
-      <AppSidebar onNavigate={handleNavigation} />
+      <MemoizedSidebar onNavigate={routeComponents[0].props.element.props.onNavigate} />
       <SidebarInset>
-        <Header headerData={headerData || []} onNavigate={handleNavigation} />
+        <Header headerData={headerData} onNavigate={handleNavigation} />
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {activeState === "" && <Overview />}
           {/* Problem */}
@@ -304,20 +528,15 @@ export default function Dashboard() {
           {activeState === "courseList" && <CourseList onNavigate={handleNavigation} />}
           {activeState === "createCourse" && <CreateCourse onNavigate={handleNavigation} />}
           {activeState === "updateCourse" && <UpdateCourse onNavigate={handleNavigation} setCurrentTitleCourse={setCurrentTitleCourse} />}
-          {activeState === "courseDetail" && <CourseDetail onNavigate={handleNavigation} setCurrentTitleCourseDetail={setCurrentTitleCourseDetail}/>}
-
-          {/* Chapter */}
           {activeState === "chapterList" && <ChapterList onNavigate={handleNavigation} />}
           {activeState === "createChapter" && <CreateChapter onNavigate={handleNavigation} />}
           {activeState === "updateChapter" && <UpdateChapter onNavigate={handleNavigation} setCurrentTitleChapter={setCurrentTitleChapter} />}
-
-          {/* Lesson */}
           {activeState === "lessonList" && <LessonList onNavigate={handleNavigation} />}
           {activeState === "createLesson" && <CreateLesson onNavigate={handleNavigation} />}
           {activeState === "updateLesson" && <UpdateLesson onNavigate={handleNavigation} setCurrentTitleLesson={setCurrentTitleLesson} />}
-          
         </div>
       </SidebarInset>
     </SidebarProvider>
   )
 }
+

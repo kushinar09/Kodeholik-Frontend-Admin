@@ -145,8 +145,7 @@ function CreateChapter() {
     }
 
     try {
-      const result = await createChapter(chapterData, apiCall)
-      console.log("Create chapter result:", result)
+      await createChapter(chapterData, apiCall)
       setIsSuccessDialogOpen(true) // Open the success dialog
       setTimeout(() => {
         setIsSuccessDialogOpen(false) // Close dialog

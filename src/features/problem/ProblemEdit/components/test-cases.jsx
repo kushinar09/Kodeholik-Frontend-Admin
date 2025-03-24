@@ -93,7 +93,6 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit, urlG
   }
 
   const handleSubmit = (values) => {
-    console.log("Submitting:", values)
     updateFormData({ testCase: values.testCase })
     onSubmit()
   }
@@ -204,7 +203,7 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit, urlG
             <ChevronLeft className="mr-2 h-4 w-4" /> Previous
           </Button>
           <Button type="submit" className="bg-green-600 hover:bg-green-700">
-            Submit Problem
+            Update Problem
           </Button>
         </div>
       </form>

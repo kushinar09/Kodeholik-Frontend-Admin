@@ -71,7 +71,6 @@ function UpdateChapter() {
           id: Number(course.id),
           title: course.title || `Unnamed Course (ID: ${course.id})`
         }))
-        console.log("Fetched courses:", formattedCourses.map(c => ({ id: c.id, title: c.title })))
         setCourses(formattedCourses)
       } catch (error) {
         console.error("Error fetching courses:", error)
@@ -88,13 +87,8 @@ function UpdateChapter() {
       if (!courses.length) return // Wait until courses are fetched
       try {
         const data = await getChapter(id)
-        const chapterCourseId = Number(data.courseId || 0) // Default to 0 if undefined
-        console.log("Fetched chapter data:", data)
-        console.log("Chapter courseId:", chapterCourseId)
-
+        const chapterCourseId = Number(data.courseId || 0)
         const courseExists = courses.some((course) => course.id === chapterCourseId)
-        console.log("Course exists in list:", courseExists)
-        console.log("Course IDs available:", courses.map(c => c.id))
 
         // Handle invalid courseId
         if (chapterCourseId === 0 || !courseExists) {
@@ -176,8 +170,7 @@ function UpdateChapter() {
     }
 
     try {
-      const result = await updateChapter(id, chapterData, apiCall)
-      console.log("Update chapter result:", result)
+      await updateChapter(id, chapterData, apiCall)
       setIsSuccessDialogOpen(true)
       setTimeout(() => {
         setIsSuccessDialogOpen(false)

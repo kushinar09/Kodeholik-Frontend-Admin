@@ -442,7 +442,7 @@ function UpdateLesson() {
           <DialogHeader>
             <DialogTitle>Lesson Updated Successfully</DialogTitle>
             <DialogDescription>
-              Your lesson "{formData.title}" has been updated successfully!
+              Your lesson &quot;{formData.title}&quot; has been updated successfully!
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

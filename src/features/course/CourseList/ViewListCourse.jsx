@@ -40,7 +40,6 @@ function CourseList() {
           query: searchQuery,
           topic: selectedTopic
         })
-        console.log("API Response:", data)
         setCourses(data.content || [])
         setTotalPages(data.totalPages || 1)
       } catch (error) {
@@ -58,7 +57,6 @@ function CourseList() {
     const fetchTopics = async () => {
       try {
         const data = await getTopicsWithId()
-        console.log("Fetched topics:", data)
         setTopics(data || [])
       } catch (error) {
         console.error("Error fetching topics:", error)

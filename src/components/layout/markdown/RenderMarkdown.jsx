@@ -14,7 +14,6 @@ export default function RenderMarkdown({ content, className = "" }) {
     const customRenderer = new marked.Renderer()
 
     customRenderer.image = (href) => {
-      console.log(href)
       const title = href.title || ""
       const text = href.text || ""
 

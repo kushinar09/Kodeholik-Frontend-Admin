@@ -71,7 +71,6 @@ export default function UserList({ onNavigate }) {
 
 
   const handleFilterChange = (newFilters) => {
-    console.log(newFilters)
     setFilters(newFilters)
     requestData.title = newFilters.title
     if (newFilters.status === "all") {
@@ -108,7 +107,6 @@ export default function UserList({ onNavigate }) {
         setNoContent(false)
         setTotalElements(data.totalElements)
       }
-      console.log("API Response:", data)
     } catch (error) {
       console.error("Error fetching exams:", error)
     } finally {
