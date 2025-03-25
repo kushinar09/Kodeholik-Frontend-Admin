@@ -90,8 +90,6 @@ export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
         solutionCode: code.solutionCode
       }))
     }
-
-    console.log("Editorial submitting:", transformedData)
     updateFormData(transformedData, "editorial")
     onNext()
   }

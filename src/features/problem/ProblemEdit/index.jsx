@@ -51,7 +51,6 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
       if (text) {
         const data = JSON.parse(text)
         setCurrentTitleProblem(data.title)
-        console.log(data.isActive)
 
         // Update the formData state with the fetched details
         setFormData(prevState => ({
@@ -64,7 +63,7 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
             status: data.status || "PRIVATE",
             topics: data.topics || [],
             skills: data.skills || [],
-            isActive: data.isActive !== null ? data.isActive : true
+            isActive: data.active !== null ? data.active : true
           }
         }))
       }
@@ -138,7 +137,8 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
             templateCode: {
               code: i.templateCodes.templateCode,
               language: i.language
-            }
+            },
+            functionCode: i.templateCodes.functionCode
           }))
         }))
       }
@@ -295,7 +295,6 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
       } else {
         const errorData = await response.json()
         const errorMessage = errorData.message || "An error occurred"
-        console.log(errorMessage)
         throw new Error(errorMessage)
       }
     } catch (error) {

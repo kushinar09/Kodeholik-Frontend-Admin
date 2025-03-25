@@ -25,7 +25,7 @@ const formSchema = z.object({
   status: z.enum(["PUBLIC", "PRIVATE"]),
   topics: z.array(z.string()).optional(),
   skills: z.array(z.string()).optional(),
-  isActive: z.boolean(),
+  isActive: z.boolean().optional(),
   languageSupport: z.array(z.string()).min(1, "At least one language must be selected")
 })
 

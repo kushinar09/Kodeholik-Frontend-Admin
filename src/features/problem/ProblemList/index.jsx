@@ -221,6 +221,7 @@ export default function ProblemList({ onNavigate }) {
                     <PaginationLink
                       href="#"
                       isActive={problemData.number === index}
+                      className={problemData.number === index ? "bg-primary text-primary-foreground" : ""}
                       onClick={(e) => {
                         e.preventDefault()
                         handlePageChange(index)

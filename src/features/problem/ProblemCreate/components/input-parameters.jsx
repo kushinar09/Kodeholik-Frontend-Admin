@@ -13,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
 import * as z from "zod"
 import CodeEditor from "@/components/layout/editor-code/CodeEditor"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 // Update schema to handle multiple languages
 const formSchema = z.object({
@@ -143,7 +144,6 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
 
   // Handle form submission
   const handleSubmit = (values) => {
-    console.log("Input Parameters submitting:", values)
     // Extract input parameters from form values
     const inputParameters = values.problemInputParameterDto.map((param) => ({
       language: param.language,
@@ -260,10 +260,10 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
           </CardContent>
         </Card>
 
-        <Tabs value={activeLanguage} onValueChange={setActiveLanguage}>
-          <TabsList className="w-full">
+        <Tabs value={activeLanguage} onValueChange={setActiveLanguage} className="bg-muted rounded-md">
+          <TabsList>
             {formData.details.languageSupport.map((language) => (
-              <TabsTrigger key={language} value={language} className="flex-1">
+              <TabsTrigger key={language} value={language} className="flex-1 min-w-24">
                 {language}
               </TabsTrigger>
             ))}
@@ -271,7 +271,7 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
 
           {formData.details.languageSupport.map((language, index) => {
             return (
-              <TabsContent key={language} value={language} className="space-y-6">
+              <TabsContent key={language} value={language} className="space-y-6 mt-0">
                 <Card>
                   <CardHeader>
                     <CardTitle>{language} Implementation</CardTitle>
@@ -411,7 +411,20 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
                       name={`problemInputParameterDto.${index}.templateCode`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Template Code</FormLabel>
+                          <FormLabel className="flex gap-2 items-center mb-4">
+                            Supplementary Code
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <svg className="size-4" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                  <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94" />
+                                </svg>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-64">This field contains additional comments or supplementary classes to address specific issues. This section will be automatically added to the function code when a problem is successfully created.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </FormLabel>
                           <FormControl>
                             <CodeEditor
                               initialCode={field.value || ""}

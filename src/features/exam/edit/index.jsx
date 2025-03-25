@@ -11,8 +11,8 @@ import { toast } from "sonner"
 import { useAuth } from "@/provider/AuthProvider"
 import { EditExamDetails } from "./components/detail"
 import { EditExamProblems } from "./components/problems"
-import { useParams } from "react-router-dom";
-import { parse } from "date-fns";
+import { useParams } from "react-router-dom"
+import { parse } from "date-fns"
 
 const requestData = {
   title: "",
@@ -21,7 +21,7 @@ const requestData = {
   endTime: Date.now() + 3600000,
   languageSupports: [],
   problemRequests: []
-  
+
 }
 let mockFormData = {
   code: "",
@@ -41,49 +41,48 @@ let mockFormData = {
   updatedAt: "",
   updatedBy: {}
 }
-export function EditExam({ onNavigate }) {
+export function EditExam({ onNavigate, setCurrentTitleExam }) {
 
-  const { code } = useParams();
-  const [activeStep, setActiveStep] = useState("details");
-  const [formData, setFormData] = useState(mockFormData);
-  const { apiCall } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { code } = useParams()
+  const [activeStep, setActiveStep] = useState("details")
+  const [formData, setFormData] = useState(mockFormData)
+  const { apiCall } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
 
   const [completedSteps, setCompletedSteps] = useState({
     details: false,
     problems: false
   })
   const parseCustomDate = (dateString) => {
-    return parse(dateString, "dd/MM/yyyy, HH:mm", new Date());
-  };
+    return parse(dateString, "dd/MM/yyyy, HH:mm", new Date())
+  }
   const fetchExam = async () => {
     try {
-      setIsLoading(true);
-      const data = await getExamDetailForExaminer(apiCall, code);
-      console.log(data);
-      mockFormData.code = data.code;
-      mockFormData.createdAt = data.createdAt;
-      mockFormData.createdBy = data.createdBy;
-      mockFormData.updatedAt = data.updatedAt;
-      mockFormData.updatedBy = data.updatedBy;
-      mockFormData.details.title = data.title;
-      mockFormData.details.description = data.description;
-      mockFormData.details.startTime = parseCustomDate(data.startTime);
-      mockFormData.details.duration = (parseCustomDate(data.endTime).getTime() - parseCustomDate(data.startTime).getTime()) / 60000;
-      mockFormData.problems.languageSupports = data.languageSupports;
-      mockFormData.problems.problems = [];
+      setIsLoading(true)
+      const data = await getExamDetailForExaminer(apiCall, code)
+      mockFormData.code = data.code
+      mockFormData.createdAt = data.createdAt
+      mockFormData.createdBy = data.createdBy
+      mockFormData.updatedAt = data.updatedAt
+      mockFormData.updatedBy = data.updatedBy
+      mockFormData.details.title = data.title
+      mockFormData.details.description = data.description
+      mockFormData.details.startTime = parseCustomDate(data.startTime)
+      mockFormData.details.duration = (parseCustomDate(data.endTime).getTime() - parseCustomDate(data.startTime).getTime()) / 60000
+      mockFormData.problems.languageSupports = data.languageSupports
+      mockFormData.problems.problems = []
       for (const problem of data.problems) {
         mockFormData.problems.problems.push({
           problemLink: problem.problemLink,
           points: problem.problemPoint
-        });
+        })
       }
-      console.log("Form", mockFormData);
-      setFormData(mockFormData);
+      setCurrentTitleExam(mockFormData.details.title)
+      setFormData(mockFormData)
     } catch (error) {
       console.error("Error fetching exams:", error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
@@ -94,51 +93,48 @@ export function EditExam({ onNavigate }) {
 
   const updateFormData = (stepData, step) => {
     if (step === "details") {
-      mockFormData.details = stepData;
+      mockFormData.details = stepData
     }
     else if (step === "problems") {
-      mockFormData.problems = stepData;
+      mockFormData.problems = stepData
     }
-    setFormData(mockFormData);
+    setFormData(mockFormData)
     setCompletedSteps((prev) => ({ ...prev, [step]: true }))
-    console.log(`Updated ${step}:`, formData)
   }
 
   const handleNext = async () => {
-    if (activeStep === "details") setActiveStep("problems");
+    if (activeStep === "details") setActiveStep("problems")
     if (activeStep === "problems") {
-      await callEditExam();
+      await callEditExam()
 
     }
   }
 
   const callEditExam = async () => {
     try {
-      requestData.title = formData.details.title;
-      requestData.description = formData.details.description;
-      requestData.startTime = formData.details.startTime.toISOString();
-      requestData.endTime = new Date(formData.details.startTime.getTime() + formData.details.duration * 60000).toISOString();
+      requestData.title = formData.details.title
+      requestData.description = formData.details.description
+      requestData.startTime = formData.details.startTime.toISOString()
+      requestData.endTime = new Date(formData.details.startTime.getTime() + formData.details.duration * 60000).toISOString()
       if (formData?.problems?.languageSupports) {
-        requestData.languageSupports = [...formData.problems.languageSupports];
+        requestData.languageSupports = [...formData.problems.languageSupports]
       }
 
       if (formData?.problems?.problems && Array.isArray(formData.problems.problems)) {
         // Map to ensure correct structure and types
         requestData.problemRequests = formData.problems.problems.map(problem => ({
-          problemLink: problem.problemLink || '',
-          problemPoint: typeof problem.points === 'number' ? problem.points :
+          problemLink: problem.problemLink || "",
+          problemPoint: typeof problem.points === "number" ? problem.points :
             (parseInt(problem.points, 10) || 0) // Convert to number if it's a string
-        }));
+        }))
       }
-      console.log(requestData);
-      const data = await editExam(apiCall, requestData, formData.code);
+      const data = await editExam(apiCall, requestData, formData.code)
       if (data != null) {
-        toast.success("Edit exam successful!", { duration: 2000 });
-        onNavigate("/exam");
+        toast.success("Edit exam successful!", { duration: 2000 })
+        onNavigate("/exam")
       }
     } catch (error) {
       console.error("Error fetching exams:", error)
-    } finally {
     }
   }
 
@@ -192,7 +188,7 @@ export function EditExam({ onNavigate }) {
         </CardContent>
       </Card>
     </div>
-  ) : null;  // Trả về `null` nếu `isLoading` là `true`
+  ) : null // Trả về `null` nếu `isLoading` là `true`
 
 }
 
@@ -206,11 +202,11 @@ function StepIndicator({ step, label, active, completed, onClick, disabled = fal
       <div
         className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors
             ${active
-            ? "bg-primary text-primary-foreground"
-            : completed
-              ? "bg-green-500 text-white"
-              : "bg-muted text-muted-foreground"
-          }`}
+      ? "bg-primary text-primary-foreground"
+      : completed
+        ? "bg-green-500 text-white"
+        : "bg-muted text-muted-foreground"
+    }`}
       >
         {completed ? <Check className="h-5 w-5" /> : step.charAt(0).toUpperCase()}
       </div>

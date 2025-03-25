@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 import { useLocation, useNavigate } from "react-router-dom"
 import { LOGO } from "@/lib/constants"
 import { MESSAGES } from "@/lib/messages"
-import { login, loginWithGithub, loginWithGoogle } from "@/lib/api/auth_api"
+import { loginWithGithub, loginWithGoogle } from "@/lib/api/auth_api"
 import { useAuth } from "@/provider/AuthProvider"
 import LoadingScreen from "@/components/layout/loading"
 import { toast } from "sonner"
@@ -22,7 +22,7 @@ export default function LoginPage() {
     password: ""
   })
 
-  const { isAuthenticated, setIsAuthenticated } = useAuth()
+  const { isAuthenticated, setIsAuthenticated, login } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -96,13 +96,12 @@ export default function LoginPage() {
       } else {
         const result = await login(formData)
         if (!result.status) {
-          if (result.error) {
-            newErrors.general = result.error
+          if (result.error.message) {
+            newErrors.general = result.error.message
           } else {
-            throw new Error("Login failed. Please check your credentials and try again.")
+            throw new Error("Login failed. Please check your username/password and try again.")
           }
         } else {
-          setIsAuthenticated(true)
           const redirectPath = location.state?.redirectPath || "/"
           navigate(redirectPath)
         }

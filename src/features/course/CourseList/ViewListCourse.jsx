@@ -1,36 +1,37 @@
-import { useState, useEffect } from "react";
-import { getCourseSearch, getTopicsWithId } from "@/lib/api/course_api";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { GLOBALS } from "@/lib/constants";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { Search, Plus, Edit } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect } from "react"
+import { getCourseSearch, getTopicsWithId } from "@/lib/api/course_api"
+import { Link } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { GLOBALS } from "@/lib/constants"
+import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
+import { Search, Plus, Edit, MoreHorizontal, Paperclip, FileText } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-function CourseList() {
+function CourseList({ onNavigate }) {
   useEffect(() => {
-    document.title = `Courses List - ${GLOBALS.APPLICATION_NAME}`;
-  }, []);
+    document.title = `Courses List - ${GLOBALS.APPLICATION_NAME}`
+  }, [])
 
-  const [courses, setCourses] = useState([]);
-  const [topics, setTopics] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTopic, setSelectedTopic] = useState("All");
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [sortBy, setSortBy] = useState("title");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [itemsPerPage, setItemsPerPage] = useState(6);
+  const [courses, setCourses] = useState([])
+  const [topics, setTopics] = useState([])
+  const [currentPage, setCurrentPage] = useState(0)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedTopic, setSelectedTopic] = useState("All")
+  const [isFilterExpanded, setIsFilterExpanded] = useState(false)
+  const [totalPages, setTotalPages] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
+  const [sortBy, setSortBy] = useState("title")
+  const [sortOrder, setSortOrder] = useState("asc")
+  const [itemsPerPage, setItemsPerPage] = useState(6)
 
   useEffect(() => {
     const fetchCourses = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
         const data = await getCourseSearch({
           page: currentPage,
@@ -38,76 +39,74 @@ function CourseList() {
           sortBy,
           ascending: sortOrder === "asc",
           query: searchQuery,
-          topic: selectedTopic,
-        });
-        console.log("API Response:", data);
-        setCourses(data.content || []);
-        setTotalPages(data.totalPages || 1);
+          topic: selectedTopic
+        })
+        setCourses(data.content || [])
+        setTotalPages(data.totalPages || 1)
       } catch (error) {
-        console.error("Error fetching courses:", error);
-        setCourses([]);
-        setTotalPages(1);
+        console.error("Error fetching courses:", error)
+        setCourses([])
+        setTotalPages(1)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-    fetchCourses();
-  }, [currentPage, itemsPerPage, sortBy, sortOrder, searchQuery, selectedTopic]);
+    }
+    fetchCourses()
+  }, [currentPage, itemsPerPage, sortBy, sortOrder, searchQuery, selectedTopic])
 
   useEffect(() => {
     const fetchTopics = async () => {
       try {
-        const data = await getTopicsWithId();
-        console.log("Fetched topics:", data);
-        setTopics(data || []);
+        const data = await getTopicsWithId()
+        setTopics(data || [])
       } catch (error) {
-        console.error("Error fetching topics:", error);
-        setTopics([]);
+        console.error("Error fetching topics:", error)
+        setTopics([])
       }
-    };
-    fetchTopics();
-  }, []);
+    }
+    fetchTopics()
+  }, [])
 
   const handlePageChange = (page) => {
-    setCurrentPage(page - 1);
-  };
+    setCurrentPage(page - 1)
+  }
 
   const handleFilterClick = () => {
-    setIsFilterExpanded(!isFilterExpanded);
-  };
+    setIsFilterExpanded(!isFilterExpanded)
+  }
 
   const handleTopicClick = (topic) => {
-    setSelectedTopic(topic === "All" ? "All" : topic);
-    setCurrentPage(0);
-    setIsFilterExpanded(false);
-  };
+    setSelectedTopic(topic === "All" ? "All" : topic)
+    setCurrentPage(0)
+    setIsFilterExpanded(false)
+  }
 
   const handleSort = (column) => {
     if (sortBy === column) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
     } else {
-      setSortBy(column);
-      setSortOrder("asc");
+      setSortBy(column)
+      setSortOrder("asc")
     }
-    setCurrentPage(0);
-  };
+    setCurrentPage(0)
+  }
 
   const handleItemsPerPageChange = (value) => {
-    setItemsPerPage(Number(value));
-    setCurrentPage(0);
-  };
+    setItemsPerPage(Number(value))
+    setCurrentPage(0)
+  }
 
   const getStatusBadge = (status) => {
     const statusMap = {
       ACTIVATED: "bg-green-500",
-      INACTIVATED: "bg-red-500",
-    };
+      INACTIVATED: "bg-red-500"
+    }
     return (
       <Badge className={`${statusMap[status] || "bg-gray-500"} text-white`}>
         {status?.toUpperCase()}
       </Badge>
-    );
-  };
+    )
+  }
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col">
@@ -115,9 +114,9 @@ function CourseList() {
         <Card className="border-border-muted bg-bg-card shadow-lg">
           <CardHeader className="pb-4 border-b border-border-muted">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle className="text-3xl font-bold text-text-primary">Course List</CardTitle>
+              <CardTitle className="text-xl font-bold text-text-primary">Course List</CardTitle>
               <Link to="/course/add">
-                <Button className="bg-primary text-white font-bold hover:bg-primary/90 transition-colors text-base py-2 px-4 w-full md:w-auto">
+                <Button className="bg-primary text-white font-semibold hover:bg-primary/90 transition-colors text-base py-2 px-4 w-full md:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   Create New Course
                 </Button>
@@ -151,8 +150,7 @@ function CourseList() {
                   variant="ghost"
                   onClick={handleFilterClick}
                   className={cn(
-                    "text-primary font-bold hover:bg-primary transition hover:text-white",
-                    isFilterExpanded && "bg-button-primary text-bg-primary hover:bg-button-hover"
+                    "text-primary font-bold transition hover:bg-primary hover:text-white"
                   )}
                 >
                   Filter
@@ -213,7 +211,7 @@ function CourseList() {
                   <TableHeader className="bg-bg-secondary">
                     <TableRow className="hover:bg-bg-secondary/80">
                       <TableHead>
-                        ID 
+                        ID
                       </TableHead>
                       <TableHead
                         className="text-text-secondary font-semibold cursor-pointer"
@@ -229,8 +227,8 @@ function CourseList() {
                         {sortBy === "numberOfParticipant" && (sortOrder === "asc" ? "▲" : "▼")}
                       </TableHead>
                       <TableHead
-                      className="text-text-secondary font-semibold cursor-pointer"
-                      onClick={() => handleSort("createdAt")}
+                        className="text-text-secondary font-semibold cursor-pointer"
+                        onClick={() => handleSort("createdAt")}
                       >
                         Created At {sortBy === "createdAt" && (sortOrder === "asc" ? "▲" : "▼")}
                       </TableHead>
@@ -254,16 +252,28 @@ function CourseList() {
                         <TableCell>{course.createdAt}</TableCell>
                         <TableCell>{getStatusBadge(course.status)}</TableCell>
                         <TableCell>
-                          <Link to={`/course/${course.id}`}>
-                            <Button
-                              variant="outline"
-                              className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
-                              size="sm"
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                          </Link>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem className="cursor-pointer"
+                                onClick={() => onNavigate(`/course/edit/${course.id}`)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="cursor-pointer"
+                                onClick={() => onNavigate(`/course/${course.id}`)}
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Detail
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -276,7 +286,7 @@ function CourseList() {
               <div className="flex justify-center mt-6 gap-2">
                 <Button
                   variant="ghost"
-                  className="text-primary font-bold hover:bg-primary transition hover:text-black"
+                  className="text-primary font-bold hover:bg-primary transition hover:text-primary-foreground"
                   onClick={() => handlePageChange(currentPage)}
                   disabled={currentPage === 0}
                 >
@@ -296,13 +306,13 @@ function CourseList() {
                           key={index}
                           onClick={() => handlePageChange(index + 1)}
                           className={cn(
-                            "text-primary font-bold hover:bg-primary transition hover:text-black",
-                            currentPage === index && "bg-button-primary text-bg-primary hover:bg-button-hover"
+                            "text-primary font-bold transition hover:bg-primary hover:text-primary-foreground",
+                            currentPage === index && "bg-primary text-primary-foreground hover:bg-button-hover"
                           )}
                         >
                           {index + 1}
                         </Button>
-                      );
+                      )
                     } else if (
                       (index === 1 && currentPage > 3) ||
                       (index === totalPages - 2 && currentPage < totalPages - 2)
@@ -311,14 +321,14 @@ function CourseList() {
                         <Button key={index} variant="ghost" disabled className="text-primary font-bold">
                           ...
                         </Button>
-                      );
+                      )
                     }
-                    return null;
+                    return null
                   })}
                 </div>
                 <Button
                   variant="ghost"
-                  className="text-primary font-bold hover:bg-primary transition hover:text-black"
+                  className="text-primary font-bold hover:bg-primary transition hover:text-white"
                   onClick={() => handlePageChange(currentPage + 2)}
                   disabled={currentPage === totalPages - 1}
                 >
@@ -330,7 +340,7 @@ function CourseList() {
         </Card>
       </main>
     </div>
-  );
+  )
 }
 
-export default CourseList;
+export default CourseList

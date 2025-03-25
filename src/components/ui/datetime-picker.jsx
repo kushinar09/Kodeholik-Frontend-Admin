@@ -30,8 +30,6 @@ const FormSchema = z.object({
 })
 
 export function DateTimePicker24hForm({ value, onChange }) {
-  console.log(value)
-
   const form = useForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {

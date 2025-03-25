@@ -111,7 +111,7 @@ export default function ForgotPassword() {
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-button-secondary hover:bg-button-secondaryHover text-black font-semibold"
+                  className="w-full bg-primary text-primary-foreground font-semibold"
                   disabled={loading}
                 >
                   {loading ? "Sending..." : "Send"}
@@ -119,7 +119,7 @@ export default function ForgotPassword() {
                 <Button
                   type="button"
                   onClick={() => navigate("/login")}
-                  className="w-full bg-white border-black shadow-md hover:bg-button-secondaryHover text-black font-semibold"
+                  className="w-full bg-primary text-primary-foreground font-semibold"
                   disabled={loading}
                 >
                   Back

@@ -24,12 +24,14 @@ const GLOBALS = {
   ]
 }
 
+const FRONTEND_PORT = import.meta.env.VITE_FRONTEND_PORT
 const API_URL = import.meta.env.VITE_API_URL
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
 const ENDPOINTS = {
+  FRONTEND: `http://localhost:${FRONTEND_PORT}`,
   // Auth
-  POST_LOGIN: `${API_URL}/auth/login`,
+  POST_LOGIN: `${API_URL}/auth/login-admin`,
   LOGIN_GOOGLE: `${BACKEND_URL}/oauth2/authorization/google`,
   LOGIN_GITHUB: `${BACKEND_URL}/oauth2/authorization/github`,
   GET_INFOR: `${API_URL}/user/current`,
@@ -66,6 +68,17 @@ const ENDPOINTS = {
   DELETE_COURSE: `${API_URL}/course/delete/:id`,
   ENROLL_COURSE: `${API_URL}/course/enroll/:id`,
   UNENROLL_COURSE: `${API_URL}/course/unenroll/:id`,
+  RATE_COMMENT_COURSE: `${API_URL}/course/rate`,
+  GET_COMMENT_COURSE: `${API_URL}/course/rating/:id`,
+  CHECK_ENROLL: `${API_URL}/course/enroll/check/:id`,
+
+  GET_USER_ENROLLED: `${API_URL}/course/enrolled-users/:id`,
+
+  GET_COURSE_DISCUSSION: `${API_URL}/course/discussion/:id`,
+  GET_DISCUSSION_REPLY: `${API_URL}/course/list-reply/:id`,
+  POST_COURSE_DISCUSSION: `${API_URL}/course/comment`,
+  UPVOTE_COURSE_DISCUSSION: `${API_URL}/comment/upvote/:id`,
+  UN_UPVOTE_COURSE_DISCUSSION: `${API_URL}/comment/unupvote/:id`,
 
   //Chapter
   GET_CHAPTERS: `${API_URL}/chapter/list`,
@@ -83,15 +96,11 @@ const ENDPOINTS = {
 
   //Topic
   GET_TOPIC_LIST: `${API_URL}/tag/all-topic`,
-  GET_tOPICWITHID: `${API_URL}/tag/topic`,
+  GET_TOPICWITHID: `${API_URL}/tag/topic`,
 
   //Image
   POST_UPLOAD_IMAGE: `${API_URL}/s3/upload`,
   GET_IMAGE: (imageKey) => `${API_URL}/s3/presigned-url?key=${encodeURIComponent(imageKey)}`,
-
-  // code
-  POST_RUN_CODE: `${API_URL}/problem-submission/run/:id`,
-  POST_SUBMIT_CODE: `${API_URL}/problem-submission/submit/:id`,
 
   //Exam
   POST_EXAM_LIST_FOR_EXAMINER: `${API_URL}/examiner/list`,
@@ -102,6 +111,7 @@ const ENDPOINTS = {
   POST_EDIT_EXAM: `${API_URL}/examiner/edit/`,
   GET_EXAM_LIST_PARTICIPANT: `${API_URL}/examiner/list-participant/`,
   GET_EXAM_PARTICIPANT_RESULT: `${API_URL}/examiner/result/`,
+  GET_EXAM_OVERVIEW: `${API_URL}/examiner/result-overview/:code`,
 
   //User
   POST_USER_LIST_FOR_ADMIN: `${API_URL}/admin/list-user`,
@@ -140,9 +150,17 @@ const CONSTANTS = {
   USER_ID: "uid"
 }
 
+const ROLES = {
+  ADMIN: "ADMIN",
+  STUDENT: "STUDENT",
+  TEACHER: "TEACHER",
+  EXAMINER: "EXAMINER"
+}
+
 export {
   LOGO,
   GLOBALS,
   ENDPOINTS,
-  CONSTANTS
+  CONSTANTS,
+  ROLES
 }

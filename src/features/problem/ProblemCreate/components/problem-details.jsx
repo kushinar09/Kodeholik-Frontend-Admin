@@ -75,7 +75,6 @@ export function ProblemDetails({ formData, updateFormData, onNext }) {
   })
 
   const handleSubmit = (values) => {
-    console.log("Problem Details submitting:", values)
     updateFormData(values, "details")
     onNext()
   }
