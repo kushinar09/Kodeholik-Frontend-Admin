@@ -1,24 +1,31 @@
-# pull the base image
-FROM node:lts-alpine
+# Build frontend bằng NodeJS
+FROM node:lts-alpine AS build
 
-# set the working direction
+# Thiết lập thư mục làm việc
 WORKDIR /app
 
-# add `/app/node_modules/.bin` to $PATH
-ENV PATH /app/node_modules/.bin:$PATH
+# Copy file package.json và yarn.lock trước để cài đặt dependencies trước (tăng tốc build)
+COPY package*.json yarn.lock ./
 
-# install app dependencies
-COPY package.json ./
+# Cài đặt dependencies
+RUN yarn install --frozen-lockfile
 
-COPY yarn.lock ./
+# Copy toàn bộ code
+COPY . .
 
-# rebuild node-sass
-#RUN yarn add node-sass
+# Build ứng dụng React (Vite)
+RUN yarn build
 
-RUN yarn
+# Chạy Nginx để serve frontend
+FROM nginx:alpine
 
-# add app
-COPY . ./
+# Copy file build từ stage `build`
 
-# start app
-CMD ["yarn", "dev"]
+# Gán quyền cho thư mục chứa file tĩnh
+RUN chmod -R 755 /usr/share/nginx/html
+
+# Mở port 80
+EXPOSE 80
+
+# Chạy Nginx
+CMD ["nginx", "-g", "daemon off;"]
