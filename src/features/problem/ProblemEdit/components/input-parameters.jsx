@@ -74,7 +74,7 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
   useEffect(() => {
     document.querySelectorAll("pre code").forEach((block) => {
       if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
-        hljs.highlightBlock(block)
+        hljs.highlightElement(block)
     })
   }, [formData, activeLanguage])
 

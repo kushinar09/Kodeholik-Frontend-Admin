@@ -92,7 +92,7 @@ const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
   useEffect(() => {
     document.querySelectorAll("pre code").forEach((block) => {
       if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
-        hljs.highlightBlock(block)
+        hljs.highlightElement(block)
     })
     if (onChange) onChange(markdownContent)
   }, [markdownContent])

@@ -31,7 +31,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 const ENDPOINTS = {
   FRONTEND: `http://localhost:${FRONTEND_PORT}`,
   // Auth
-  POST_LOGIN: `${API_URL}/auth/login`,
+  POST_LOGIN: `${API_URL}/auth/login-admin`,
   LOGIN_GOOGLE: `${BACKEND_URL}/oauth2/authorization/google`,
   LOGIN_GITHUB: `${BACKEND_URL}/oauth2/authorization/github`,
   GET_INFOR: `${API_URL}/user/current`,
@@ -111,6 +111,7 @@ const ENDPOINTS = {
   POST_EDIT_EXAM: `${API_URL}/examiner/edit/`,
   GET_EXAM_LIST_PARTICIPANT: `${API_URL}/examiner/list-participant/`,
   GET_EXAM_PARTICIPANT_RESULT: `${API_URL}/examiner/result/`,
+  GET_EXAM_OVERVIEW: `${API_URL}/examiner/result-overview/:code`,
 
   //User
   POST_USER_LIST_FOR_ADMIN: `${API_URL}/admin/list-user`,
