@@ -229,6 +229,7 @@ export default function Dashboard() {
         { title: "Tags", url: "/user" },
         { title: currentTitleTag, url: "#" }
       ]
+    }
     if (pathname !== "/chapter/add" && chapterMatch) {
       headerMap[pathname] = [
         { title: "Chapter", url: "/chapter" },

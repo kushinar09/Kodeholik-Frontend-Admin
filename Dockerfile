@@ -1,25 +1,24 @@
-# Dùng node.js để build ứng dụng
-FROM node:18 as build
+# pull the base image
+FROM node:lts-alpine
 
-# Đặt thư mục làm việc
+# set the working direction
 WORKDIR /app
 
-# Copy file package.json và cài đặt dependencies
-COPY package.json package-lock.json ./
-RUN npm install
+# add `/app/node_modules/.bin` to $PATH
+ENV PATH /app/node_modules/.bin:$PATH
 
-# Copy toàn bộ source code và build
-COPY . .
-RUN npm run build
+# install app dependencies
+COPY package.json ./
 
-# Dùng nginx để phục vụ static files
-FROM nginx:latest
+COPY yarn.lock ./
 
-# Copy build từ container node vào nginx
-COPY --from=build /app/build /usr/share/nginx/html
+# rebuild node-sass
+#RUN yarn add node-sass
 
-# Mở port 80
-EXPOSE 5123
+RUN yarn
 
-# Chạy nginx
-CMD ["nginx", "-g", "daemon off;"]
+# add app
+COPY . ./
+
+# start app
+CMD ["yarn", "dev"]

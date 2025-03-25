@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
 
     options.headers = {
       ...(options.headers || {}),
-      "Access-Control-Allow-Origin": "http://localhost:5174",
+      "Access-Control-Allow-Origin": "http://localhost:81",
       "Access-Control-Allow-Credentials": "true"
     }
     options.credentials = "include"

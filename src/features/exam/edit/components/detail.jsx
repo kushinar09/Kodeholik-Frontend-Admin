@@ -99,7 +99,7 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
                             <Label>Created By: </Label>
                             <div className="ml-4" style={{ display: "flex", alignItems: "center" }}>
                                 <img
-                                    src={formData.createdBy.avatar}
+                                    src={formData.createdBy && formData.createdBy.avatar}
                                     alt="avatar"
                                     style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
                                 />
@@ -113,16 +113,16 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
                             </div>
                         </div>
                     </div>
-                    <div className="flex justify-between">
+                    {formData.updatedBy && <div className="flex justify-between">
                         <div className="flex items-center">
                             <Label>Updated By: </Label>
                             <div className="ml-4" style={{ display: "flex", alignItems: "center" }}>
                                 <img
-                                    src={formData.updatedBy.avatar}
+                                    src={formData.updatedBy && formData.updatedBy.avatar}
                                     alt="avatar"
                                     style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
                                 />
-                                <span>{formData.updatedBy.username}</span>
+                                <span>{formData.updatedBy && formData.updatedBy.username}</span>
                             </div>
                         </div>
                         <div className="flex items-center">
@@ -131,7 +131,7 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
                                 {formData.updatedAt}
                             </div>
                         </div>
-                    </div>
+                    </div>}
                     <FormField
                         control={form.control}
                         name="title"
