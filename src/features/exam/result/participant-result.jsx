@@ -13,6 +13,7 @@ import hljs from "highlight.js"
 import "highlight.js/styles/default.css"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
+import { CodeHighlighter } from "@/components/layout/editor-code/code-highlighter"
 
 export function ParticipantResult({ participant, code, toggleParticipantList, isParticipantListOpen }) {
   const { apiCall } = useAuth()
@@ -25,12 +26,12 @@ export function ParticipantResult({ participant, code, toggleParticipantList, is
   const [copied, setCopied] = useState(false)
   const [submitted, setSubmitted] = useState(null)
 
-  useEffect(() => {
-    document.querySelectorAll("pre code").forEach((block) => {
-      if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
-        hljs.highlightElement(block)
-    })
-  }, [submitted])
+  // useEffect(() => {
+  //   document.querySelectorAll("pre code").forEach((block) => {
+  //     if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
+  //       hljs.highlightElement(block)
+  //   })
+  // }, [submitted])
 
   useEffect(() => {
     setCopied(false)
@@ -39,6 +40,7 @@ export function ParticipantResult({ participant, code, toggleParticipantList, is
   const handleCopyClipBoard = async () => {
     const success = await copyToClipboard(submitted.code)
     setCopied(success)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   const goToNextProblem = () => {
@@ -286,11 +288,16 @@ export function ParticipantResult({ participant, code, toggleParticipantList, is
                           </Button>
                         </div>
                       </div>
-                      <div className={cn("p-4 overflow-hidden transition-all duration-300", isExpanded ? "h-auto" : "max-h-[230px]")}>
+                      {/* <div className={cn("p-4 overflow-hidden transition-all duration-300", isExpanded ? "h-auto" : "max-h-[230px]")}>
                         <pre className="text-sm">
                           <code>{submitted.code}</code>
                         </pre>
-                      </div>
+                      </div> */}
+                      <CodeHighlighter className={cn("p-4 overflow-hidden transition-all duration-300", isExpanded ? "h-auto" : "max-h-[300px]")}
+                        code={submitted.code}
+                        language="java"
+                        showLineNumbers={false}
+                      />
                       {submitted.code && submitted.code.split("\n").length > 10 && (
                         <div className="border-t border-border p-2 text-center">
                           <Button

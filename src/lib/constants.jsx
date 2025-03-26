@@ -1,5 +1,5 @@
 import React from "react"
-import logo from "@/assets/images/logo/kodeholik_logo.png"
+import logo from "@/assets/images/logo/K_nobg.png"
 
 const LOGO = React.forwardRef(({ className, ...props }, ref) => {
   return <img src={logo} className={className} alt="Kodeholik" ref={ref} {...props} />

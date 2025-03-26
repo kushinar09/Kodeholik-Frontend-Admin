@@ -25,6 +25,9 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json()
         setIsAuthenticated(true)
         setUser(data)
+        if (data.role === ROLES.STUDENT) {
+          logout(true)
+        }
       } else {
         setIsAuthenticated(false)
         setUser(null)
