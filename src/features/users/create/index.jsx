@@ -158,7 +158,7 @@ export default function CreateUser({ onNavigate }) {
                   <div className="w-full h-full">
                     <img
                       src={imagePreview || "/placeholder.svg"}
-                      alt="Course preview"
+                      alt="User preview"
                       className="w-full h-full object-cover"
                     />
                   </div>
