@@ -191,7 +191,7 @@ export default function EditUser({ onNavigate, setCurrentTitleUser }) {
           <div className="flex md:flex-row gap-4">
             <div className="lg:w-2/5 space-y-4 w-full md:w-1/2">
               <div className="flex items-center justify-between mb-2">
-                <h4 className={`text-sm font-medium ${!errorImage ? "text-black" : "text-red-500"}`}>Avatar</h4>
+                <h4 className={`text-sm font-medium ${!errorImage ? "text-black" : "text-red-500"}`}>Avatar (Only accept file with .jpg, .jpeg or .png extension)</h4>
                 <input
                   type="file"
                   id="imageUpload"

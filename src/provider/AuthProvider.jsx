@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }) => {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "http://localhost:5174",
+          "Access-Control-Allow-Origin": "http://localhost:81",
           "Access-Control-Allow-Credentials": "true"
         },
         body: JSON.stringify(credentials)
@@ -122,7 +122,7 @@ export const AuthProvider = ({ children }) => {
 
     options.headers = {
       ...(options.headers || {}),
-      "Access-Control-Allow-Origin": ENDPOINTS.FRONTEND,
+      "Access-Control-Allow-Origin": "http://localhost:81",
       "Access-Control-Allow-Credentials": "true"
     }
     options.credentials = "include"

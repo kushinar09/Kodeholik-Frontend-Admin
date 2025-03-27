@@ -19,7 +19,7 @@ RUN yarn build
 # Chạy Nginx để serve frontend
 FROM nginx:alpine
 
-# Copy file build từ stage build
+# Copy file build từ stage `build`
 
 # Gán quyền cho thư mục chứa file tĩnh
 RUN chmod -R 755 /usr/share/nginx/html

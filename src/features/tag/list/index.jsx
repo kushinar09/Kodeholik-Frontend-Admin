@@ -92,7 +92,7 @@ export default function TagList({ onNavigate }) {
     setIsLoading(true)
     try {
       await editTag(apiCall, tag, tag.id)
-      toast.success("Tag created successfully")
+      toast.success("Tag edited successfully")
       setIsEditDialogOpen(false)
       if (tag.type === "SKILL") {
         requestData.type = "SKILL"
