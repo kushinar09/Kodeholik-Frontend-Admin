@@ -16,7 +16,7 @@ import { ENDPOINTS } from "@/lib/constants"
 import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor"
 
 const formSchema = z.object({
-  title: z.string().min(10, "Title must be at least 10 characters").max(200, "Title must be less than 200 characters"),
+  title: z.string().min(1, "Title must be not empty").max(200, "Title must be less than 200 characters"),
   difficulty: z.enum(["EASY", "MEDIUM", "HARD"]),
   description: z
     .string()
@@ -139,7 +139,7 @@ export function ProblemDetails({ formData, updateFormData, onNext }) {
               <FormItem>
                 <FormLabel>Problem Description</FormLabel>
                 <FormControl>
-                  <div className="border rounded-md h-fit">
+                  <div className="border rounded-md h-[400px] flex">
                     <MarkdownEditor value={field.value} onChange={field.onChange} />
                   </div>
                 </FormControl>

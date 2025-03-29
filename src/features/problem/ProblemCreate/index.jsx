@@ -11,9 +11,11 @@ import { TestCases } from "./components/test-cases"
 import { ENDPOINTS } from "@/lib/constants"
 import { useAuth } from "@/provider/AuthProvider"
 import { toast } from "sonner"
+import LoadingScreen from "@/components/layout/loading"
 
 export default function ProblemCreator({ onNavigate }) {
   const { apiCall } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
 
   const [activeStep, setActiveStep] = useState("details")
   const [formData, setFormData] = useState({
@@ -79,6 +81,7 @@ export default function ProblemCreator({ onNavigate }) {
   }
 
   const handleSubmit = async () => {
+    setIsLoading(true)
     try {
       const problemBasicAddDto = {
         title: formData.details.title,
@@ -160,10 +163,14 @@ export default function ProblemCreator({ onNavigate }) {
       toast.error("Error", {
         description: error.message || "Error in creat problem. Please try again."
       })
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  return (
+  return isLoading ? (
+    <LoadingScreen />
+  ) : (
     <div className="container mx-auto px-4 mt-4">
       {/* Progress Indicator */}
       <div className="mb-8">
@@ -181,7 +188,9 @@ export default function ProblemCreator({ onNavigate }) {
             label="Input Parameters"
             active={activeStep === "parameters"}
             completed={completedSteps.parameters}
-            onClick={() => (completedSteps.details ? setActiveStep("parameters") : null)}
+            onClick={() =>
+              completedSteps.details ? setActiveStep("parameters") : null
+            }
             disabled={!completedSteps.details}
           />
           <StepDivider />
@@ -190,7 +199,9 @@ export default function ProblemCreator({ onNavigate }) {
             label="Editorial"
             active={activeStep === "editorial"}
             completed={completedSteps.editorial}
-            onClick={() => (completedSteps.parameters ? setActiveStep("editorial") : null)}
+            onClick={() =>
+              completedSteps.parameters ? setActiveStep("editorial") : null
+            }
             disabled={!completedSteps.parameters}
           />
           <StepDivider />
@@ -199,7 +210,9 @@ export default function ProblemCreator({ onNavigate }) {
             label="Test Cases"
             active={activeStep === "testcases"}
             completed={completedSteps.testcases}
-            onClick={() => (completedSteps.editorial ? setActiveStep("testcases") : null)}
+            onClick={() =>
+              completedSteps.editorial ? setActiveStep("testcases") : null
+            }
             disabled={!completedSteps.editorial}
           />
         </div>
@@ -207,9 +220,11 @@ export default function ProblemCreator({ onNavigate }) {
 
       <Card className="mb-8">
         <CardContent className="pt-6">
-          <Tabs value={activeStep} onValueChange={(val) => {
-            setActiveStep(val)
-          }}
+          <Tabs
+            value={activeStep}
+            onValueChange={(val) => {
+              setActiveStep(val);
+            }}
           >
             <TabsContent value="details">
               <ProblemDetails

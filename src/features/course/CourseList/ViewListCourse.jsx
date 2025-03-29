@@ -110,7 +110,7 @@ function CourseList({ onNavigate }) {
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col">
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow">
         <Card className="border-border-muted bg-bg-card shadow-lg">
           <CardHeader className="pb-4 border-b border-border-muted">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
