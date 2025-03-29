@@ -112,6 +112,7 @@ const ENDPOINTS = {
   GET_EXAM_LIST_PARTICIPANT: `${API_URL}/examiner/list-participant/`,
   GET_EXAM_PARTICIPANT_RESULT: `${API_URL}/examiner/result/`,
   GET_EXAM_OVERVIEW: `${API_URL}/examiner/result-overview/:code`,
+  GET_DOWNLOAD_EXAM_RESULT: `${API_URL}/examiner/result-excel/:code`,
 
   //User
   POST_USER_LIST_FOR_ADMIN: `${API_URL}/admin/list-user`,
