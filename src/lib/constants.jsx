@@ -42,6 +42,10 @@ const ENDPOINTS = {
   GET_CHECK_RESET_TOKEN: `${API_URL}/auth/reset-password-check?token=:token`,
   POST_RESET_PASSWORD: `${API_URL}/auth/reset-password-finish?token=:token`,
 
+  // Overview
+  GET_PROBLEM_OVERVIEW: `${API_URL}/problem/overview-report`,
+  GET_COURSE_OVERVIEW: `${API_URL}/course/overview-report`,
+
   // Problems
   POST_PROBLEMS_LIST: `${API_URL}/problem/search`,
   GET_PROBLEM_DESCRIPTION: `${API_URL}/problem/description/:id`,
