@@ -100,7 +100,7 @@ export async function addUser(apiCall, body) {
       try {
         const errorData = await response.json();
         toast.error("Error", {
-          description: errorData.message,
+          description: "Failed to add user. Please check all the field again",
           variant: "destructive"
         });
       } catch (error) {
@@ -131,7 +131,7 @@ export async function editUser(apiCall, body, id) {
       try {
         const errorData = await response.json();
         toast.error("Error", {
-          description: errorData.message,
+          description: "Failed to add user. Please check all the field again",
           variant: "destructive"
         });
       } catch (error) {
