@@ -9,6 +9,14 @@ const AuthContext = createContext()
 
 const notCallRotateTokenEndpoints = [ENDPOINTS.ROTATE_TOKEN, ENDPOINTS.POST_LOGOUT, ENDPOINTS.POST_LOGIN]
 
+// Add a list of endpoints that should not redirect to error pages
+const noRedirectToErrorEndpoints = [
+  ENDPOINTS.GET_INFOR,
+  ENDPOINTS.POST_LOGIN,
+  ENDPOINTS.ROTATE_TOKEN,
+  ENDPOINTS.POST_LOGOUT
+]
+
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -66,7 +74,7 @@ export const AuthProvider = ({ children }) => {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "http://localhost:81",
+          "Access-Control-Allow-Origin": ENDPOINTS.FRONTEND,
           "Access-Control-Allow-Credentials": "true"
         },
         body: JSON.stringify(credentials)
@@ -122,7 +130,7 @@ export const AuthProvider = ({ children }) => {
 
     options.headers = {
       ...(options.headers || {}),
-      "Access-Control-Allow-Origin": "http://localhost:81",
+      "Access-Control-Allow-Origin": ENDPOINTS.FRONTEND,
       "Access-Control-Allow-Credentials": "true"
     }
     options.credentials = "include"
@@ -134,6 +142,11 @@ export const AuthProvider = ({ children }) => {
         return response
       }
 
+      // Check if this endpoint should skip error redirects
+      const shouldSkipErrorRedirect = noRedirectToErrorEndpoints.some(
+        (endpoint) => url === endpoint || url.startsWith(endpoint)
+      )
+
       if (response.status === 401 && !notCallRotateTokenEndpoints.includes(url)) {
         console.warn("Access token expired. Attempting refresh...")
 
@@ -144,11 +157,28 @@ export const AuthProvider = ({ children }) => {
           response = await fetch(url, options)
           return response
         } else {
-          // Handle different error statuses
-          switch (status) {
-            case 401:
-              navigate("/401")
-              break
+          // Handle different error statuses, but only if not in the noRedirect list
+          if (!shouldSkipErrorRedirect) {
+            switch (status) {
+              case 401:
+                navigate("/401")
+                break
+              case 403:
+                navigate("/403")
+                break
+              case 404:
+                navigate("/404")
+                break
+              default:
+                navigate("/500")
+            }
+          }
+          return response
+        }
+      } else {
+        // Handle other error statuses, but only if not in the noRedirect list
+        if (!shouldSkipErrorRedirect) {
+          switch (response.status) {
             case 403:
               navigate("/403")
               break
@@ -156,28 +186,26 @@ export const AuthProvider = ({ children }) => {
               navigate("/404")
               break
             default:
-              navigate("/500")
+              if (response.status >= 500) {
+                navigate("/500")
+              }
           }
-          return response // Return the response even in error cases
-        }
-      } else {
-        // Handle other error statuses
-        switch (response.status) {
-          case 403:
-            navigate("/403")
-            break
-          case 404:
-            navigate("/404")
-            break
-          default:
-            if (response.status >= 500) {
-              navigate("/500")
-            }
         }
         return response // Return the response
       }
     } catch (error) {
       console.warn("API call error:", error)
+
+      // Check if this endpoint should skip error redirects for network errors
+      const shouldSkipErrorRedirect = noRedirectToErrorEndpoints.some(
+        (endpoint) => url === endpoint || url.startsWith(endpoint)
+      )
+
+      // Only navigate to error page if not in the noRedirect list
+      if (!shouldSkipErrorRedirect) {
+        navigate("/500")
+      }
+
       throw error
     }
   }

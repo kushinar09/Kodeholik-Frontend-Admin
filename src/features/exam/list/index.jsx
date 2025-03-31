@@ -12,9 +12,9 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { Plus, MoreHorizontal, Pencil, Trash, ArrowDown, ArrowUp, StopCircleIcon } from "lucide-react"
+import { Plus, MoreHorizontal, Pencil, Trash, ArrowDown, ArrowUp, StopCircleIcon, Download } from "lucide-react"
 import { useAuth } from "@/provider/AuthProvider"
 import { deleteExamForExaminer, getListExamForExaminer } from "@/lib/api/exam_api"
 import { cn } from "@/lib/utils"
@@ -22,13 +22,14 @@ import { FilterBar } from "./components/filter-list"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import ExamOverviewDialog from "./components/exam-overview-dialog"
+import { ENDPOINTS } from "@/lib/constants"
 
 const ExamStatus = {
   DRAFT: "DRAFT",
   PUBLISHED: "PUBLISHED",
   ONGOING: "ONGOING",
   COMPLETED: "COMPLETED",
-  CANCELLED: "CANCELLED",
+  CANCELLED: "CANCELLED"
 }
 
 const requestData = {
@@ -39,7 +40,7 @@ const requestData = {
   start: null,
   end: null,
   sortBy: "createdAt",
-  ascending: false,
+  ascending: false
 }
 
 const mockExams = [
@@ -52,8 +53,8 @@ const mockExams = [
     endTime: Date.now() + 172800000, // Day after tomorrow
     status: ExamStatus.PUBLISHED,
     createdBy: { id: 1, username: "John Doe", avatar: "john@example.com" },
-    createdAt: Date.now() - 86400000, // Yesterday
-  },
+    createdAt: Date.now() - 86400000 // Yesterday
+  }
   // Add more mock exams as needed
 ]
 
@@ -72,7 +73,7 @@ export default function ExamList({ onNavigate }) {
   const [ascending, setAscending] = useState(false)
   const [filters, setFilters] = useState({
     search: "",
-    status: "",
+    status: ""
   })
   const [isOverviewDialogOpen, setIsOverviewDialogOpen] = useState(false)
   const [selectedExamCode, setSelectedExamCode] = useState(null)
@@ -169,13 +170,37 @@ export default function ExamList({ onNavigate }) {
     setIsOverviewDialogOpen(true)
   }
 
+  const handleDownloadResult = async (examCode) => {
+    try {
+      const response = await apiCall(ENDPOINTS.GET_DOWNLOAD_EXAM_RESULT.replace(":code", examCode))
+
+      if (!response.ok) {
+        throw new Error("Failed to download file")
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `exam_result_${examCode}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      toast.error("Download error", {
+        description: error
+      })
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Exams</h2>
         <FilterBar onFilterChange={handleFilterChange} status={allStatuses} />
         <Button onClick={() => onNavigate("/exam/create")}>
-          <Plus className="mr-2 h-4 w-4" /> Create Exam
+          <Plus className="h-4 w-4" /> Create Exam
         </Button>
       </div>
       <div className="flex items-center">
@@ -327,28 +352,37 @@ export default function ExamList({ onNavigate }) {
                         </DropdownMenuItem>
                       )}
                       {exam.status === "END" && exam.noParticipant > 0 && (
-                        <DropdownMenuItem
-                          className="cursor-pointer"
-                          onClick={() => onNavigate("/exam/result/" + exam.code)}
-                        >
-                          <svg
-                            className="mr-2 h-4 w-4 text-black"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            strokeWidth="2"
-                            stroke="currentColor"
-                            fill="none"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                        <>
+                          <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={() => onNavigate("/exam/result/" + exam.code)}
                           >
-                            {" "}
-                            <path stroke="none" d="M0 0h24v24H0z" /> <rect x="5" y="3" width="14" height="18" rx="2" />{" "}
-                            <line x1="9" y1="7" x2="15" y2="7" /> <line x1="9" y1="11" x2="15" y2="11" />{" "}
-                            <line x1="9" y1="15" x2="13" y2="15" />
-                          </svg>
-                          View Result
-                        </DropdownMenuItem>
+                            <svg
+                              className="h-4 w-4 text-black"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              strokeWidth="2"
+                              stroke="currentColor"
+                              fill="none"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              {" "}
+                              <path stroke="none" d="M0 0h24v24H0z" /> <rect x="5" y="3" width="14" height="18" rx="2" />{" "}
+                              <line x1="9" y1="7" x2="15" y2="7" /> <line x1="9" y1="11" x2="15" y2="11" />{" "}
+                              <line x1="9" y1="15" x2="13" y2="15" />
+                            </svg>
+                            View Result
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={() => handleDownloadResult(exam.code)}
+                          >
+                            <Download className="size-4" />
+                            Download
+                          </DropdownMenuItem>
+                        </>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -391,7 +425,7 @@ export default function ExamList({ onNavigate }) {
                       onClick={() => handlePageChange(index + 1)}
                       className={cn(
                         "text-primary font-bold hover:bg-primary transition hover:text-white",
-                        currentPage === index + 1 && "bg-button-primary text-white bg-primary hover:bg-button-hover",
+                        currentPage === index + 1 && "bg-button-primary text-white bg-primary hover:bg-button-hover"
                       )}
                     >
                       {index + 1}

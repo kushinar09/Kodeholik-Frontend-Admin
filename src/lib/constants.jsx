@@ -42,6 +42,10 @@ const ENDPOINTS = {
   GET_CHECK_RESET_TOKEN: `${API_URL}/auth/reset-password-check?token=:token`,
   POST_RESET_PASSWORD: `${API_URL}/auth/reset-password-finish?token=:token`,
 
+  // Overview
+  GET_PROBLEM_OVERVIEW: `${API_URL}/problem/overview-report`,
+  GET_COURSE_OVERVIEW: `${API_URL}/course/overview-report`,
+
   // Problems
   POST_PROBLEMS_LIST: `${API_URL}/problem/search`,
   GET_PROBLEM_DESCRIPTION: `${API_URL}/problem/description/:id`,
@@ -112,6 +116,7 @@ const ENDPOINTS = {
   GET_EXAM_LIST_PARTICIPANT: `${API_URL}/examiner/list-participant/`,
   GET_EXAM_PARTICIPANT_RESULT: `${API_URL}/examiner/result/`,
   GET_EXAM_OVERVIEW: `${API_URL}/examiner/result-overview/:code`,
+  GET_DOWNLOAD_EXAM_RESULT: `${API_URL}/examiner/result-excel/:code`,
 
   //User
   POST_USER_LIST_FOR_ADMIN: `${API_URL}/admin/list-user`,
