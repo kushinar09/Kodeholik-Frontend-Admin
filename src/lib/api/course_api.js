@@ -182,6 +182,7 @@ export async function updateCourse(id, courseData, imageFile, apiCall) {
   }
 
   try {
+    console.log(formData);
     const response = await apiCall(ENDPOINTS.UPDATE_COURSE.replace(":id", id), {
       method: "PUT",
       credentials: "include",
