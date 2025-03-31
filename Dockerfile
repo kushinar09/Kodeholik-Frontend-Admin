@@ -1,25 +1,31 @@
-# Dùng node.js để build ứng dụng
-FROM node:18 as build
+# Build frontend bằng NodeJS
+FROM node:lts-alpine AS build
 
-# Đặt thư mục làm việc
+# Thiết lập thư mục làm việc
 WORKDIR /app
 
-# Copy file package.json và cài đặt dependencies
-COPY package.json package-lock.json ./
-RUN npm install
+# Copy file package.json và yarn.lock trước để cài đặt dependencies trước (tăng tốc build)
+COPY package*.json yarn.lock ./
 
-# Copy toàn bộ source code và build
+# Cài đặt dependencies
+RUN yarn install --frozen-lockfile
+
+# Copy toàn bộ code
 COPY . .
-RUN npm run build
 
-# Dùng nginx để phục vụ static files
-FROM nginx:latest
+# Build ứng dụng React (Vite)
+RUN yarn build
 
-# Copy build từ container node vào nginx
-COPY --from=build /app/build /usr/share/nginx/html
+# Chạy Nginx để serve frontend
+FROM nginx:alpine
+
+# Copy file build từ stage build
+
+# Gán quyền cho thư mục chứa file tĩnh
+RUN chmod -R 755 /usr/share/nginx/html
 
 # Mở port 80
-EXPOSE 5123
+EXPOSE 80
 
-# Chạy nginx
+# Chạy Nginx
 CMD ["nginx", "-g", "daemon off;"]
