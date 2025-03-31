@@ -121,7 +121,7 @@ export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
               <FormItem>
                 <FormLabel>Problem Description</FormLabel>
                 <FormControl>
-                  <div className="border rounded-md h-fit">
+                  <div className="border rounded-md h-[400px] flex">
                     <MarkdownEditor value={field.value} onChange={field.onChange} />
                   </div>
                 </FormControl>

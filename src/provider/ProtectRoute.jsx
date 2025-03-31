@@ -5,7 +5,7 @@ import { useAuth } from "./AuthProvider"
 import LoadingScreen from "@/components/layout/loading"
 
 export const ProtectedRoute = ({ allowedRoles, children }) => {
-  const { isAuthenticated, user, isLoading } = useAuth()
+  const { isAuthenticated, user, isLoading, logout } = useAuth()
   const location = useLocation()
 
   if (isLoading) {
@@ -14,6 +14,7 @@ export const ProtectedRoute = ({ allowedRoles, children }) => {
 
   // Redirect to login if not authenticated
   if (!isAuthenticated || !user) {
+    logout()
     return (
       <Navigate
         to="/login"
@@ -28,7 +29,7 @@ export const ProtectedRoute = ({ allowedRoles, children }) => {
 
   // Check role-based access
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    console.log("Access denied: User role not in allowed roles")
+    console.error("Access denied: User role not in allowed roles")
     return <Navigate to="/403" replace />
   }
 

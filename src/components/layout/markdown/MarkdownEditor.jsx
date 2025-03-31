@@ -92,7 +92,7 @@ const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
   useEffect(() => {
     document.querySelectorAll("pre code").forEach((block) => {
       if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
-        hljs.highlightBlock(block)
+        hljs.highlightElement(block)
     })
     if (onChange) onChange(markdownContent)
   }, [markdownContent])
@@ -442,7 +442,7 @@ const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
   }
 
   return (
-    <div className="flex flex-col bg-background h-full w-full">
+    <div className="flex flex-col bg-background min-h-full w-full">
       <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
 
       <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>

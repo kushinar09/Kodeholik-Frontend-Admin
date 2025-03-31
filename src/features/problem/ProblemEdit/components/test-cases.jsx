@@ -11,6 +11,8 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import LoadingScreen from "@/components/layout/loading"
 import { useAuth } from "@/provider/AuthProvider"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import ExcelUploadGuidePage from "../../ProblemCreate/components/guide-testcase"
 
 const formSchema = z.object({
   testCase: z.instanceof(File, { message: "Test case file is required" }).nullable()
@@ -112,21 +114,32 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit, urlG
             <CardTitle>Test Cases</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex space-x-4">
-              <Button type="button" variant="secondary" onClick={handleDownload} className="flex items-center">
-                <Download className="h-4 w-4 mr-2" />
-                Get Current Test Case
-              </Button>
+            <div className="flex justify-between">
+              <div className="flex space-x-4">
+                <Button type="button" variant="secondary" onClick={handleDownload} className="flex items-center">
+                  <Download className="h-4 w-4 mr-2" />
+                  Get Current Test Case
+                </Button>
 
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowFileUpload(!showFileUpload)}
-                className="flex items-center"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                {showFileUpload ? "Cancel Upload" : "Change File"}
-              </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowFileUpload(!showFileUpload)}
+                  className="flex items-center"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {showFileUpload ? "Cancel Upload" : "Change File"}
+                </Button>
+              </div>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline">Open Guide</Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[80vh] overflow-auto sm:max-w-[500px] md:max-w-[600px] lg:max-w-[900px] xl:max-w-[1200px]">
+                  <ExcelUploadGuidePage />
+                </DialogContent>
+              </Dialog>
             </div>
 
             {showFileUpload && (

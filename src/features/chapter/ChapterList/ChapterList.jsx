@@ -7,12 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { GLOBALS } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { Search, Plus, Edit } from "lucide-react"
+import { Search, Plus, Edit, MoreHorizontal } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
-function ChapterList() {
+function ChapterList({ onNavigate }) {
   const [chapters, setChapters] = useState([])
   const [courseId, setCourseId] = useState(1)
   const [courses, setCourses] = useState([])
@@ -143,7 +144,7 @@ function ChapterList() {
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col">
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow">
         <Card className="border-border-muted bg-bg-card shadow-lg">
           <CardHeader className="pb-4 border-b border-border-muted">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -266,16 +267,22 @@ function ChapterList() {
                         <TableCell className="text-text-primary">{chapter.courseId}</TableCell>
                         <TableCell>{getStatusBadge(chapter.status)}</TableCell>
                         <TableCell>
-                          <Link to={`/chapter/${chapter.id}`}>
-                            <Button
-                              variant="outline"
-                              className="border-primary text-primary hover:bg-primary hover:text-white transition-colors"
-                              size="sm"
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                          </Link>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem className="cursor-pointer"
+                                onClick={() => onNavigate(`/chapter/${chapter.id}`)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}

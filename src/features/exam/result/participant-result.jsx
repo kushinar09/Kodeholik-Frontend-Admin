@@ -3,17 +3,19 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Clock, CheckCircle, ChevronLeft, ChevronRight, Check, Copy, RotateCw, Cpu, Info } from "lucide-react"
+import { Clock, CheckCircle, ChevronLeft, ChevronRight, Check, Copy, RotateCw, Cpu, Info, Menu, ArrowLeft } from "lucide-react"
 import { getParticipantResultInExam } from "@/lib/api/exam_api"
 import { useAuth } from "@/provider/AuthProvider"
 import LoadingScreen from "@/components/layout/loading"
 import { formatValue, copyToClipboard } from "@/lib/utils/format-utils"
 import { cn } from "@/lib/utils"
 import hljs from "highlight.js"
+import "highlight.js/styles/default.css"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
+import { CodeHighlighter } from "@/components/layout/editor-code/code-highlighter"
 
-export function ParticipantResult({ participant, code }) {
+export function ParticipantResult({ participant, code, toggleParticipantList, isParticipantListOpen }) {
   const { apiCall } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0)
@@ -24,20 +26,21 @@ export function ParticipantResult({ participant, code }) {
   const [copied, setCopied] = useState(false)
   const [submitted, setSubmitted] = useState(null)
 
-  useEffect(() => {
-    document.querySelectorAll("pre code").forEach((block) => {
-      if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
-        hljs.highlightBlock(block)
-    })
-  }, [code])
+  // useEffect(() => {
+  //   document.querySelectorAll("pre code").forEach((block) => {
+  //     if (!(block.hasAttribute("data-highlighted") && block.getAttribute("data-highlighted") == "yes"))
+  //       hljs.highlightElement(block)
+  //   })
+  // }, [submitted])
 
   useEffect(() => {
     setCopied(false)
   }, [])
 
   const handleCopyClipBoard = async () => {
-    const success = await copyToClipboard(code)
+    const success = await copyToClipboard(submitted.code)
     setCopied(success)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   const goToNextProblem = () => {
@@ -89,6 +92,16 @@ export function ParticipantResult({ participant, code }) {
         <div className="space-y-6">
           <div className="flex flex-col justify-between">
             <div className="flex items-center">
+              <div className="flex gap-2 items-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mr-2 md:flex md:items-center md:gap-2"
+                  onClick={toggleParticipantList}
+                >
+                  {isParticipantListOpen ? <ChevronLeft className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+                </Button>
+              </div>
               <h2 className="text-2xl font-bold">{participant.username} ({participant.fullname})</h2>
               {
                 participant.grade < 6 &&
@@ -275,11 +288,16 @@ export function ParticipantResult({ participant, code }) {
                           </Button>
                         </div>
                       </div>
-                      <div className={cn("overflow-hidden transition-all duration-300", isExpanded ? "h-auto" : "max-h-[230px]")}>
+                      {/* <div className={cn("p-4 overflow-hidden transition-all duration-300", isExpanded ? "h-auto" : "max-h-[230px]")}>
                         <pre className="text-sm">
                           <code>{submitted.code}</code>
                         </pre>
-                      </div>
+                      </div> */}
+                      <CodeHighlighter className={cn("p-4 overflow-hidden transition-all duration-300", isExpanded ? "h-auto" : "max-h-[300px]")}
+                        code={submitted.code}
+                        language="java"
+                        showLineNumbers={false}
+                      />
                       {submitted.code && submitted.code.split("\n").length > 10 && (
                         <div className="border-t border-border p-2 text-center">
                           <Button

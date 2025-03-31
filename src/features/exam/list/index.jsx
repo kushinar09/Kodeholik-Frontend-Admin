@@ -14,13 +14,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { Plus, MoreHorizontal, Pencil, Trash, ArrowDown, ArrowUp, StopCircleIcon } from "lucide-react"
+import { Plus, MoreHorizontal, Pencil, Trash, ArrowDown, ArrowUp, StopCircleIcon, Download } from "lucide-react"
 import { useAuth } from "@/provider/AuthProvider"
 import { deleteExamForExaminer, getListExamForExaminer } from "@/lib/api/exam_api"
 import { cn } from "@/lib/utils"
 import { FilterBar } from "./components/filter-list"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import ExamOverviewDialog from "./components/exam-overview-dialog"
+import { ENDPOINTS } from "@/lib/constants"
+
 const ExamStatus = {
   DRAFT: "DRAFT",
   PUBLISHED: "PUBLISHED",
@@ -72,15 +75,15 @@ export default function ExamList({ onNavigate }) {
     search: "",
     status: ""
   })
-
+  const [isOverviewDialogOpen, setIsOverviewDialogOpen] = useState(false)
+  const [selectedExamCode, setSelectedExamCode] = useState(null)
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters)
     requestData.title = newFilters.title
     if (newFilters.status === "all") {
       requestData.status = null
-    }
-    else {
+    } else {
       requestData.status = newFilters.status
     }
     requestData.title = newFilters.search
@@ -98,8 +101,7 @@ export default function ExamList({ onNavigate }) {
       if (data == null) {
         setNoContent(true)
         setTotalElements(0)
-      }
-      else {
+      } else {
         setExams(data.content)
         setTotalPages(data.totalPages)
         setNoContent(false)
@@ -148,13 +150,11 @@ export default function ExamList({ onNavigate }) {
     }
   }
 
-
   const handleSort = (sort) => {
     if (sortBy == sort) {
       setAscending(!ascending)
       requestData.ascending = !ascending
-    }
-    else {
+    } else {
       setSortBy(sort)
       setAscending(true)
       requestData.ascending = true
@@ -163,19 +163,44 @@ export default function ExamList({ onNavigate }) {
     requestData.page = 0
     setCurrentPage(1)
     fetchExamList()
+  }
 
+  const handleRowClick = (exam) => {
+    setSelectedExamCode(exam.code)
+    setIsOverviewDialogOpen(true)
+  }
+
+  const handleDownloadResult = async (examCode) => {
+    try {
+      const response = await apiCall(ENDPOINTS.GET_DOWNLOAD_EXAM_RESULT.replace(":code", examCode))
+
+      if (!response.ok) {
+        throw new Error("Failed to download file")
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `exam_result_${examCode}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      toast.error("Download error", {
+        description: error
+      })
+    }
   }
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Exams</h2>
-        <FilterBar
-          onFilterChange={handleFilterChange}
-          status={allStatuses}
-        />
+        <FilterBar onFilterChange={handleFilterChange} status={allStatuses} />
         <Button onClick={() => onNavigate("/exam/create")}>
-          <Plus className="mr-2 h-4 w-4" /> Create Exam
+          <Plus className="h-4 w-4" /> Create Exam
         </Button>
       </div>
       <div className="flex items-center">
@@ -183,9 +208,7 @@ export default function ExamList({ onNavigate }) {
           No Result: <span className="font-semibold">{totalElements}</span>
         </div>
         <div className="flex ml-8 items-center">
-          <div>
-            Size
-          </div>
+          <div>Size</div>
           <div className="ml-4">
             <Select value={size} onValueChange={(value) => handleSizeChange(value)}>
               <SelectTrigger className="w-full md:w-40">
@@ -202,52 +225,56 @@ export default function ExamList({ onNavigate }) {
           </div>
         </div>
       </div>
-      {!noContent &&
+      {!noContent && (
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Code</TableHead>
               <TableHead>Title</TableHead>
-              <TableHead onClick={() => { handleSort("noParticipant") }}>
-                <p className="cursor-pointer">Participants
-                  {sortBy == "noParticipant" && ascending &&
-                    <ArrowUp className="ml-2 h-4 w-4 inline" />
-                  }
-                  {sortBy == "noParticipant" && !ascending &&
-                    <ArrowDown className=" ml-2 h-4 w-4 inline" />
-                  }
+              <TableHead
+                onClick={() => {
+                  handleSort("noParticipant")
+                }}
+              >
+                <p className="cursor-pointer">
+                  Participants
+                  {sortBy == "noParticipant" && ascending && <ArrowUp className="ml-2 h-4 w-4 inline" />}
+                  {sortBy == "noParticipant" && !ascending && <ArrowDown className=" ml-2 h-4 w-4 inline" />}
                 </p>
               </TableHead>
-              <TableHead onClick={() => { handleSort("startTime") }}>
-                <p className="cursor-pointer">Start Time
-                  {sortBy == "startTime" && ascending &&
-                    <ArrowUp className="ml-2 h-4 w-4 inline" />
-                  }
-                  {sortBy == "startTime" && !ascending &&
-                    <ArrowDown className=" ml-2 h-4 w-4 inline" />
-                  }
+              <TableHead
+                onClick={() => {
+                  handleSort("startTime")
+                }}
+              >
+                <p className="cursor-pointer">
+                  Start Time
+                  {sortBy == "startTime" && ascending && <ArrowUp className="ml-2 h-4 w-4 inline" />}
+                  {sortBy == "startTime" && !ascending && <ArrowDown className=" ml-2 h-4 w-4 inline" />}
                 </p>
               </TableHead>
-              <TableHead onClick={() => { handleSort("endTime") }}>
-                <p className="cursor-pointer">End Time
-                  {sortBy == "endTime" && ascending &&
-                    <ArrowUp className="ml-2 h-4 w-4 inline" />
-                  }
-                  {sortBy == "endTime" && !ascending &&
-                    <ArrowDown className=" ml-2 h-4 w-4 inline" />
-                  }
+              <TableHead
+                onClick={() => {
+                  handleSort("endTime")
+                }}
+              >
+                <p className="cursor-pointer">
+                  End Time
+                  {sortBy == "endTime" && ascending && <ArrowUp className="ml-2 h-4 w-4 inline" />}
+                  {sortBy == "endTime" && !ascending && <ArrowDown className=" ml-2 h-4 w-4 inline" />}
                 </p>
               </TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created By</TableHead>
-              <TableHead onClick={() => { handleSort("createdAt") }}>
-                <p className="cursor-pointer">Created At
-                  {sortBy == "createdAt" && ascending &&
-                    <ArrowUp className="ml-2 h-4 w-4 inline" />
-                  }
-                  {sortBy == "createdAt" && !ascending &&
-                    <ArrowDown className=" ml-2 h-4 w-4 inline" />
-                  }
+              <TableHead
+                onClick={() => {
+                  handleSort("createdAt")
+                }}
+              >
+                <p className="cursor-pointer">
+                  Created At
+                  {sortBy == "createdAt" && ascending && <ArrowUp className="ml-2 h-4 w-4 inline" />}
+                  {sortBy == "createdAt" && !ascending && <ArrowDown className=" ml-2 h-4 w-4 inline" />}
                 </p>
               </TableHead>
               <TableHead>Actions</TableHead>
@@ -255,12 +282,14 @@ export default function ExamList({ onNavigate }) {
           </TableHeader>
           <TableBody>
             {exams.map((exam) => (
-              <TableRow key={exam.id}>
+              <TableRow
+                key={exam.id}
+                className={`hover:bg-muted/50 ${exam.status === "END" ? "cursor-pointer" : "cursor-default"}`}
+                onClick={exam.status === "END" ? () => handleRowClick(exam) : undefined}
+              >
                 <TableCell>{exam.code}</TableCell>
                 <TableCell>{exam.title}</TableCell>
-                <TableCell>
-                  {exam.noParticipant}
-                </TableCell>
+                <TableCell>{exam.noParticipant}</TableCell>
                 <TableCell>{exam.startTime}</TableCell>
                 <TableCell>{exam.endTime}</TableCell>
                 <TableCell>
@@ -272,7 +301,7 @@ export default function ExamList({ onNavigate }) {
                 <TableCell>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <img
-                      src={exam.createdBy.avatar}
+                      src={exam.createdBy.avatar || "/placeholder.svg"}
                       alt="avatar"
                       style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
                     />
@@ -281,7 +310,7 @@ export default function ExamList({ onNavigate }) {
                 </TableCell>
 
                 <TableCell>{exam.createdAt}</TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0">
@@ -290,9 +319,10 @@ export default function ExamList({ onNavigate }) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      {exam.status === "NOT_STARTED" &&
+                      {exam.status === "NOT_STARTED" && (
                         <>
-                          <DropdownMenuItem className="cursor-pointer"
+                          <DropdownMenuItem
+                            className="cursor-pointer"
                             onClick={() => onNavigate("/exam/edit/" + exam.code)}
                           >
                             <Pencil className="mr-2 h-4 w-4" />
@@ -305,39 +335,55 @@ export default function ExamList({ onNavigate }) {
                               setIsDeleteDialogOpen(true)
                             }}
                           >
-                            <Trash className="mr-2 h-4 w-4" onClick={() => { handleDeleteExam(exam) }} />Delete
+                            <Trash
+                              className="mr-2 h-4 w-4"
+                              onClick={() => {
+                                handleDeleteExam(exam)
+                              }}
+                            />
+                            Delete
                           </DropdownMenuItem>
                         </>
-                      }
-                      {/* {exam.status === "END" && exam.noParticipant === 0 &&
-                        <>
-                          <DropdownMenuItem
-                            className="cursor-pointer text-red-500 hover:text-red-700 focus:text-red-700"
-                            onClick={() => {
-                              setCurrentExam(exam)
-                              setIsDeleteDialogOpen(true)
-                            }}
-                          >
-                            <Trash className="mr-2 h-4 w-4" onClick={() => { handleDeleteExam(exam) }} />Delete
-                          </DropdownMenuItem>
-                        </>
-                      } */}
-                      {
-                        exam.status === "IN_PROGRESS" && exam.noParticipant > 0 &&
+                      )}
+                      {exam.status === "IN_PROGRESS" && exam.noParticipant > 0 && (
                         <DropdownMenuItem className="cursor-pointer text-red-500 hover:text-red-700 focus:text-red-700">
                           <StopCircleIcon />
                           Force End
                         </DropdownMenuItem>
-                      }
-                      {
-                        exam.status === "END" && exam.noParticipant > 0 &&
-                        <DropdownMenuItem className="cursor-pointer"
-                          onClick={() => onNavigate("/exam/result/" + exam.code)}
-                        >
-                          <svg className="mr-2 h-4 w-4 text-black" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">  <path stroke="none" d="M0 0h24v24H0z" />  <rect x="5" y="3" width="14" height="18" rx="2" />  <line x1="9" y1="7" x2="15" y2="7" />  <line x1="9" y1="11" x2="15" y2="11" />  <line x1="9" y1="15" x2="13" y2="15" /></svg>
-                          View Result
-                        </DropdownMenuItem>
-                      }
+                      )}
+                      {exam.status === "END" && exam.noParticipant > 0 && (
+                        <>
+                          <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={() => onNavigate("/exam/result/" + exam.code)}
+                          >
+                            <svg
+                              className="h-4 w-4 text-black"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              strokeWidth="2"
+                              stroke="currentColor"
+                              fill="none"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              {" "}
+                              <path stroke="none" d="M0 0h24v24H0z" /> <rect x="5" y="3" width="14" height="18" rx="2" />{" "}
+                              <line x1="9" y1="7" x2="15" y2="7" /> <line x1="9" y1="11" x2="15" y2="11" />{" "}
+                              <line x1="9" y1="15" x2="13" y2="15" />
+                            </svg>
+                            View Result
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={() => handleDownloadResult(exam.code)}
+                          >
+                            <Download className="size-4" />
+                            Download
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -345,89 +391,102 @@ export default function ExamList({ onNavigate }) {
             ))}
           </TableBody>
         </Table>
-      }
-      {noContent &&
+      )}
+      {noContent && (
         <div className="flex justify-center mt-6 gap-2">
           <p>No exams found.</p>
         </div>
-      }
+      )}
 
-      {
-        totalPages > 1 && !noContent && (
-          <div className="flex justify-between items-center mt-4 w-full">
-            <div className="flex-1 flex justify-center gap-2">
-              <Button
-                variant="ghost"
-                className="text-primary font-bold hover:bg-primary transition hover:text-white"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              <div className="flex gap-1">
-                {[...Array(totalPages)].map((_, index) => {
-                  // Show limited page numbers with ellipsis for better UX
-                  if (
-                    totalPages <= 5 ||
-                    index === 0 ||
-                    index === totalPages - 1 ||
-                    (index >= currentPage - 1 && index <= currentPage + 1)
-                  ) {
-                    return (
-                      <Button
-                        variant="ghost"
-                        key={index}
-                        onClick={() => handlePageChange(index + 1)}
-                        className={cn(
-                          "text-primary font-bold hover:bg-primary transition hover:text-white",
-                          currentPage === index + 1 && "bg-button-primary text-white bg-primary hover:bg-button-hover"
-                        )}
-                      >
-                        {index + 1}
-                      </Button>
-                    )
-                  } else if (
-                    (index === 1 && currentPage > 3) ||
-                    (index === totalPages - 2 && currentPage < totalPages - 2)
-                  ) {
-                    return (
-                      <Button key={index} variant="ghost" disabled className="text-primary font-bold">
-                        ...
-                      </Button>
-                    )
-                  }
-                  return null
-                })}
-              </div>
-              <Button
-                variant="ghost"
-                className="text-primary font-bold hover:bg-primary transition hover:text-white"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
+      {totalPages > 1 && !noContent && (
+        <div className="flex justify-between items-center mt-4 w-full">
+          <div className="flex-1 flex justify-center gap-2">
+            <Button
+              variant="ghost"
+              className="text-primary font-bold hover:bg-primary transition hover:text-white"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }).map((_, index) => {
+                // Show limited page numbers with ellipsis for better UX
+                if (
+                  totalPages <= 5 ||
+                  index === 0 ||
+                  index === totalPages - 1 ||
+                  (index >= currentPage - 1 && index <= currentPage + 1)
+                ) {
+                  return (
+                    <Button
+                      variant="ghost"
+                      key={`page-${index}`}
+                      onClick={() => handlePageChange(index + 1)}
+                      className={cn(
+                        "text-primary font-bold hover:bg-primary transition hover:text-white",
+                        currentPage === index + 1 && "bg-button-primary text-white bg-primary hover:bg-button-hover"
+                      )}
+                    >
+                      {index + 1}
+                    </Button>
+                  )
+                } else if (
+                  (index === 1 && currentPage > 3) ||
+                  (index === totalPages - 2 && currentPage < totalPages - 2)
+                ) {
+                  return (
+                    <Button key={`ellipsis-${index}`} variant="ghost" disabled className="text-primary font-bold">
+                      ...
+                    </Button>
+                  )
+                }
+                return null
+              })}
             </div>
+            <Button
+              variant="ghost"
+              className="text-primary font-bold hover:bg-primary transition hover:text-white"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
           </div>
-        )
-      }
-
+        </div>
+      )}
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to <span className="text-red-500">DELETE</span> this exam?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Are you sure you want to <span className="text-red-500">DELETE</span> this exam?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently deactive the exam and remove all participants of this exam.
+              This action cannot be undone. This will permanently deactive the exam and remove all participants of this
+              exam.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { handleDeleteExam() }}>Delete</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => {
+                handleDeleteExam()
+              }}
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div >
+
+      <ExamOverviewDialog
+        examCode={selectedExamCode}
+        isOpen={isOverviewDialogOpen}
+        onClose={() => setIsOverviewDialogOpen(false)}
+        apiCall={apiCall}
+      />
+    </div>
   )
 }
 

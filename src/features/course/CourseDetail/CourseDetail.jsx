@@ -9,7 +9,7 @@ import {
   discussionCourse,
   getDiscussionReply,
   upvoteDiscussion,
-  unUpvoteDiscussion,
+  unUpvoteDiscussion
 } from "@/lib/api/course_api"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -92,7 +92,7 @@ function CourseDetail() {
           page: discussionPage,
           size: 5,
           sortBy: discussionSortBy,
-          sortDirection: discussionSortDirection,
+          sortDirection: discussionSortDirection
         })
         const replyPromises = discussionData.content.map((comment) => getDiscussionReply(comment.id).catch(() => []))
         const repliesData = await Promise.all(replyPromises)
@@ -121,7 +121,7 @@ function CourseDetail() {
         time: reply.createdAt,
         avatar: reply.createdBy.avatar || "/placeholder.svg?height=40&width=40",
         likes: reply.noUpvote,
-        liked: reply.voted,
+        liked: reply.voted
       }))
 
       return {
@@ -133,7 +133,7 @@ function CourseDetail() {
         likes: comment.noUpvote,
         liked: comment.voted,
         replies: repliesWithAvatars,
-        showReplies: false,
+        showReplies: false
       }
     })
   }
@@ -165,7 +165,7 @@ function CourseDetail() {
       const data = {
         comment: newMessage,
         courseId: Number.parseInt(id),
-        commentReply: replyingTo ? Number.parseInt(replyingTo.id) : null,
+        commentReply: replyingTo ? Number.parseInt(replyingTo.id) : null
       }
       await discussionCourse(data)
       setNewMessage("")
@@ -175,7 +175,7 @@ function CourseDetail() {
         page: discussionPage,
         size: 5,
         sortBy: discussionSortBy,
-        sortDirection: discussionSortDirection,
+        sortDirection: discussionSortDirection
       })
       const replyPromises = discussionData.content.map((comment) => getDiscussionReply(comment.id).catch(() => []))
       const repliesData = await Promise.all(replyPromises)
@@ -202,24 +202,24 @@ function CourseDetail() {
               ...msg,
               replies: msg.replies.map((reply) =>
                 reply.id === messageId
-                  ? { 
-                      ...reply, 
-                      liked: !reply.liked,
-                      likes: reply.liked ? reply.likes - 1 : reply.likes + 1
-                    }
+                  ? {
+                    ...reply,
+                    liked: !reply.liked,
+                    likes: reply.liked ? reply.likes - 1 : reply.likes + 1
+                  }
                   : reply
-              ),
-            };
+              )
+            }
           }
           if (!isReply && msg.id === messageId) {
             return {
               ...msg,
               liked: !msg.liked,
-              likes: msg.liked ? msg.likes - 1 : msg.likes + 1,
+              likes: msg.liked ? msg.likes - 1 : msg.likes + 1
             }
           }
           return msg
-        }),
+        })
       )
 
       if (!message.liked) {
@@ -235,24 +235,24 @@ function CourseDetail() {
               ...msg,
               replies: msg.replies.map((reply) =>
                 reply.id === messageId
-                  ? { 
-                      ...reply, 
-                      liked: !reply.liked,
-                      likes: reply.liked ? reply.likes - 1 : reply.likes + 1
-                    }
+                  ? {
+                    ...reply,
+                    liked: !reply.liked,
+                    likes: reply.liked ? reply.likes - 1 : reply.likes + 1
+                  }
                   : reply
-              ),
-            };
+              )
+            }
           }
           if (!isReply && msg.id === messageId) {
             return {
               ...msg,
               liked: !msg.liked,
-              likes: msg.liked ? msg.likes - 1 : msg.likes + 1,
+              likes: msg.liked ? msg.likes - 1 : msg.likes + 1
             }
           }
           return msg
-        }),
+        })
       )
       setDiscussionError(`Failed to toggle like: ${error.message}`)
     }
@@ -260,7 +260,7 @@ function CourseDetail() {
 
   const toggleReplies = (messageId) => {
     setMessages((prevMessages) =>
-      prevMessages.map((msg) => (msg.id === messageId ? { ...msg, showReplies: !msg.showReplies } : msg)),
+      prevMessages.map((msg) => (msg.id === messageId ? { ...msg, showReplies: !msg.showReplies } : msg))
     )
   }
 

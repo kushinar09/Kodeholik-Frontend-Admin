@@ -1,5 +1,5 @@
 import React from "react"
-import logo from "@/assets/images/logo/kodeholik_logo.png"
+import logo from "@/assets/images/logo/K_nobg.png"
 
 const LOGO = React.forwardRef(({ className, ...props }, ref) => {
   return <img src={logo} className={className} alt="Kodeholik" ref={ref} {...props} />
@@ -31,7 +31,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 const ENDPOINTS = {
   FRONTEND: `http://localhost:${FRONTEND_PORT}`,
   // Auth
-  POST_LOGIN: `${API_URL}/auth/login`,
+  POST_LOGIN: `${API_URL}/auth/login-admin`,
   LOGIN_GOOGLE: `${BACKEND_URL}/oauth2/authorization/google`,
   LOGIN_GITHUB: `${BACKEND_URL}/oauth2/authorization/github`,
   GET_INFOR: `${API_URL}/user/current`,
@@ -41,6 +41,10 @@ const ENDPOINTS = {
   POST_FORGOT_PASSWORD: `${API_URL}/auth/reset-password-init?username=:gmail`,
   GET_CHECK_RESET_TOKEN: `${API_URL}/auth/reset-password-check?token=:token`,
   POST_RESET_PASSWORD: `${API_URL}/auth/reset-password-finish?token=:token`,
+
+  // Overview
+  GET_PROBLEM_OVERVIEW: `${API_URL}/problem/overview-report`,
+  GET_COURSE_OVERVIEW: `${API_URL}/course/overview-report`,
 
   // Problems
   POST_PROBLEMS_LIST: `${API_URL}/problem/search`,
@@ -71,7 +75,7 @@ const ENDPOINTS = {
   RATE_COMMENT_COURSE: `${API_URL}/course/rate`,
   GET_COMMENT_COURSE: `${API_URL}/course/rating/:id`,
   CHECK_ENROLL: `${API_URL}/course/enroll/check/:id`,
-  
+
   GET_USER_ENROLLED: `${API_URL}/course/enrolled-users/:id`,
 
   GET_COURSE_DISCUSSION: `${API_URL}/course/discussion/:id`,
@@ -96,15 +100,11 @@ const ENDPOINTS = {
 
   //Topic
   GET_TOPIC_LIST: `${API_URL}/tag/all-topic`,
-  GET_tOPICWITHID: `${API_URL}/tag/topic`,
+  GET_TOPICWITHID: `${API_URL}/tag/topic`,
 
   //Image
   POST_UPLOAD_IMAGE: `${API_URL}/s3/upload`,
   GET_IMAGE: (imageKey) => `${API_URL}/s3/presigned-url?key=${encodeURIComponent(imageKey)}`,
-
-  // code
-  POST_RUN_CODE: `${API_URL}/problem-submission/run/:id`,
-  POST_SUBMIT_CODE: `${API_URL}/problem-submission/submit/:id`,
 
   //Exam
   POST_EXAM_LIST_FOR_EXAMINER: `${API_URL}/examiner/list`,
@@ -115,6 +115,8 @@ const ENDPOINTS = {
   POST_EDIT_EXAM: `${API_URL}/examiner/edit/`,
   GET_EXAM_LIST_PARTICIPANT: `${API_URL}/examiner/list-participant/`,
   GET_EXAM_PARTICIPANT_RESULT: `${API_URL}/examiner/result/`,
+  GET_EXAM_OVERVIEW: `${API_URL}/examiner/result-overview/:code`,
+  GET_DOWNLOAD_EXAM_RESULT: `${API_URL}/examiner/result-excel/:code`,
 
   //User
   POST_USER_LIST_FOR_ADMIN: `${API_URL}/admin/list-user`,
@@ -153,9 +155,17 @@ const CONSTANTS = {
   USER_ID: "uid"
 }
 
+const ROLES = {
+  ADMIN: "ADMIN",
+  STUDENT: "STUDENT",
+  TEACHER: "TEACHER",
+  EXAMINER: "EXAMINER"
+}
+
 export {
   LOGO,
   GLOBALS,
   ENDPOINTS,
-  CONSTANTS
+  CONSTANTS,
+  ROLES
 }

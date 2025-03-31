@@ -16,13 +16,11 @@ COPY . .
 # Build ứng dụng React (Vite)
 RUN yarn build
 
-# Chạy Nginx để serve frontend
-FROM nginx:alpine
+# Dùng nginx để phục vụ static files
+FROM nginx:latest
 
-# Copy file build từ stage build
-
-# Gán quyền cho thư mục chứa file tĩnh
-RUN chmod -R 755 /usr/share/nginx/html
+# Copy build từ container node vào nginx
+COPY --from=build /app/build /usr/share/nginx/html
 
 # Mở port 80
 EXPOSE 80

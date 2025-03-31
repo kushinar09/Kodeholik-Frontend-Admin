@@ -9,7 +9,7 @@ export default function ParticipantList({ participants, selectedParticipantId, o
         <h2 className="text-lg font-semibold">Participants</h2>
       </div>
       {/* Wrapper with fixed height and scrollbar */}
-      <div className="max-h-[calc(100vh-250px)] overflow-y-auto">
+      <div className="max-h-[calc(100vh-150px)] overflow-y-auto">
         <ul className="divide-y">
           {participants.map((participant) => (
             <li key={participant.id}>
