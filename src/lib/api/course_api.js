@@ -1,21 +1,17 @@
 import { ENDPOINTS } from "../constants"
 
 export const getCourseSearch = async ({ page, size, sortBy = "title", ascending = true, query, topic }) => {
-  const url = new URL(ENDPOINTS.GET_COURSES_LIST) // Should be "http://localhost:8080/api/v1/course/search"
-  url.searchParams.append("page", page)
-  url.searchParams.append("size", size)
-  url.searchParams.append("sortBy", sortBy)
-  url.searchParams.append("ascending", ascending)
+  const endpoint = ENDPOINTS.GET_COURSES_LIST
+
+  const queryParams = `?page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}&sortBy=${encodeURIComponent(sortBy)}&ascending=${encodeURIComponent(ascending)}`
+  const fullUrl = endpoint + queryParams
 
   const body = {}
   if (query) body.title = query
-  if (topic && topic !== "All") body.topics = [topic] // Convert single topic to array
-
-  // console.log("Fetching courses from:", url.toString())
-  // console.log("Request body:", body)
+  if (topic && topic !== "All") body.topics = [topic]
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(fullUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

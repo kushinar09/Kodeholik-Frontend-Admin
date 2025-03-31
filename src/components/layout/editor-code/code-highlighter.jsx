@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
+import Prism from "prismjs"
+import "prismjs/components/prism-core"
+import "prismjs/components/prism-javascript"
+import "prismjs/plugins/line-numbers/prism-line-numbers"
 import "./css/prism-darcula.css"
 // import "./css/prism-atom-dark.css"
 
@@ -9,29 +13,14 @@ export function CodeHighlighter({ code, language = "javascript", showLineNumbers
   const [highlightedCode, setHighlightedCode] = useState("")
 
   useEffect(() => {
-    // Dynamically import Prism to avoid SSR issues
-    import("prismjs").then((Prism) => {
-      // Import the core
-      import("prismjs/components/prism-core")
-
-      // Import language support based on the prop
-      import(`prismjs/components/prism-${language}`)
-
-      // Import additional plugins if needed
-      if (showLineNumbers) {
-        import("prismjs/plugins/line-numbers/prism-line-numbers")
-      }
-
-      // Highlight the code
-      const highlighted = Prism.default.highlight(
-        code,
-        Prism.default.languages[language] || Prism.default.languages.javascript,
-        language,
-      )
-      setHighlightedCode(highlighted)
-    })
-  }, [code, language, showLineNumbers])
-
+    // Highlight the code
+    const highlighted = Prism.highlight(
+      code,
+      Prism.languages[language] || Prism.languages.javascript,
+      language,
+    )
+    setHighlightedCode(highlighted)
+  }, [code, language])
 
   return (
     <div className={cn("relative overflow-hidden bg-primary", className)}>
