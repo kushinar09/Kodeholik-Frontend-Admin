@@ -104,40 +104,34 @@ export async function getImage(imageKey) {
 }
 
 
-export const createCourse = async (courseData, imageFile, apiCall) => {
-  // Validate that courseData is a FormData object
-  if (!courseData || !(courseData instanceof FormData)) {
-    throw new Error("Course data must be a FormData object")
+export const createCourse = async (courseData, apiCall) => {
+  if (!courseData || typeof courseData !== "object") {
+    throw new Error("Invalid course data provided")
   }
 
-  // Create a new FormData object to ensure we don’t modify the input
-  const formPayload = new FormData()
+  const formData = new FormData()
+  formData.append("title", courseData.title)
+  formData.append("description", courseData.description)
+  formData.append("status", courseData.status)
 
-  // Copy existing entries from courseData to formPayload
-  for (let [key, value] of courseData.entries()) {
-    formPayload.append(key, value)
-  }
+  // Append topicIds as separate values
+  courseData.topicIds.forEach(topicId => formData.append("topicIds", topicId))
 
-  // Append the imageFile if it exists and is a valid File or Blob
-  if (imageFile && (imageFile instanceof File || imageFile instanceof Blob)) {
-    formPayload.append("image", imageFile)
+  // Append imageFile if exists
+  if (courseData.imageFile) {
+    formData.append("imageFile", courseData.imageFile)
   }
 
   try {
     const response = await apiCall(ENDPOINTS.CREATE_COURSE, {
       method: "POST",
-      credentials: "include",
-      body: formPayload
+      body: formData
     })
 
     if (!response.ok) {
       const errorResponse = await response.json()
       throw new Error(`Failed to create course: ${JSON.stringify(errorResponse)}`)
     }
-
-    // // Log response details for debugging
-    // console.log("Response status:", response.status)
-    // console.log("Response headers:", Object.fromEntries(response.headers.entries()))
 
     // Get the response as text first
     const text = await response.text()
@@ -157,14 +151,13 @@ export const createCourse = async (courseData, imageFile, apiCall) => {
     }
   } catch (error) {
     console.error("Error in createCourse:", {
-      error: error.message,
-      formDataEntries: [...formPayload.entries()] // Log the updated FormData
+      error: error.message
     })
     throw error
   }
 }
 
-export async function updateCourse(id, courseData, imageFile, apiCall) {
+export async function updateCourse(id, courseData, apiCall) {
   if (!id || typeof id !== "string") {
     throw new Error("Invalid course ID provided")
   }
@@ -173,18 +166,21 @@ export async function updateCourse(id, courseData, imageFile, apiCall) {
   }
 
   const formData = new FormData()
-  formData.append("data", new Blob([JSON.stringify(courseData)], { type: "application/json" }))
-  if (imageFile) {
-    if (!(imageFile instanceof File || imageFile instanceof Blob)) {
-      throw new Error("Invalid image file provided")
-    }
-    formData.append("image", imageFile)
+  formData.append("title", courseData.title)
+  formData.append("description", courseData.description)
+  formData.append("status", courseData.status)
+
+  // Append topicIds as separate values
+  courseData.topicIds.forEach(topicId => formData.append("topicIds", topicId))
+
+  // Append imageFile if exists
+  if (courseData.imageFile) {
+    formData.append("imageFile", courseData.imageFile)
   }
 
   try {
     const response = await apiCall(ENDPOINTS.UPDATE_COURSE.replace(":id", id), {
       method: "PUT",
-      credentials: "include",
       body: formData
     })
 
@@ -193,37 +189,30 @@ export async function updateCourse(id, courseData, imageFile, apiCall) {
       throw new Error(`Failed to update course: ${JSON.stringify(errorResponse)}`)
     }
 
-    // // Log response details for debugging
-    // console.log("Response status:", response.status)
-    // console.log("Response headers:", Object.fromEntries(response.headers.entries()))
-
-    // Get the response as text first
     const text = await response.text()
 
-    // Handle the known case where backend returns "1" for success
     if (text.trim() === "1") {
-      return { success: true } // Normalize to a success object
+      return { success: true }
     }
 
-    // Attempt to parse as JSON for future-proofing
     try {
       const jsonData = JSON.parse(text)
       return jsonData
     } catch (jsonError) {
       console.warn("Response is not JSON, treating as success:", text)
-      return { success: true, rawResponse: text } // Fallback for non-JSON success
+      return { success: true, rawResponse: text }
     }
   } catch (error) {
     console.error("Error in updateCourse:", {
       error: error.message,
       id,
       courseData,
-      hasImage: !!imageFile,
-      formDataEntries: [...formData.entries()]
+      hasImage: !!courseData.imageFile
     })
     throw error
   }
 }
+
 
 export async function enrollCourse(id) {
   const response = await fetch(ENDPOINTS.ENROLL_COURSE.replace(":id", id), {
