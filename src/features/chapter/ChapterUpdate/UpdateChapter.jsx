@@ -387,7 +387,7 @@ function UpdateChapter() {
             </Button>
             <Button type="submit" className="gap-1" disabled={isSubmitting || isSuccessDialogOpen}>
               <Save className="h-4 w-4" />
-              {isSubmitting ? "Creating..." : "Create Chapter"}
+              {isSubmitting ? "Updating..." : "Update Chapter"}
             </Button>
           </CardFooter>
         </form>

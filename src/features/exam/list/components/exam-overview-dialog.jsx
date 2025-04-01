@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import LoadingScreen from "@/components/layout/loading"
 import GradeOverview from "./overview"
 import { ENDPOINTS } from "@/lib/constants"
+import { toast } from "sonner"
+import { Download } from "lucide-react"
 
 function ExamOverviewContent({ examCode, apiCall }) {
   const [data, setData] = useState(null)
@@ -58,11 +60,43 @@ function ExamOverviewContent({ examCode, apiCall }) {
 }
 
 export default function ExamOverviewDialog({ examCode, isOpen, onClose, apiCall }) {
+  const handleDownloadResult = async (examCode) => {
+    try {
+      const response = await apiCall(ENDPOINTS.GET_DOWNLOAD_EXAM_RESULT.replace(":code", examCode))
+
+      if (!response.ok) {
+        throw new Error("Failed to download file")
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `exam_result_${examCode}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      toast.error("Download error", {
+        description: error
+      })
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-6xl min-h-[50vh] max-h-[90vh] overflow-auto">
         <DialogHeader>
-          <DialogTitle>Exam Results Overview - {examCode}</DialogTitle>
+          <DialogTitle className="flex gap-4 items-center">
+            Exam Results Overview - {examCode}
+            <div
+              className="p-2 text-gray-500 cursor-pointer hover:bg-muted rounded-md"
+              onClick={() => handleDownloadResult(examCode)}
+            >
+              <Download className="size-5" />
+            </div>
+          </DialogTitle>
         </DialogHeader>
 
         {examCode && (

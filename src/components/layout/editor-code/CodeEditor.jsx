@@ -17,7 +17,7 @@ export default function CodeEditor({ initialCode, onChange, className = "" }) {
 
   useEffect(() => {
     if (!initialCode || initialCode === "") {
-      onChange(INITIAL_CODE_DEFAULT)
+      onChange("")
     }
 
     if (editorRef.current && !editor) {
@@ -25,7 +25,7 @@ export default function CodeEditor({ initialCode, onChange, className = "" }) {
 
       const editorInstance = monaco.editor.create(editorRef.current, {
         ...editorConfig,
-        value: initialCode || INITIAL_CODE_DEFAULT,
+        value: initialCode || "",
         glyphMargin: true
       })
 
