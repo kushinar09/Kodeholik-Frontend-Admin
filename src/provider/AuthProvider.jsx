@@ -56,6 +56,58 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  const loginGoogle = async (credentials) => {
+    try {
+      const response = await fetch(ENDPOINTS.LOGIN_GOOGLE + "?token=" + credentials, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "http://kodeholik.site",
+          "Access-Control-Allow-Credentials": "true"
+        },
+        body: JSON.stringify(credentials)
+      })
+
+      if (response.ok) {
+        // After successful login, immediately check auth status to get user data
+        await checkAuthStatus(true)
+        return { success: true }
+      } else {
+        return { success: false, error: await response.json() }
+      }
+    } catch (error) {
+      console.error("Login failed:", error)
+      return { success: false, error }
+    } 
+  }
+
+  const loginGithub = async (credentials) => {
+    try {
+      const response = await fetch(ENDPOINTS.LOGIN_GITHUB + "?code=" + credentials, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "http://kodeholik.site",
+          "Access-Control-Allow-Credentials": "true"
+        },
+        body: JSON.stringify(credentials)
+      })
+
+      if (response.ok) {
+        // After successful login, immediately check auth status to get user data
+        await checkAuthStatus(true)
+        return { success: true }
+      } else {
+        return { success: false, error: await response.json() }
+      }
+    } catch (error) {
+      console.error("Login failed:", error)
+      return { success: false, error }
+    } 
+  }
+
   const login = async (credentials) => {
     try {
       const response = await fetch(ENDPOINTS.POST_LOGIN, {
@@ -185,6 +237,8 @@ export const AuthProvider = ({ children }) => {
         apiCall,
         logout,
         login,
+        loginGoogle,
+        loginGithub,
         isAuthenticated,
         user,
         isLoading, // Expose loading state

@@ -32,8 +32,8 @@ const ENDPOINTS = {
   FRONTEND: `http://localhost:${FRONTEND_PORT}`,
   // Auth
   POST_LOGIN: `${API_URL}/auth/login-admin`,
-  LOGIN_GOOGLE: `${BACKEND_URL}/oauth2/authorization/google`,
-  LOGIN_GITHUB: `${BACKEND_URL}/oauth2/authorization/github`,
+  LOGIN_GOOGLE: `${API_URL}/auth/login-google`,
+  LOGIN_GITHUB: `${API_URL}/auth/login-github`,
   GET_INFOR: `${API_URL}/user/current`,
   ROTATE_TOKEN: `${API_URL}/auth/rotate-token`,
   POST_LOGOUT: `${API_URL}/auth/logout`,
