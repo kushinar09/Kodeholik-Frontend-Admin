@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { GLOBALS } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
-import { Search, Send, X, ArrowBigUp, ChevronDown, ChevronUp, MessageSquare, Clock } from "lucide-react"
+import { Search, Send, X, ArrowBigUp, ChevronDown, ChevronUp, MessageSquare, Clock, GraduationCap } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
@@ -117,6 +117,7 @@ function CourseDetail() {
       const repliesWithAvatars = commentReplies.map((reply) => ({
         id: reply.id,
         user: reply.createdBy.username,
+        role: reply.createdBy.role || "STUDENT", // Include role, default to "STUDENT"
         text: reply.comment,
         time: reply.createdAt,
         avatar: reply.createdBy.avatar || "/placeholder.svg?height=40&width=40",
@@ -127,6 +128,7 @@ function CourseDetail() {
       return {
         id: comment.id,
         user: comment.createdBy.username,
+        role: comment.createdBy.role || "STUDENT", // Include role, default to "STUDENT"
         text: comment.comment,
         time: comment.createdAt,
         avatar: avatarUrl,
@@ -281,7 +283,6 @@ function CourseDetail() {
     setReplyingTo(null)
   }
 
-  // Update the MessageActions component to use your theme colors more consistently
   const MessageActions = ({ message, isReply = false, parentId = null }) => (
     <div className="flex items-center gap-3 mt-2">
       <TooltipProvider>
@@ -446,7 +447,6 @@ function CourseDetail() {
             {/* Course Discussion Section */}
             <Separator className="my-6" />
             <h3 className="text-lg font-semibold text-text-primary mb-4">Course Discussion</h3>
-            {/* Update the sort controls to use your theme colors */}
             <div className="flex gap-3 items-center mb-4">
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <span>Sort by:</span>
@@ -471,8 +471,6 @@ function CourseDetail() {
               </Select>
             </div>
 
-            {/* Update the discussion section styling to use your theme colors
-            Replace the ScrollArea section with this improved version */}
             <ScrollArea className="h-[400px] mb-4 pr-4">
               {discussionLoading ? (
                 <div className="flex flex-col items-center justify-center h-full">
@@ -496,7 +494,12 @@ function CourseDetail() {
                       </Avatar>
                       <div className="flex-1">
                         <div className="bg-card rounded-lg p-3 border border-border shadow-sm">
-                          <p className="font-medium text-sm text-card-foreground">{message.user}</p>
+                          <p className="font-medium text-sm text-card-foreground flex items-center">
+                            {message.user}
+                            {message.role === "TEACHER" && (
+                              <GraduationCap className="ml-1 h-3.5 w-3.5 text-primary" />
+                            )}
+                          </p>
                           <p className="text-sm mt-1 text-muted-foreground whitespace-pre-wrap">{message.text}</p>
                         </div>
                         <MessageActions message={message} />
@@ -530,10 +533,13 @@ function CourseDetail() {
                                 </Avatar>
                                 <div className="flex-1">
                                   <div className="bg-card rounded-lg p-3 border border-border shadow-sm">
-                                    <p className="font-medium text-sm text-card-foreground">{reply.user}</p>
-                                    <p className="text-sm mt-1 text-muted-foreground whitespace-pre-wrap">
-                                      {reply.text}
+                                    <p className="font-medium text-sm text-card-foreground flex items-center">
+                                      {reply.user}
+                                      {reply.role === "TEACHER" && (
+                                        <GraduationCap className="ml-1 h-3.5 w-3.5 text-primary" />
+                                      )}
                                     </p>
+                                    <p className="text-sm mt-1 text-muted-foreground whitespace-pre-wrap">{reply.text}</p>
                                   </div>
                                   <MessageActions message={reply} isReply={true} parentId={message.id} />
                                 </div>
@@ -549,7 +555,6 @@ function CourseDetail() {
             </ScrollArea>
 
             {discussionTotalPages > 1 && (
-              // Update the pagination buttons to use your theme colors
               <div className="flex justify-between items-center w-full mb-3">
                 <Button
                   disabled={discussionPage === 0}
@@ -575,7 +580,6 @@ function CourseDetail() {
               </div>
             )}
 
-            {/* Update the reply indicator styling */}
             {replyingTo && (
               <div className="mb-3 p-2 bg-muted rounded-lg border border-border w-full">
                 <div className="flex justify-between items-center">
@@ -590,7 +594,6 @@ function CourseDetail() {
               </div>
             )}
 
-            {/* Update the comment input styling */}
             <form onSubmit={handleSendMessage} className="flex items-center gap-2 w-full">
               <Avatar className="h-9 w-9 flex-shrink-0 border border-border">
                 <AvatarImage src="/placeholder.svg?height=40&width=40" alt="You" />
@@ -629,4 +632,3 @@ function CourseDetail() {
 }
 
 export default CourseDetail
-

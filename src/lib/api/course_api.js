@@ -179,6 +179,7 @@ export async function updateCourse(id, courseData, apiCall) {
   }
 
   try {
+    console.log(formData);
     const response = await apiCall(ENDPOINTS.UPDATE_COURSE.replace(":id", id), {
       method: "PUT",
       body: formData
