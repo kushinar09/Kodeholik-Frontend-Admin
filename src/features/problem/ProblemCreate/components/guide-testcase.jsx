@@ -2,6 +2,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { InfoIcon } from "lucide-react"
+import guide1 from "@/assets/images/guide-testcase/guide-1.png"
+import guide2 from "@/assets/images/guide-testcase/guide-2.png"
 
 export default function ExcelUploadGuidePage() {
   return (
@@ -35,7 +37,7 @@ export default function ExcelUploadGuidePage() {
             </p>
             <div className="rounded-md border overflow-hidden">
               <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-bJo3RTyEtWdRx6cNxR0yC3ggQdn2xY.png"
+                src={guide1}
                 alt="Example of sheet naming showing JavaTestCase and CTestCase tabs"
                 width={400}
                 height={50}
@@ -76,7 +78,7 @@ export default function ExcelUploadGuidePage() {
 
             <div className="rounded-md border overflow-hidden">
               <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-G85CXmELxfND9w1kysMHNLkNvc82uZ.png"
+                src={guide2}
                 alt="Example of Excel structure with param1, param2, Expected Output, and Is Sample columns"
                 width={650}
                 height={150}
