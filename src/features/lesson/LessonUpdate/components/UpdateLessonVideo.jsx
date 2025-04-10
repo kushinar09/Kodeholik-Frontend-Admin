@@ -9,7 +9,8 @@ function UpdateLessonVideo({
   setFile,
   filePreview,
   setFilePreview,
-  existingFileUrl
+  existingFileUrl,
+  disabled = false
 }) {
   useEffect(() => {
     return () => {
@@ -84,7 +85,7 @@ function UpdateLessonVideo({
     return (
       <div
         className="flex flex-col items-center justify-center h-full w-full p-6 cursor-pointer"
-        onClick={() => document.getElementById("videoUpload").click()}
+        onClick={() => !disabled && document.getElementById("videoUpload").click()}
       >
         <Upload className="h-8 w-8 text-black mb-4" />
         <p className="text-black text-center">
@@ -109,7 +110,7 @@ function UpdateLessonVideo({
           className="hidden"
         />
       </div>
-      <div className="w-full aspect-video rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center">
+      <div className="w-full aspect-[2/1] rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center">
         <div className="relative w-full h-full">
           {renderPreview()}
           {((file && filePreview) || existingFileUrl) && (
@@ -118,6 +119,7 @@ function UpdateLessonVideo({
                 type="button"
                 size="icon"
                 variant="secondary"
+                disabled={disabled}
                 onClick={() => document.getElementById("videoUpload").click()}
               >
                 <Upload className="h-4 w-4" />
@@ -126,6 +128,7 @@ function UpdateLessonVideo({
                 type="button"
                 size="icon"
                 variant="destructive"
+                disabled={disabled}
                 onClick={handleRemoveFile}
               >
                 <X className="h-4 w-4" />

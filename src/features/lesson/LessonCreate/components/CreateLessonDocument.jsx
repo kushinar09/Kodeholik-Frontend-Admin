@@ -62,6 +62,7 @@ function CreateLessonDocument({ file, setFile }) {
 
   return (
     <div className="w-full">
+      <h4 className="text-sm font-medium text-black mb-2">Attached File</h4>
       <input type="file" id="fileUpload" accept=".pdf,.doc,.docx,.txt" onChange={handleFileUpload} className="hidden" />
       <div
         className="w-full h-10 rounded-md border border-gray-700 overflow-hidden flex items-center px-3"

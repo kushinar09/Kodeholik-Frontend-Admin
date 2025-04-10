@@ -98,6 +98,9 @@ const ENDPOINTS = {
   CREATE_LESSON: `${API_URL}/lesson/add`,
   UPDATE_LESSON: `${API_URL}/lesson/update/:id`,
 
+  //DownloadFile lesson
+  DOWNLOAD_FILE_LESSON: (fileKey) => `${API_URL}/lesson/download-file?key=${encodeURIComponent(fileKey)}`,
+
   //Topic
   GET_TOPIC_LIST: `${API_URL}/tag/all-topic`,
   GET_TOPICWITHID: `${API_URL}/tag/topic`,
