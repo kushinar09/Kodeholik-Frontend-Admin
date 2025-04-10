@@ -56,13 +56,6 @@ const formSchema = z.object({
     message: "Type must be either VIDEO, YOUTUBE, or DOCUMENT",
   }),
   status: z.enum(["ACTIVATED", "INACTIVATED"]),
-  attachedFile: z
-    .instanceof(File, { message: "Attached file must be a file" })
-    .optional()
-    .refine(
-      (file) => !file || file.size <= 100 * 1024 * 1024,
-      "Attached file must be less than 100 MB"
-    ),
   videoFile: z
     .instanceof(File, { message: "Video must be a file" })
     .optional()
@@ -74,15 +67,24 @@ const formSchema = z.object({
       (file) => !file || file.type.startsWith("video/"),
       "File must be a video"
     ),
+  youtubeUrl: z.string().optional(),
+  attachedFile: z
+    .instanceof(File, { message: "Attached file must be a file" })
+    .optional()
+    .refine(
+      (file) => !file || file.size <= 100 * 1024 * 1024,
+      "Attached file must be less than 100 MB"
+    ),
 });
 
 function CreateLesson() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { apiCall } = useAuth();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    chapterId: searchParams.get("chapterId") || "", // Lấy chapterId từ URL
+    chapterId: searchParams.get("chapterId") || "",
     displayOrder: 1,
     type: "VIDEO",
     status: "ACTIVATED",
@@ -94,9 +96,8 @@ function CreateLesson() {
   const [docFilePreview, setDocFilePreview] = useState(null);
   const [isChaptersOpen, setIsChaptersOpen] = useState(false);
   const [chapterSearch, setChapterSearch] = useState("");
-  const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({});
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const { apiCall } = useAuth();
   const [selectedProblems, setSelectedProblems] = useState([]);
   const [youtubeUrl, setYoutubeUrl] = useState("");
 
@@ -110,11 +111,13 @@ function CreateLesson() {
         const data = await getChapterList();
         const chapterArray = Array.isArray(data?.content) ? data.content : [];
         setChapters(chapterArray);
-        setError(null);
       } catch (error) {
         console.error("Error fetching chapters:", error);
         setChapters([]);
-        setError(error.message || "Failed to fetch chapters");
+        setErrors((prev) => ({
+          ...prev,
+          chapters: "Failed to fetch chapters",
+        }));
       }
     };
     fetchChapters();
@@ -137,13 +140,15 @@ function CreateLesson() {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "displayOrder" ? Number.parseInt(value) : value,
+      [name]: name === "displayOrder" ? Number(value) || 1 : value,
     }));
+    setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
   const handleChapterChange = (chapterId) => {
     setFormData((prev) => ({ ...prev, chapterId }));
     setIsChaptersOpen(false);
+    setErrors((prev) => ({ ...prev, chapterId: null }));
   };
 
   const clearChapterSelection = () => {
@@ -151,9 +156,56 @@ function CreateLesson() {
     setChapterSearch("");
   };
 
+  const handleDescriptionChange = (value) => {
+    setFormData((prev) => ({ ...prev, description: value }));
+    setErrors((prev) => ({ ...prev, description: null }));
+  };
+
+  const validateForm = () => {
+    const dataToValidate = {
+      ...formData,
+      videoFile: formData.type === "VIDEO" ? videoFile : undefined,
+      youtubeUrl: formData.type === "YOUTUBE" ? youtubeUrl : undefined,
+      attachedFile: docFile,
+    };
+
+    try {
+      formSchema.parse(dataToValidate);
+      // Additional validation for required fields based on type
+      if (formData.type === "VIDEO" && !videoFile) {
+        throw new Error("A video file is required for VIDEO type");
+      }
+      if (
+        formData.type === "YOUTUBE" &&
+        (!youtubeUrl || youtubeUrl.trim() === "")
+      ) {
+        throw new Error("A YouTube URL is required for YOUTUBE type");
+      }
+      if (formData.type === "DOCUMENT" && !docFile) {
+        throw new Error("A document file is required for DOCUMENT type");
+      }
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors = {};
+        error.errors.forEach((err) => {
+          fieldErrors[err.path[0]] = err.message;
+        });
+        setErrors(fieldErrors);
+      } else {
+        setErrors({ general: error.message });
+      }
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setErrors({});
+
+    if (!validateForm()) {
+      return;
+    }
 
     const lessonData = {
       chapterId: Number(formData.chapterId),
@@ -177,20 +229,14 @@ function CreateLesson() {
         formDataPayload.append("videoType", "VIDEO_FILE");
         formDataPayload.append("videoFile", videoFile);
       } else if (formData.type === "YOUTUBE" && youtubeUrl) {
+        const videoId = youtubeUrl.match(
+          /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
+        )?.[1];
+        if (!videoId) throw new Error("Invalid YouTube URL");
         formDataPayload.append("videoType", "YOUTUBE");
-        formDataPayload.append("youtubeUrl", youtubeUrl);
+        formDataPayload.append("youtubeUrl", videoId);
       } else if (formData.type === "DOCUMENT" && docFile) {
         formDataPayload.append("attachedFile", docFile);
-      } else {
-        throw new Error(
-          `Please provide ${
-            formData.type === "VIDEO"
-              ? "a video file"
-              : formData.type === "YOUTUBE"
-              ? "a YouTube URL"
-              : "a document file"
-          } for this lesson type.`
-        );
       }
 
       if (
@@ -206,39 +252,21 @@ function CreateLesson() {
         });
       }
 
-      console.log("Sending form data:");
-      for (const [key, value] of formDataPayload.entries()) {
-        if (key === "videoFile" || key === "attachedFile") {
-          console.log(
-            `${key}: [File] ${value.name}, size: ${(value.size / 1024).toFixed(
-              2
-            )} KB`
-          );
-        } else {
-          console.log(`${key}: ${value}`);
-        }
-      }
-
       const result = await createLesson(formDataPayload, apiCall);
-      console.log("Create lesson result:", result);
       setShowSuccessDialog(true);
     } catch (error) {
       console.error("Error creating lesson:", error);
-      setError(error.message || "Failed to create lesson");
+      setErrors({ general: error.message || "Failed to create lesson" });
     }
   };
 
   const handleDialogClose = () => {
     setShowSuccessDialog(false);
-    navigate(`/lesson?chapterId=${formData.chapterId}`); // Gửi chapterId về LessonList
+    navigate(`/lesson?chapterId=${formData.chapterId}`);
   };
 
   const handleCancel = () => {
     navigate(`/lesson?chapterId=${formData.chapterId}`);
-  };
-
-  const handleDescriptionChange = (value) => {
-    setFormData((prev) => ({ ...prev, description: value }));
   };
 
   const getStatusBadge = (status) => {
@@ -259,21 +287,27 @@ function CreateLesson() {
         onSubmit={handleSubmit}
         className="rounded-xl border bg-card text-card-foreground shadow mb-8 p-5"
       >
-        {error && (
+        {errors.general && (
           <div className="text-red-500 mb-4 p-3 bg-red-900/20 border border-red-800/50 rounded-lg">
-            {error}
+            {errors.general}
           </div>
         )}
 
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1 space-y-5">
-            <Input
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Lesson Title"
-              required
-            />
+            <div>
+              <Input
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="Lesson Title"
+                required
+              />
+              {errors.title && (
+                <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+              )}
+            </div>
+
             <div className="flex flex-col gap-4">
               <h4 className="text-md font-semibold text-primary">
                 Description
@@ -284,6 +318,11 @@ function CreateLesson() {
                   onChange={handleDescriptionChange}
                 />
               </div>
+              {errors.description && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.description}
+                </p>
+              )}
             </div>
 
             <Collapsible open={isChaptersOpen} onOpenChange={setIsChaptersOpen}>
@@ -306,6 +345,9 @@ function CreateLesson() {
                   )}
                 </div>
               </CollapsibleTrigger>
+              {errors.chapterId && (
+                <p className="text-red-500 text-sm mt-1">{errors.chapterId}</p>
+              )}
               <CollapsibleContent className="space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium text-primary">Chapters</h4>
@@ -366,6 +408,11 @@ function CreateLesson() {
                 min="1"
                 required
               />
+              {errors.displayOrder && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.displayOrder}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -381,6 +428,12 @@ function CreateLesson() {
                   setYoutubeUrl("");
                   setDocFile(null);
                   setDocFilePreview(null);
+                  setErrors((prev) => ({
+                    ...prev,
+                    videoFile: null,
+                    youtubeUrl: null,
+                    attachedFile: null,
+                  }));
                 }}
               >
                 <SelectTrigger>
@@ -423,41 +476,91 @@ function CreateLesson() {
           <div className="lg:w-2/5 space-y-4">
             {formData.type === "VIDEO" && (
               <>
-                <CreateLessonVideo
-                  file={videoFile}
-                  setFile={setVideoFile}
-                  filePreview={videoFilePreview}
-                  setFilePreview={setVideoFilePreview}
-                />
-                <CreateLessonDocument
-                  file={docFile}
-                  setFile={setDocFile}
-                  filePreview={docFilePreview}
-                  setFilePreview={setDocFilePreview}
-                />
+                <div>
+                  <CreateLessonVideo
+                    file={videoFile}
+                    setFile={(file) => {
+                      setVideoFile(file);
+                      setErrors((prev) => ({ ...prev, videoFile: null }));
+                    }}
+                    filePreview={videoFilePreview}
+                    setFilePreview={setVideoFilePreview}
+                  />
+                  {errors.videoFile && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.videoFile}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <CreateLessonDocument
+                    file={docFile}
+                    setFile={(file) => {
+                      setDocFile(file);
+                      setErrors((prev) => ({ ...prev, attachedFile: null }));
+                    }}
+                    filePreview={docFilePreview}
+                    setFilePreview={setDocFilePreview}
+                  />
+                  {errors.attachedFile && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.attachedFile}
+                    </p>
+                  )}
+                </div>
               </>
             )}
             {formData.type === "YOUTUBE" && (
               <>
-                <YoutubeInput
-                  youtubeUrl={youtubeUrl}
-                  setYoutubeUrl={setYoutubeUrl}
-                />
-                <CreateLessonDocument
-                  file={docFile}
-                  setFile={setDocFile}
-                  filePreview={docFilePreview}
-                  setFilePreview={setDocFilePreview}
-                />
+                <div>
+                  <YoutubeInput
+                    youtubeUrl={youtubeUrl}
+                    setYoutubeUrl={(url) => {
+                      setYoutubeUrl(url);
+                      setErrors((prev) => ({ ...prev, youtubeUrl: null }));
+                    }}
+                  />
+                  {errors.youtubeUrl && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.youtubeUrl}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <CreateLessonDocument
+                    file={docFile}
+                    setFile={(file) => {
+                      setDocFile(file);
+                      setErrors((prev) => ({ ...prev, attachedFile: null }));
+                    }}
+                    filePreview={docFilePreview}
+                    setFilePreview={setDocFilePreview}
+                  />
+                  {errors.attachedFile && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.attachedFile}
+                    </p>
+                  )}
+                </div>
               </>
             )}
             {formData.type === "DOCUMENT" && (
-              <CreateLessonDocument
-                file={docFile}
-                setFile={setDocFile}
-                filePreview={docFilePreview}
-                setFilePreview={setDocFilePreview}
-              />
+              <div>
+                <CreateLessonDocument
+                  file={docFile}
+                  setFile={(file) => {
+                    setDocFile(file);
+                    setErrors((prev) => ({ ...prev, attachedFile: null }));
+                  }}
+                  filePreview={docFilePreview}
+                  setFilePreview={setDocFilePreview}
+                />
+                {errors.attachedFile && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.attachedFile}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -477,7 +580,7 @@ function CreateLesson() {
           <DialogHeader>
             <DialogTitle>Lesson Created Successfully</DialogTitle>
             <DialogDescription>
-              Your lesson {`"${formData.title}"`} has been created successfully!
+              Your lesson "{formData.title}" has been created successfully!
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
