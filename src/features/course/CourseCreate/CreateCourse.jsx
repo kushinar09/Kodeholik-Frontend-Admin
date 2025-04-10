@@ -379,7 +379,7 @@ function CreateCourse() {
                     >
                       <Upload className="h-8 w-8 text-black mb-4" />
                       <p className="text-black text-center">
-                        Drag and drop an image here (max 200 MB)
+                        Drag and drop an image here
                         <br />
                         or click to browse
                       </p>

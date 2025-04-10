@@ -290,7 +290,7 @@ export default function TagList({ onNavigate }) {
             {!isLoading && tags.map((tag) => (
               <TableRow key={tag.id}>
                 <TableCell>{tag.id}</TableCell>
-                <TableCell>{tag.name}</TableCell>
+                <TableCell><p className="truncate max-w-32">{tag.name}</p></TableCell>
                 <TableCell>{tag.type}</TableCell>
                 <TableCell>
                   <div style={{ display: "flex", alignItems: "center" }}>

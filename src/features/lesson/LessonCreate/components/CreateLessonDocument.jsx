@@ -1,134 +1,119 @@
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Upload, X } from "lucide-react";
+"use client"
+
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Upload, X } from "lucide-react"
 
 function CreateLessonDocument({ file, setFile }) {
-  const [filePreview, setFilePreview] = useState(null);
+  const [filePreview, setFilePreview] = useState(null)
   const allowedTypes = [
     "application/pdf",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "text/plain",
-  ];
+    "text/plain"
+  ]
 
   useEffect(() => {
     return () => {
-      if (filePreview) URL.revokeObjectURL(filePreview);
-    };
-  }, [filePreview]);
+      if (filePreview) URL.revokeObjectURL(filePreview)
+    }
+  }, [filePreview])
 
   const handleFileUpload = (e) => {
-    const uploadedFile = e.target.files[0];
+    const uploadedFile = e.target.files[0]
     if (uploadedFile) {
       if (!allowedTypes.includes(uploadedFile.type)) {
-        alert(
-          "Only Word (.doc, .docx), PDF (.pdf), and Text (.txt) files are allowed."
-        );
-        return;
+        alert("Only Word (.doc, .docx), PDF (.pdf), and Text (.txt) files are allowed.")
+        return
       }
       if (uploadedFile.size > 100 * 1024 * 1024) {
-        alert("File must be less than 100 MB.");
-        return;
+        alert("File must be less than 100 MB.")
+        return
       }
-      if (filePreview) URL.revokeObjectURL(filePreview);
-      setFile(uploadedFile);
-      setFilePreview(URL.createObjectURL(uploadedFile));
+      if (filePreview) URL.revokeObjectURL(filePreview)
+      setFile(uploadedFile)
+      setFilePreview(URL.createObjectURL(uploadedFile))
     }
-  };
+  }
 
   const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+    e.preventDefault()
+    e.stopPropagation()
+  }
 
   const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const uploadedFile = e.dataTransfer.files[0];
+    e.preventDefault()
+    e.stopPropagation()
+    const uploadedFile = e.dataTransfer.files[0]
     if (uploadedFile) {
       if (!allowedTypes.includes(uploadedFile.type)) {
-        alert(
-          "Only Word (.doc, .docx), PDF (.pdf), and Text (.txt) files are allowed."
-        );
-        return;
+        alert("Only Word (.doc, .docx), PDF (.pdf), and Text (.txt) files are allowed.")
+        return
       }
       if (uploadedFile.size > 100 * 1024 * 1024) {
-        alert("File must be less than 100 MB.");
-        return;
+        alert("File must be less than 100 MB.")
+        return
       }
-      if (filePreview) URL.revokeObjectURL(filePreview);
-      setFile(uploadedFile);
-      setFilePreview(URL.createObjectURL(uploadedFile));
+      if (filePreview) URL.revokeObjectURL(filePreview)
+      setFile(uploadedFile)
+      setFilePreview(URL.createObjectURL(uploadedFile))
     }
-  };
+  }
 
   return (
-    <>
-      <div className="flex items-center justify-between mb-2">
-        <h4 className="text-sm font-medium text-black">Attached File</h4>
-        <input
-          type="file"
-          id="fileUpload"
-          accept=".pdf,.doc,.docx,.txt"
-          onChange={handleFileUpload}
-          className="hidden"
-        />
-      </div>
+    <div className="w-full">
+      <input type="file" id="fileUpload" accept=".pdf,.doc,.docx,.txt" onChange={handleFileUpload} className="hidden" />
       <div
-        className="w-full aspect-video rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center"
+        className="w-full h-10 rounded-md border border-gray-700 overflow-hidden flex items-center px-3"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
         {file ? (
-          <div className="relative w-full h-full flex flex-col items-center justify-center p-6">
-            <p className="text-black text-center truncate">{file.name}</p>
-            <p className="text-gray-400 text-sm">
-              {(file.size / (1024 * 1024)).toFixed(2)} MB
-            </p>
-            <div className="absolute top-2 right-2 flex gap-2">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center overflow-hidden">
+              <span className="text-sm font-medium text-black truncate max-w-full">{file.name}</span>
+              <span className="text-xs text-gray-400 ml-2">({(file.size / (1024 * 1024)).toFixed(2)} MB)</span>
+            </div>
+            <div className="flex gap-1 ml-2">
               <Button
                 type="button"
                 size="icon"
-                variant="secondary"
+                variant="ghost"
+                className="h-8 w-8"
                 onClick={() => document.getElementById("fileUpload").click()}
               >
-                <Upload className="h-4 w-4" />
+                <Upload className="h-3.5 w-3.5" />
               </Button>
               <Button
                 type="button"
                 size="icon"
-                variant="destructive"
+                variant="ghost"
+                className="h-8 w-8 hover:bg-red-50 hover:text-red-500"
                 onClick={() => {
-                  if (filePreview) URL.revokeObjectURL(filePreview);
-                  setFile(null);
-                  setFilePreview(null);
+                  if (filePreview) URL.revokeObjectURL(filePreview)
+                  setFile(null)
+                  setFilePreview(null)
                 }}
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
         ) : (
           <div
-            className="flex flex-col items-center justify-center h-full w-full p-6 cursor-pointer"
+            className="flex items-center justify-between w-full cursor-pointer"
             onClick={() => document.getElementById("fileUpload").click()}
           >
-            <Upload className="h-8 w-8 text-black mb-4" />
-            <p className="text-black text-center">
-              Drag and drop a file here
-              <br />
-              (Word, PDF, TXT - max 100 MB)
-              <br />
-              or click to browse
-            </p>
-            <Button type="button" variant="outline" size="sm" className="mt-4">
-              Select File
+            <span className="text-sm text-gray-500">Upload an attached file (max 100 MB)</span>
+            <Button type="button" variant="ghost" size="sm" className="h-8">
+              <Upload className="h-3.5 w-3.5 mr-1" />
+              Browse
             </Button>
           </div>
         )}
       </div>
-    </>
-  );
+    </div>
+  )
 }
 
-export default CreateLessonDocument;
+export default CreateLessonDocument

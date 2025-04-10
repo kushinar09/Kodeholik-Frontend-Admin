@@ -7,7 +7,7 @@ export default function Header({ headerData = [], onNavigate }) {
   const data = Array.isArray(headerData) ? headerData : []
 
   return (
-    <header className="sticky top-0 z-10 bg-white flex h-16 shrink-0 items-center gap-2">
+    <header className="sticky top-0 z-50 bg-white flex h-16 shrink-0 items-center gap-2">
       <div className="flex items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />

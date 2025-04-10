@@ -1,30 +1,30 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Upload, X } from "lucide-react";
+import { useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Upload, X } from "lucide-react"
 
 function CreateLessonVideo({ file, setFile, filePreview, setFilePreview }) {
   useEffect(() => {
     return () => {
-      if (filePreview) URL.revokeObjectURL(filePreview);
-    };
-  }, [filePreview]);
+      if (filePreview) URL.revokeObjectURL(filePreview)
+    }
+  }, [filePreview])
 
   const handleFileUpload = (e) => {
-    const uploadedFile = e.target.files[0];
+    const uploadedFile = e.target.files[0]
     if (uploadedFile) {
-      if (filePreview) URL.revokeObjectURL(filePreview);
-      setFile(uploadedFile);
-      setFilePreview(URL.createObjectURL(uploadedFile));
+      if (filePreview) URL.revokeObjectURL(filePreview)
+      setFile(uploadedFile)
+      setFilePreview(URL.createObjectURL(uploadedFile))
     }
-  };
+  }
 
   const handleRemoveFile = () => {
-    if (filePreview) URL.revokeObjectURL(filePreview);
-    setFile(null);
-    setFilePreview(null);
-  };
+    if (filePreview) URL.revokeObjectURL(filePreview)
+    setFile(null)
+    setFilePreview(null)
+  }
 
   return (
     <div>
@@ -38,7 +38,7 @@ function CreateLessonVideo({ file, setFile, filePreview, setFilePreview }) {
           className="hidden"
         />
       </div>
-      <div className="w-full aspect-video rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center">
+      <div className="w-full aspect-[2/1] rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center">
         {file && filePreview ? (
           <div className="relative w-full h-full">
             <video
@@ -74,8 +74,10 @@ function CreateLessonVideo({ file, setFile, filePreview, setFilePreview }) {
             onClick={() => document.getElementById("videoUpload").click()}
           >
             <Upload className="h-8 w-8 text-black mb-4" />
-            <p className="text-black text-center">
-              Drag and drop a video here\n(max 500 MB)\nor click to browse
+            <p className="text-black text-center text-gray-500">
+              Drag and drop a video here (&lt; 500 MB)
+              <br />
+              or click to browse
             </p>
             <Button type="button" variant="outline" size="sm" className="mt-4">
               Select Video
@@ -84,7 +86,7 @@ function CreateLessonVideo({ file, setFile, filePreview, setFilePreview }) {
         )}
       </div>
     </div>
-  );
+  )
 }
 
-export default CreateLessonVideo;
+export default CreateLessonVideo

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 import { useLocation, useNavigate } from "react-router-dom"
 import { LOGO } from "@/lib/constants"
 import { MESSAGES } from "@/lib/messages"
-import { loginWithGithub, loginWithGoogle } from "@/lib/api/auth_api"
+import { loginWithGoogle } from "@/lib/api/auth_api"
 import { useAuth } from "@/provider/AuthProvider"
 import LoadingScreen from "@/components/layout/loading"
 import { toast } from "sonner"
@@ -22,7 +22,7 @@ export default function LoginPage() {
     password: ""
   })
 
-  const { isAuthenticated, setIsAuthenticated, login } = useAuth()
+  const { isAuthenticated, login } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -120,10 +120,6 @@ export default function LoginPage() {
     loginWithGoogle()
   }
 
-  function handleLoginGithub() {
-    loginWithGithub()
-  }
-
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       {loading && <LoadingScreen loadingText="Loading..." />}
@@ -204,7 +200,7 @@ export default function LoginPage() {
                     Or continue with
                   </span>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-4">
                   <Button
                     type="button"
                     onClick={handleLoginGoogle}
@@ -230,29 +226,6 @@ export default function LoginPage() {
                       />
                     </svg>
                     <span className="sr-only">Login with Google</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={handleLoginGithub}
-                    variant="outline"
-                    className="w-full border-gray-300 dark:border-gray-700 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900"
-                  >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="dark:invert"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M12 2C6.48 2 2 6.48 2 12C2 16.42 5.17 20.17 9.25 21.44C9.75 21.54 9.91 21.27 9.91 21.04C9.91 20.84 9.9 20.22 9.9 19.5C7 20.1 6.32 18.56 6.1 17.98C6 17.73 5.46 16.66 5 16.41C4.6 16.2 4.03 15.69 5 15.68C5.9 15.67 6.46 16.56 6.67 16.91C7.72 18.67 9.27 18.21 9.86 17.89C9.96 17.15 10.24 16.66 10.54 16.37C7.98 16.08 5.32 15.08 5.32 10.74C5.32 9.52 5.72 8.52 6.42 7.73C6.32 7.44 5.95 6.33 6.52 4.97C6.52 4.97 7.44 4.68 9.91 6.23C10.82 5.98 11.78 5.86 12.74 5.86C13.7 5.86 14.66 5.98 15.57 6.23C18.04 4.68 18.96 4.97 18.96 4.97C19.53 6.33 19.16 7.44 19.06 7.73C19.76 8.52 20.16 9.52 20.16 10.74C20.16 15.09 17.49 16.08 14.92 16.37C15.3 16.73 15.64 17.45 15.64 18.5C15.64 19.91 15.63 20.84 15.63 21.04C15.63 21.27 15.79 21.54 16.29 21.44C20.37 20.17 23.54 16.42 23.54 12C23.54 6.48 19.06 2 12 2Z"
-                        fill="black"
-                      />
-                    </svg>
-                    <span className="sr-only">Login with Github</span>
                   </Button>
                 </div>
               </div>

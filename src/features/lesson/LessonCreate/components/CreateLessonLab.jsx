@@ -114,8 +114,8 @@ export default function CreateLessonLab({
         setPagination({
           totalPages: data.totalPages || 1,
           currentPage: data.number || 0,
-          first: data.first || true,
-          last: data.last || false
+          first: data.first,
+          last: data.last
         })
       } else {
         setProblems([])
@@ -213,7 +213,7 @@ export default function CreateLessonLab({
       <div className="relative rounded-lg space-y-4">
         <Collapsible open={isProblemsOpen} onOpenChange={setIsProblemsOpen}>
           <CollapsibleTrigger asChild>
-            <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
+            <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-200/50 cursor-pointer">
               <span className="text-black text-sm font-medium">
                 {selectedProblems.length > 0
                   ? `Selected ${selectedProblems.length} problems`
@@ -226,7 +226,7 @@ export default function CreateLessonLab({
               )}
             </div>
           </CollapsibleTrigger>
-          <CollapsibleContent className="z-10 absolute top-10 w-full bg-white space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
+          <CollapsibleContent className="z-10 absolute top-10 w-full bg-background space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium text-black">Problems</h4>
               {selectedProblems.length > 0 && (
@@ -310,27 +310,42 @@ export default function CreateLessonLab({
                           handlePageChange(e, pagination.currentPage - 1)
                         }
                       }}
-                      className={
-                        pagination.first ? "pointer-events-none opacity-50" : ""
-                      }
+                      className={pagination.first ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
 
-                  {Array.from({ length: pagination.totalPages }).map(
-                    (_, index) => (
-                      <PaginationItem key={`page-${index}`}>
-                        <PaginationLink
-                          href="#"
-                          isActive={pagination.currentPage === index}
-                          onClick={(e) => {
-                            handlePageChange(e, index)
-                          }}
-                        >
-                          {index + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )
-                  )}
+                  {/* Improved pagination with ellipsis */}
+                  {Array.from({ length: pagination.totalPages }).map((_, index) => {
+                    // Show limited page numbers with ellipsis for better UX
+                    if (
+                      pagination.totalPages <= 5 ||
+                      index === 0 ||
+                      index === pagination.totalPages - 1 ||
+                      (index >= pagination.currentPage - 1 && index <= pagination.currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={`page-${index}`}>
+                          <PaginationLink
+                            href="#"
+                            isActive={pagination.currentPage === index}
+                            onClick={(e) => handlePageChange(e, index)}
+                          >
+                            {index + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    } else if (
+                      (index === 1 && pagination.currentPage > 3) ||
+                      (index === pagination.totalPages - 2 && pagination.currentPage < pagination.totalPages - 2)
+                    ) {
+                      return (
+                        <PaginationItem key={`ellipsis-${index}`}>
+                          <span className="flex h-9 w-9 items-center justify-center text-sm">...</span>
+                        </PaginationItem>
+                      )
+                    }
+                    return null
+                  })}
 
                   <PaginationItem>
                     <PaginationNext
@@ -340,9 +355,7 @@ export default function CreateLessonLab({
                           handlePageChange(e, pagination.currentPage + 1)
                         }
                       }}
-                      className={
-                        pagination.last ? "pointer-events-none opacity-50" : ""
-                      }
+                      className={pagination.last ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
                 </PaginationContent>
