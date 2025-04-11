@@ -294,7 +294,7 @@ export default function TagList({ onNavigate }) {
                 <TableCell>{tag.type}</TableCell>
                 <TableCell>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <img
+                    <img loading="lazy"
                       src={tag.createdBy.avatar}
                       alt="avatar"
                       style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}

@@ -372,7 +372,7 @@ function UpdateCourse({ setCurrentTitleCourse }) {
                   >
                     {imagePreview || imageUrl ? (
                       <div className="relative w-full h-full">
-                        <img
+                        <img loading="lazy"
                           src={imagePreview || imageUrl}
                           alt="Course preview"
                           className="w-full h-full object-cover"

@@ -156,7 +156,7 @@ export default function CreateUser({ onNavigate }) {
                 <>
                   {/* Image container with fixed aspect ratio */}
                   <div className="w-full h-full">
-                    <img
+                    <img loading="lazy"
                       src={imagePreview || "/placeholder.svg"}
                       alt="User preview"
                       className="w-full h-full object-cover"

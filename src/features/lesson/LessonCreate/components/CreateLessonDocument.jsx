@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Upload, X } from "lucide-react"
+import { toast } from "sonner"
 
 function CreateLessonDocument({ file, setFile }) {
   const [filePreview, setFilePreview] = useState(null)
@@ -23,11 +24,11 @@ function CreateLessonDocument({ file, setFile }) {
     const uploadedFile = e.target.files[0]
     if (uploadedFile) {
       if (!allowedTypes.includes(uploadedFile.type)) {
-        alert("Only Word (.doc, .docx), PDF (.pdf), and Text (.txt) files are allowed.")
+        toast.error("Only Word (.doc, .docx), PDF (.pdf), and Text (.txt) files are allowed.")
         return
       }
       if (uploadedFile.size > 100 * 1024 * 1024) {
-        alert("File must be less than 100 MB.")
+        toast.error("File must be less than 100 MB.")
         return
       }
       if (filePreview) URL.revokeObjectURL(filePreview)

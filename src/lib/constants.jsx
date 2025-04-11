@@ -2,7 +2,7 @@ import React from "react"
 import logo from "@/assets/images/logo/K_nobg.png"
 
 const LOGO = React.forwardRef(({ className, ...props }, ref) => {
-  return <img src={logo} className={className} alt="Kodeholik" ref={ref} {...props} />
+  return <img loading="lazy" src={logo} className={className} alt="Kodeholik" ref={ref} {...props} />
 })
 
 const GLOBALS = {

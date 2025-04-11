@@ -338,7 +338,7 @@ function CreateCourse() {
                 >
                   {imagePreview ? (
                     <div className="relative w-full h-full">
-                      <img
+                      <img loading="lazy"
                         src={imagePreview}
                         alt="Course preview"
                         className="w-full h-full object-cover"

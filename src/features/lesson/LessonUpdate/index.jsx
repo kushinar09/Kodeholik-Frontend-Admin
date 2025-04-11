@@ -59,7 +59,7 @@ const formSchema = z
       .instanceof(File, { message: "Attached file must be a file" })
       .nullable()
       .optional()
-      .refine((file) => !file || file.size <= 100 * 1024 * 1024, "Attached file must be less than 100 MB"),
+      .refine((file) => !file || file.size <= 0, "Attached file must be less than 100 MB"),
     existingVideoUrl: z.string().nullable().optional(),
     existingDocUrl: z.string().nullable().optional()
   })

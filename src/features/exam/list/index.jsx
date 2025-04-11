@@ -300,7 +300,7 @@ export default function ExamList({ onNavigate }) {
 
                 <TableCell>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <img
+                    <img loading="lazy"
                       src={exam.createdBy.avatar || "/placeholder.svg"}
                       alt="avatar"
                       style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}

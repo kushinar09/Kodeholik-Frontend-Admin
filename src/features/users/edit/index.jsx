@@ -211,7 +211,7 @@ export default function EditUser({ onNavigate, setCurrentTitleUser }) {
                   <>
                     {/* Image container with fixed aspect ratio */}
                     <div className="w-full h-full">
-                      <img
+                      <img loading="lazy"
                         src={imagePreview || "/placeholder.svg"}
                         alt="Course preview"
                         className="w-full h-full object-cover"

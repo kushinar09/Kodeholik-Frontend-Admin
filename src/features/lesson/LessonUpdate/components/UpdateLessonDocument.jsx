@@ -65,7 +65,7 @@ function UpdateLessonDocument({ file, setFile, existingFileUrl, setExistingFileU
 
       if (!fileUrl.status) {
         toast.error("Failed to download file", {
-          description: "Error status: " + fileUrl.data,
+          description: "Error status: " + fileUrl.data
         })
       } else {
         const link = document.createElement("a")
@@ -77,7 +77,7 @@ function UpdateLessonDocument({ file, setFile, existingFileUrl, setExistingFileU
       }
     } catch (err) {
       toast.error("Failed to download file", {
-        description: err.message,
+        description: err.message
       })
     }
   }
