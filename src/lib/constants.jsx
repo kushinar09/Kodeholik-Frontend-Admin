@@ -110,7 +110,7 @@ const ENDPOINTS = {
   UPDATE_LESSON: `${API_URL}/lesson/update/:id`,
 
   //DownloadFile lesson
-  DOWNLOAD_FILE_LESSON: (fileKey) => `${API_URL}/lesson/download-file?key=${encodeURIComponent(fileKey)}`,
+  DOWNLOAD_FILE_LESSON: `${API_URL}/lesson/download-file?key=:key`,
 
   //Topic
   GET_TOPIC_LIST: `${API_URL}/tag/all-topic`,

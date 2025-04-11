@@ -4,6 +4,7 @@
 import { ENDPOINTS, ROLES } from "@/lib/constants"
 import { createContext, useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 const AuthContext = createContext()
 
@@ -14,7 +15,8 @@ const noRedirectToErrorEndpoints = [
   ENDPOINTS.GET_INFOR,
   ENDPOINTS.POST_LOGIN,
   ENDPOINTS.ROTATE_TOKEN,
-  ENDPOINTS.POST_LOGOUT
+  ENDPOINTS.POST_LOGOUT,
+  ENDPOINTS.DOWNLOAD_FILE_LESSON
 ]
 
 export const AuthProvider = ({ children }) => {
@@ -142,14 +144,27 @@ export const AuthProvider = ({ children }) => {
         return response
       }
 
+      if (response.status === 400) {
+        toast.error("Bad request. Please again later.", {
+          description: response.message.error || response.message || "Error occurred",
+          duration: 3000
+        })
+        return response
+      }
+
       // Check if this endpoint should skip error redirects
-      const shouldSkipErrorRedirect = noRedirectToErrorEndpoints.some(
-        (endpoint) => url === endpoint || url.startsWith(endpoint)
-      )
+      const shouldSkipErrorRedirect = noRedirectToErrorEndpoints.some((endpoint) => {
+        const endpointPattern = endpoint
+          .replace(/:[a-zA-Z0-9_]+/g, "[^/]+") // Replace dynamic path params like :id, :token
+          .replace(/\?/g, "\\?") // Escape "?" in query params
+          .replace(/=/g, "=") // Keep "=" as is
+          .replace(/&/g, "&") // Keep "&" as is
+
+        const regex = new RegExp(`^${endpointPattern}($|\\?.*)`)
+        return regex.test(url)
+      })
 
       if (response.status === 401 && !notCallRotateTokenEndpoints.includes(url)) {
-        console.warn("Access token expired. Attempting refresh...")
-
         const status = await refreshAccessToken(redirect)
 
         if (status === 200) {
@@ -191,7 +206,7 @@ export const AuthProvider = ({ children }) => {
               }
           }
         }
-        return response // Return the response
+        return response
       }
     } catch (error) {
       console.warn("API call error:", error)

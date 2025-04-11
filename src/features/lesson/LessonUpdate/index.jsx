@@ -3,7 +3,6 @@
 import { GLOBALS } from "@/lib/constants"
 import { useState, useEffect } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
-import { getChapterList } from "@/lib/api/chapter_api"
 import { useAuth } from "@/provider/AuthProvider"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -59,7 +58,7 @@ const formSchema = z
       .instanceof(File, { message: "Attached file must be a file" })
       .nullable()
       .optional()
-      .refine((file) => !file || file.size <= 0, "Attached file must be less than 100 MB"),
+      .refine((file) => !file || file.size <= 100 * 1024 * 1024, "Attached file must be less than 100 MB"),
     existingVideoUrl: z.string().nullable().optional(),
     existingDocUrl: z.string().nullable().optional()
   })
@@ -73,7 +72,7 @@ const formSchema = z
       })
     }
 
-    if (data.type === "YOUTUBE" && (!data.youtubeUrl || data.youtubeUrl.trim() === "") && !data.existingVideoUrl) {
+    if (data.type === "YOUTUBE" && (!data.youtubeUrl || data.youtubeUrl.trim() === "")) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "A YouTube URL is required for YOUTUBE type",
@@ -81,7 +80,7 @@ const formSchema = z
       })
     }
 
-    if (data.type === "DOCUMENT" && !data.attachedFile && !data.existingDocUrl) {
+    if (data.type === "DOCUMENT" && !data.attachedFile) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "A document file is required for DOCUMENT type",
@@ -104,6 +103,8 @@ function UpdateLesson() {
     status: "ACTIVATED"
   })
   const [chapters, setChapters] = useState([])
+  const [courses, setCourses] = useState([])
+  const [selectedCourse, setSelectedCourse] = useState(null)
   const [videoFile, setVideoFile] = useState(null)
   const [videoFilePreview, setVideoFilePreview] = useState(null)
   const [docFile, setDocFile] = useState(null)
@@ -122,7 +123,7 @@ function UpdateLesson() {
   useEffect(() => {
     document.title = `Update Lesson - ${GLOBALS.APPLICATION_NAME}`
     fetchLessonDetail()
-    fetchChapters()
+    fetchCourses()
   }, [])
 
   const fetchLessonDetail = async () => {
@@ -143,6 +144,10 @@ function UpdateLesson() {
         type: lessonType,
         status: data.status || "ACTIVATED"
       })
+      if (data.courseId) {
+        setSelectedCourse(data.courseId)
+        fetchChapters(data.courseId)
+      }
       setOriginalStatus(data.status || "ACTIVATED")
       if (data.status === "IN_PROGRESS") {
         toast.warning("Lesson is in progress, you can not update the lesson files.", {
@@ -178,10 +183,26 @@ function UpdateLesson() {
     return url && url.length === 11 && !url.includes("/") && !url.startsWith("http")
   }
 
-  const fetchChapters = async () => {
+  const fetchCourses = async () => {
     try {
-      const data = await getChapterList()
-      setChapters(Array.isArray(data?.content) ? data.content : [])
+      const response = await apiCall(ENDPOINTS.GET_COURSES)
+      const data = await response.json()
+      setCourses(Array.isArray(data) ? data : [])
+    } catch (err) {
+      setErrors((prev) => ({
+        ...prev,
+        courses: err.message || "Failed to fetch courses"
+      }))
+    }
+  }
+
+  const fetchChapters = async (courseId) => {
+    if (!courseId) return
+
+    try {
+      const response = await apiCall(ENDPOINTS.GET_CHAPTER_BY_COURSE_ID.replace(":id", courseId))
+      const data = await response.json()
+      setChapters(Array.isArray(data) ? data : [])
     } catch (err) {
       setErrors((prev) => ({
         ...prev,
@@ -212,6 +233,12 @@ function UpdateLesson() {
       [name]: name === "displayOrder" ? Number(value) || 1 : value
     }))
     setErrors((prev) => ({ ...prev, [name]: null }))
+  }
+
+  const handleCourseChange = (courseId) => {
+    setSelectedCourse(courseId)
+    setFormData((prev) => ({ ...prev, chapterId: null }))
+    fetchChapters(courseId)
   }
 
   const handleChapterChange = (chapterId) => {
@@ -245,6 +272,7 @@ function UpdateLesson() {
 
     try {
       formSchema.parse(dataToValidate)
+      console.log(true)
       return true
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -400,12 +428,16 @@ function UpdateLesson() {
                 Chapter <span className="text-red-500">*</span>
               </h4>
               <CollapsibleTrigger asChild>
-                <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-200/50 cursor-pointer">
-                  <span className="text-primary text-sm font-medium">
-                    {formData.chapterId
-                      ? chapters.find((ch) => ch.id === formData.chapterId)?.title || "Selected Chapter"
-                      : "Select Chapter (required) *"}
-                  </span>
+                <div className="flex justify-between items-center w-full rounded-lg p-2 px-3 border border-gray-700 hover:bg-gray-200/50 cursor-pointer">
+                  <div className="flex-1 flex items-center space-x-2">
+                    <span className={`text-sm ${courses.find((c) => c.id === selectedCourse) ? "font-semibold text-primary" : "font-medium text-gray-400"}`}>
+                      {`${courses.find((c) => c.id === selectedCourse)?.title || "Selected Course"}`}
+                    </span>
+                    <span>{">"}</span>
+                    <span className={`text-sm ${chapters.length > 0 && chapters.find((ch) => ch.id === formData.chapterId) ? "font-semibold text-primary" : "font-medium text-gray-400"}`}>
+                      {`${chapters.length > 0 ? chapters.find((ch) => ch.id === formData.chapterId)?.title || "Selected Chapter" : "Not found"}`}
+                    </span>
+                  </div>
                   {isChaptersOpen ? (
                     <ChevronUp className="h-4 w-4 text-gray-400" />
                   ) : (
@@ -416,40 +448,70 @@ function UpdateLesson() {
               {errors.chapterId && <p className="text-red-500 text-sm mt-1">{errors.chapterId}</p>}
               <CollapsibleContent className="space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium text-primary">Chapters</h4>
+                  <h4 className="text-sm font-medium text-primary">Select Course</h4>
                   <span
-                    onClick={clearChapterSelection}
+                    onClick={() => {
+                      setSelectedCourse(null)
+                      setChapters([])
+                      clearChapterSelection()
+                    }}
                     className="cursor-pointer text-sm text-gray-400 hover:underline"
                   >
                     Clear Selection
                   </span>
                 </div>
-                <Input
-                  placeholder="Search chapters..."
-                  value={chapterSearch}
-                  onChange={(e) => setChapterSearch(e.target.value)}
-                />
                 <div className="max-h-[6rem] overflow-y-auto overflow-x-hidden flex flex-wrap gap-3 pb-2">
-                  {filteredChapters.length > 0 ? (
-                    filteredChapters.map((chapter) => (
+                  {courses.length > 0 ? (
+                    courses.map((course) => (
                       <div
-                        key={chapter.id}
-                        className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
+                        key={course.id}
+                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
+                          }`}
+                        onClick={() => handleCourseChange(course.id)}
                       >
-                        <Checkbox
-                          id={`chapter-${chapter.id}`}
-                          checked={formData.chapterId === chapter.id}
-                          onCheckedChange={() => handleChapterChange(chapter.id)}
-                        />
-                        <Label htmlFor={`chapter-${chapter.id}`} className="text-primary text-sm whitespace-nowrap">
-                          {chapter.title || `Unnamed Chapter (ID: ${chapter.id})`}
+                        <Label className="text-primary text-sm whitespace-nowrap cursor-pointer">
+                          {course.title || `Unnamed Course (ID: ${course.id})`}
                         </Label>
                       </div>
                     ))
                   ) : (
-                    <span className="text-gray-400 text-sm">No chapters found</span>
+                    <span className="text-gray-400 text-sm">No courses found</span>
                   )}
                 </div>
+
+                {selectedCourse && (
+                  <>
+                    <div className="flex items-center justify-between mt-4">
+                      <h4 className="text-sm font-medium text-primary">Select Chapter</h4>
+                    </div>
+                    <Input
+                      placeholder="Search chapters..."
+                      value={chapterSearch}
+                      onChange={(e) => setChapterSearch(e.target.value)}
+                    />
+                    <div className="max-h-[6rem] overflow-y-auto overflow-x-hidden flex flex-wrap gap-3 pb-2">
+                      {filteredChapters.length > 0 ? (
+                        filteredChapters.map((chapter) => (
+                          <div
+                            key={chapter.id}
+                            className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
+                          >
+                            <Checkbox
+                              id={`chapter-${chapter.id}`}
+                              checked={formData.chapterId === chapter.id}
+                              onCheckedChange={() => handleChapterChange(chapter.id)}
+                            />
+                            <Label htmlFor={`chapter-${chapter.id}`} className="text-primary text-sm whitespace-nowrap">
+                              {chapter.title || `Unnamed Chapter (ID: ${chapter.id})`}
+                            </Label>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 text-sm">No chapters found for this course</span>
+                      )}
+                    </div>
+                  </>
+                )}
               </CollapsibleContent>
             </Collapsible>
 

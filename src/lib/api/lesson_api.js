@@ -21,11 +21,11 @@ export async function createLesson(formData, apiCall) {
     const errorText = await response.text()
     throw new Error(errorText || "Failed to create lesson")
   }
-  return response.json()
+  return response.text()
 };
 
 export async function downloadFileLesson(apiCall, fileKey) {
-  const fileUrl = ENDPOINTS.DOWNLOAD_FILE_LESSON(fileKey)
+  const fileUrl = ENDPOINTS.DOWNLOAD_FILE_LESSON.replace(":key", fileKey)
 
   try {
     const response = await apiCall(fileUrl)

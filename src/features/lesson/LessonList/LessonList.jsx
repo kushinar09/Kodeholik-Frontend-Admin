@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react"
 import { getLessonByChapterId } from "@/lib/api/lesson_api"
 import { getChapterList } from "@/lib/api/chapter_api"
-import { Link, useSearchParams } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { GLOBALS } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { Search, Plus, Edit, MoreHorizontal } from "lucide-react"
+import { Plus, Edit, MoreHorizontal } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -25,21 +25,25 @@ function LessonList({ onNavigate }) {
   const [sortBy, setSortBy] = useState("id")
   const [sortOrder, setSortOrder] = useState("asc")
   const [isFilterExpanded, setIsFilterExpanded] = useState(false)
-
-  useEffect(() => {
-    document.title = `Lesson List - ${GLOBALS.APPLICATION_NAME}`
-    const searchParams = new URLSearchParams(window.location.search)
-    setChapterId(searchParams.get("chapterId") || 1)
-  }, [])
+  const navigate = useNavigate()
 
   // Fetch chapters for filter
   useEffect(() => {
+    document.title = `Lesson List - ${GLOBALS.APPLICATION_NAME}`
+    const searchParams = new URLSearchParams(window.location.search)
+    const id = searchParams.get("chapterId")
+
     const fetchChapters = async () => {
       try {
         const data = await getChapterList()
         const chapterArray = Array.isArray(data?.content) ? data.content : []
         setChapters(chapterArray)
-        if (!chapterId && chapterArray.length > 0) {
+        if (id && !(data.content.map(ch => ch.id).includes(Number(id)))) {
+          navigate("/lesson")
+        }
+        if (id) {
+          setChapterId(Number(id))
+        } else if (chapterArray.length > 0) {
           setChapterId(chapterArray[0].id)
         }
       } catch (error) {
