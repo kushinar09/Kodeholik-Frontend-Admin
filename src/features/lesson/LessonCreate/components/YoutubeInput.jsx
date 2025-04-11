@@ -1,34 +1,34 @@
-import { useState } from "react";
+import { useState } from "react"
 
 function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
-  const [inputValue, setInputValue] = useState(youtubeUrl || "");
-  const [error, setError] = useState("");
+  const [inputValue, setInputValue] = useState(youtubeUrl || "")
+  const [error, setError] = useState("")
 
   const handleChange = (e) => {
-    setInputValue(e.target.value);
+    setInputValue(e.target.value)
     if (!e.target.value.trim()) {
-      setYoutubeUrl("");
-      setError("");
+      setYoutubeUrl("")
+      setError("")
     }
-  };
+  }
 
   const handleBlur = () => {
-    const trimmedUrl = inputValue.trim();
-    const videoId = getYoutubeVideoId(trimmedUrl);
+    const trimmedUrl = inputValue.trim()
+    const videoId = getYoutubeVideoId(trimmedUrl)
 
     if (trimmedUrl === "") {
-      setYoutubeUrl("");
-      setError("");
-      return;
+      setYoutubeUrl("")
+      setError("")
+      return
     }
 
     if (videoId) {
-      setYoutubeUrl(trimmedUrl);
-      setError("");
+      setYoutubeUrl(trimmedUrl)
+      setError("")
     } else {
-      setError("URL không hợp lệ. Hãy nhập một liên kết YouTube hợp lệ.");
+      setError("URL không hợp lệ. Hãy nhập một liên kết YouTube hợp lệ.")
     }
-  };
+  }
 
   return (
     <div className="w-full">
@@ -41,7 +41,7 @@ function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
         value={inputValue}
         onChange={handleChange}
         onBlur={handleBlur}
-        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+        className="w-full px-3 py-2 border rounded-md border-gray-700 focus:outline-none focus:ring-none"
       />
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
 
@@ -54,19 +54,20 @@ function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
             )}`}
             title="YouTube Video"
             allowFullScreen
-          ></iframe>
+          >
+          </iframe>
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // 🔹 Hàm lấy video ID từ URL YouTube
 function getYoutubeVideoId(url) {
   const regExp =
-    /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-  const match = url.match(regExp);
-  return match ? match[1] : null;
+    /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
+  const match = url.match(regExp)
+  return match ? match[1] : null
 }
 
-export default YoutubeInput;
+export default YoutubeInput

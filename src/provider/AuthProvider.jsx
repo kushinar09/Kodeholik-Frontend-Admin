@@ -272,9 +272,9 @@ export const AuthProvider = ({ children }) => {
         loginGithub,
         isAuthenticated,
         user,
-        isLoading, // Expose loading state
+        isLoading,
         setIsAuthenticated,
-        checkAuthStatus // Expose this so it can be called after login
+        checkAuthStatus
       }}
     >
       {children}

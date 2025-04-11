@@ -1,48 +1,48 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Upload, X } from "lucide-react";
+import { useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Upload, X } from "lucide-react"
 
 function UpdateLessonVideo({
   file,
   setFile,
   filePreview,
   setFilePreview,
-  existingFileUrl,
+  existingFileUrl
 }) {
   useEffect(() => {
     return () => {
       if (filePreview && filePreview.startsWith("blob:")) {
-        URL.revokeObjectURL(filePreview);
+        URL.revokeObjectURL(filePreview)
       }
-    };
-  }, [filePreview]);
+    }
+  }, [filePreview])
 
   const handleFileUpload = (e) => {
-    const uploadedFile = e.target.files[0];
+    const uploadedFile = e.target.files[0]
     if (uploadedFile) {
       if (filePreview && filePreview.startsWith("blob:")) {
-        URL.revokeObjectURL(filePreview);
+        URL.revokeObjectURL(filePreview)
       }
-      setFile(uploadedFile);
-      setFilePreview(URL.createObjectURL(uploadedFile));
+      setFile(uploadedFile)
+      setFilePreview(URL.createObjectURL(uploadedFile))
     }
-  };
+  }
 
   const handleRemoveFile = () => {
     if (filePreview && filePreview.startsWith("blob:")) {
-      URL.revokeObjectURL(filePreview);
+      URL.revokeObjectURL(filePreview)
     }
-    setFile(null);
-    setFilePreview(existingFileUrl); // Restore to existing file URL or ID
-  };
+    setFile(null)
+    setFilePreview(existingFileUrl) // Restore to existing file URL or ID
+  }
 
   const isYouTubeKey = (url) => {
     return (
       url && url.length === 11 && !url.includes("/") && !url.startsWith("http")
-    );
-  };
+    )
+  }
 
   const renderPreview = () => {
     // Check if there's a new file uploaded
@@ -53,7 +53,7 @@ function UpdateLessonVideo({
           controls
           className="w-full h-full object-cover"
         />
-      );
+      )
     }
 
     // Check if existingFileUrl is a YouTube video ID
@@ -64,8 +64,9 @@ function UpdateLessonVideo({
           src={`https://www.youtube.com/embed/${existingFileUrl}`}
           title="YouTube Video"
           allowFullScreen
-        ></iframe>
-      );
+        >
+        </iframe>
+      )
     }
 
     // Check if existingFileUrl is a regular video file
@@ -76,7 +77,7 @@ function UpdateLessonVideo({
           controls
           className="w-full h-full object-cover"
         />
-      );
+      )
     }
 
     // No file or URL, show upload prompt
@@ -93,8 +94,8 @@ function UpdateLessonVideo({
           Select Video
         </Button>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div>
@@ -139,7 +140,7 @@ function UpdateLessonVideo({
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default UpdateLessonVideo;
+export default UpdateLessonVideo

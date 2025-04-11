@@ -1,36 +1,36 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Search, X, ChevronDown, ChevronUp } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState, useEffect } from "react"
+import { Search, X, ChevronDown, ChevronUp } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { useAuth } from "@/provider/AuthProvider";
-import { ENDPOINTS } from "@/lib/constants";
-import { toast } from "sonner";
+  PaginationPrevious
+} from "@/components/ui/pagination"
+import { useAuth } from "@/provider/AuthProvider"
+import { ENDPOINTS } from "@/lib/constants"
+import { toast } from "sonner"
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  CollapsibleTrigger
+} from "@/components/ui/collapsible"
 
 export default function UpdateLessonLab({
   selectedProblems = [],
-  setSelectedProblems,
+  setSelectedProblems
 }) {
-  const pageSize = 10;
-  const [isLoading, setIsLoading] = useState(false);
-  const [problems, setProblems] = useState([]);
+  const pageSize = 10
+  const [isLoading, setIsLoading] = useState(false)
+  const [problems, setProblems] = useState([])
   const [filters, setFilters] = useState({
     page: 0,
     size: pageSize,
@@ -39,151 +39,151 @@ export default function UpdateLessonLab({
     status: null,
     isActive: true,
     sortBy: null,
-    ascending: null,
-  });
+    ascending: null
+  })
   const [pagination, setPagination] = useState({
     totalPages: 1,
     currentPage: 0,
-    first: true,
-    last: false,
-  });
-  const [isProblemsOpen, setIsProblemsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const { apiCall } = useAuth();
+    first: false,
+    last: false
+  })
+  const [isProblemsOpen, setIsProblemsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const { apiCall } = useAuth()
 
-  const problemIds = selectedProblems.map((problem) => String(problem.link));
+  const problemIds = selectedProblems.map((problem) => String(problem.link))
 
   useEffect(() => {
-    fetchProblems();
-  }, [filters]);
+    fetchProblems()
+  }, [filters])
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setFilters((prev) => ({
         ...prev,
         title: searchTerm,
-        page: 0,
-      }));
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+        page: 0
+      }))
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   const fetchProblems = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       const response = await apiCall(ENDPOINTS.POST_TEACHER_PROBLEMS_LIST, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filters),
-      });
+        body: JSON.stringify(filters)
+      })
 
       if (!response.ok) {
         toast.error("Error", {
           description:
             (await response.json()).message ||
-            `Failed to load problems. Catch error ${response.status}.`,
-        });
+            `Failed to load problems. Catch error ${response.status}.`
+        })
       }
 
-      const text = await response.text();
+      const text = await response.text()
       if (text && text.length > 0) {
-        const data = JSON.parse(text);
+        const data = JSON.parse(text)
         const problemsWithUniqueLinks = (data.content || []).map(
           (problem, index) => ({
             ...problem,
-            link: problem.link || `problem-${index}`,
+            link: problem.link || `problem-${index}`
           })
-        );
-        setProblems(problemsWithUniqueLinks);
+        )
+        setProblems(problemsWithUniqueLinks)
         setPagination({
           totalPages: data.totalPages || 1,
           currentPage: data.number || 0,
-          first: data.first || true,
-          last: data.last || false,
-        });
+          first: data.first,
+          last: data.last
+        })
       } else {
-        setProblems([]);
+        setProblems([])
         setPagination({
           totalPages: 1,
           currentPage: 0,
           first: true,
-          last: true,
-        });
+          last: true
+        })
       }
     } catch (err) {
       toast.error("Error", {
-        description: "Failed to load problems. Please try again.",
-      });
-      setProblems([]);
+        description: "Failed to load problems. Please try again."
+      })
+      setProblems([])
       setPagination({
         totalPages: 1,
         currentPage: 0,
         first: true,
-        last: true,
-      });
+        last: true
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
+    setSearchTerm(e.target.value)
+  }
 
   const handleSelectProblem = (problem) => {
-    const problemLink = String(problem.link);
-    const isSelected = problemIds.includes(problemLink);
+    const problemLink = String(problem.link)
+    const isSelected = problemIds.includes(problemLink)
     if (isSelected) {
       setSelectedProblems(
         selectedProblems.filter((p) => String(p.link) !== problemLink)
-      );
+      )
     } else {
-      setSelectedProblems([...selectedProblems, problem]);
+      setSelectedProblems([...selectedProblems, problem])
     }
-  };
+  }
 
   const handleRemoveProblem = (e, problemId) => {
-    e.stopPropagation();
-    const problemIdStr = String(problemId);
+    e.stopPropagation()
+    const problemIdStr = String(problemId)
     setSelectedProblems(
       selectedProblems.filter((p) => String(p.link) !== problemIdStr)
-    );
-  };
+    )
+  }
 
   const clearProblemSelection = (e) => {
-    e.stopPropagation();
-    setSelectedProblems([]);
-    setSearchTerm("");
-  };
+    e.stopPropagation()
+    setSelectedProblems([])
+    setSearchTerm("")
+  }
 
   const getDifficultyColor = (difficulty) => {
     const colors = {
       EASY: "bg-green-500",
       MEDIUM: "bg-yellow-500",
-      HARD: "bg-red-500",
-    };
-    return colors[difficulty] || "bg-gray-500";
-  };
+      HARD: "bg-red-500"
+    }
+    return colors[difficulty] || "bg-gray-500"
+  }
 
   const handlePageChange = (e, page) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setFilters((prev) => ({ ...prev, page }));
-  };
+    e.preventDefault()
+    e.stopPropagation()
+    setFilters((prev) => ({ ...prev, page }))
+  }
 
   const isProblemSelected = (problemId) => {
-    const problemIdStr = String(problemId);
-    return problemIds.includes(problemIdStr);
-  };
+    const problemIdStr = String(problemId)
+    return problemIds.includes(problemIdStr)
+  }
 
   return (
     <div className="space-y-4">
-      <Label className="text-base font-medium">Select Problems</Label>
+      <Label className="text-primary text-base font-semibold">Select Problems</Label>
 
-      <div className="border rounded-lg p-4 space-y-4">
+      <div className="relative rounded-lg space-y-4">
         <Collapsible open={isProblemsOpen} onOpenChange={setIsProblemsOpen}>
           <CollapsibleTrigger asChild>
-            <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
+            <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-200/50 cursor-pointer">
               <span className="text-black text-sm font-medium">
                 {selectedProblems.length > 0
                   ? `Selected ${selectedProblems.length} problems`
@@ -196,7 +196,7 @@ export default function UpdateLessonLab({
               )}
             </div>
           </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
+          <CollapsibleContent className="z-10 absolute top-10 w-full bg-background space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-medium text-black">Problems</h4>
               {selectedProblems.length > 0 && (
@@ -274,40 +274,55 @@ export default function UpdateLessonLab({
                       href="#"
                       onClick={(e) => {
                         if (!pagination.first) {
-                          handlePageChange(e, pagination.currentPage - 1);
+                          handlePageChange(e, pagination.currentPage - 1)
                         }
                       }}
-                      className={
-                        pagination.first ? "pointer-events-none opacity-50" : ""
-                      }
+                      className={pagination.first ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
 
-                  {Array.from({ length: pagination.totalPages }).map(
-                    (_, index) => (
-                      <PaginationItem key={`page-${index}`}>
-                        <PaginationLink
-                          href="#"
-                          isActive={pagination.currentPage === index}
-                          onClick={(e) => handlePageChange(e, index)}
-                        >
-                          {index + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )
-                  )}
+                  {/* Improved pagination with ellipsis */}
+                  {Array.from({ length: pagination.totalPages }).map((_, index) => {
+                    // Show limited page numbers with ellipsis for better UX
+                    if (
+                      pagination.totalPages <= 5 ||
+                      index === 0 ||
+                      index === pagination.totalPages - 1 ||
+                      (index >= pagination.currentPage - 1 && index <= pagination.currentPage + 1)
+                    ) {
+                      return (
+                        <PaginationItem key={`page-${index}`}>
+                          <PaginationLink
+                            href="#"
+                            isActive={pagination.currentPage === index}
+                            onClick={(e) => handlePageChange(e, index)}
+                          >
+                            {index + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    } else if (
+                      (index === 1 && pagination.currentPage > 3) ||
+                      (index === pagination.totalPages - 2 && pagination.currentPage < pagination.totalPages - 2)
+                    ) {
+                      return (
+                        <PaginationItem key={`ellipsis-${index}`}>
+                          <span className="flex h-9 w-9 items-center justify-center text-sm">...</span>
+                        </PaginationItem>
+                      )
+                    }
+                    return null
+                  })}
 
                   <PaginationItem>
                     <PaginationNext
                       href="#"
                       onClick={(e) => {
                         if (!pagination.last) {
-                          handlePageChange(e, pagination.currentPage + 1);
+                          handlePageChange(e, pagination.currentPage + 1)
                         }
                       }}
-                      className={
-                        pagination.last ? "pointer-events-none opacity-50" : ""
-                      }
+                      className={pagination.last ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
                 </PaginationContent>
@@ -352,5 +367,5 @@ export default function UpdateLessonLab({
         )}
       </div>
     </div>
-  );
+  )
 }
