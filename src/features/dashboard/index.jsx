@@ -30,6 +30,7 @@ import LessonList from "../lesson/LessonList/LessonList"
 import CreateLesson from "../lesson/LessonCreate"
 import UpdateLesson from "../lesson/LessonUpdate"
 import CourseDetail from "../course/CourseDetail/CourseDetail"
+import NotificationsPage from "../notification"
 
 // Memoized sidebar to prevent re-renders
 const MemoizedSidebar = memo(function MemoizedSidebar({ onNavigate }) {
@@ -43,6 +44,14 @@ const routeConfig = [
     path: "/",
     component: Overview,
     breadcrumb: [{ title: "Dashboard", url: "/" }],
+    role: null
+  },
+
+  // Notifications
+  {
+    path: "/notifications",
+    component: NotificationsPage,
+    breadcrumb: [{ title: "Notifications", url: "#" }],
     role: null
   },
 

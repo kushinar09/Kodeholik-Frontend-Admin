@@ -27,9 +27,16 @@ const GLOBALS = {
 const FRONTEND_PORT = import.meta.env.VITE_FRONTEND_PORT
 const API_URL = import.meta.env.VITE_API_URL
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+const WEBSOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL || "http://localhost:8080/ws"
 
 const ENDPOINTS = {
   FRONTEND: `http://localhost:${FRONTEND_PORT}`,
+
+  // Web socket
+  WEBSOCKET: WEBSOCKET_URL,
+  WEBSOCKET_NOTIFICATION: `${WEBSOCKET_URL}/notification?token=:token`,
+  WEBSOCKET_EXAM: `${WEBSOCKET_URL}?token=:token`,
+
   // Auth
   POST_LOGIN: `${API_URL}/auth/login-admin`,
   LOGIN_GOOGLE: `${BACKEND_URL}/oauth2/authorization/google`,
@@ -45,6 +52,10 @@ const ENDPOINTS = {
   // Overview
   GET_PROBLEM_OVERVIEW: `${API_URL}/problem/overview-report`,
   GET_COURSE_OVERVIEW: `${API_URL}/course/overview-report`,
+
+  // Notification
+  GET_NOTIFICATIONS: `${API_URL}/user/notifications`,
+  GET_NOTIFICATIONS_TOKEN: `${API_URL}/auth/get-token-noti`,
 
   // Problems
   POST_PROBLEMS_LIST: `${API_URL}/problem/search`,
