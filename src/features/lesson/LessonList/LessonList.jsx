@@ -88,7 +88,7 @@ function LessonList({ onNavigate }) {
     if (!courseId) return
 
     try {
-      const response = await apiCall(ENDPOINTS.GET_CHAPTER_BY_COURSE_ID.replace(":id", courseId))
+      const response = await apiCall(ENDPOINTS.GET_CHAPTER_BY_COURSE_ID_LESS.replace(":id", courseId))
       const data = await response.json()
       const chapterArray = Array.isArray(data) ? data : []
       setChapters(chapterArray)
