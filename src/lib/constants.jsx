@@ -98,6 +98,7 @@ const ENDPOINTS = {
   //Chapter
   GET_CHAPTERS: `${API_URL}/chapter/list`,
   GET_CHAPTER_BY_COURSE_ID: `${API_URL}/chapter/by-course/:id`,
+  GET_CHAPTER_BY_COURSE_ID_LESS: `${API_URL}/chapter/list-by-course/:id`,
   GET_CHAPTER_DETAIL: `${API_URL}/chapter/detail/:id`,
   CREATE_CHAPTER: `${API_URL}/chapter/add`,
   UPDATE_CHAPTER: `${API_URL}/chapter/update/:id`,

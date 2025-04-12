@@ -80,7 +80,7 @@ const formSchema = z
       })
     }
 
-    if (data.type === "DOCUMENT" && !data.attachedFile) {
+    if (data.type === "DOCUMENT" && !data.attachedFile && !data.existingDocUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "A document file is required for DOCUMENT type",
@@ -113,6 +113,7 @@ function UpdateLesson() {
   const [existingDocUrl, setExistingDocUrl] = useState(null)
   const [isChaptersOpen, setIsChaptersOpen] = useState(false)
   const [chapterSearch, setChapterSearch] = useState("")
+  const [courseSearch, setCourseSearch] = useState("")
   const [errors, setErrors] = useState({})
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [selectedProblems, setSelectedProblems] = useState([])
@@ -144,8 +145,8 @@ function UpdateLesson() {
         type: lessonType,
         status: data.status || "ACTIVATED"
       })
+      setSelectedCourse(data.courseId || 1)
       if (data.courseId) {
-        setSelectedCourse(data.courseId)
         fetchChapters(data.courseId)
       }
       setOriginalStatus(data.status || "ACTIVATED")
@@ -200,7 +201,7 @@ function UpdateLesson() {
     if (!courseId) return
 
     try {
-      const response = await apiCall(ENDPOINTS.GET_CHAPTER_BY_COURSE_ID.replace(":id", courseId))
+      const response = await apiCall(ENDPOINTS.GET_CHAPTER_BY_COURSE_ID_LESS.replace(":id", courseId))
       const data = await response.json()
       setChapters(Array.isArray(data) ? data : [])
     } catch (err) {
@@ -221,6 +222,10 @@ function UpdateLesson() {
       }
     }
   }, [videoFilePreview, docFilePreview])
+
+  const filteredCourses = courses.filter((course) =>
+    (course.title || `Unnamed Course (ID: ${course.id})`).toLowerCase().includes(courseSearch.toLowerCase())
+  )
 
   const filteredChapters = chapters.filter((chapter) =>
     (chapter.title || `Unnamed Chapter (ID: ${chapter.id})`).toLowerCase().includes(chapterSearch.toLowerCase())
@@ -250,6 +255,7 @@ function UpdateLesson() {
   const clearChapterSelection = () => {
     setFormData((prev) => ({ ...prev, chapterId: null }))
     setChapterSearch("")
+    setCourseSearch("")
   }
 
   const handleDescriptionChange = (value) => {
@@ -272,7 +278,6 @@ function UpdateLesson() {
 
     try {
       formSchema.parse(dataToValidate)
-      console.log(true)
       return true
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -430,11 +435,15 @@ function UpdateLesson() {
               <CollapsibleTrigger asChild>
                 <div className="flex justify-between items-center w-full rounded-lg p-2 px-3 border border-gray-700 hover:bg-gray-200/50 cursor-pointer">
                   <div className="flex-1 flex items-center space-x-2">
-                    <span className={`text-sm ${courses.find((c) => c.id === selectedCourse) ? "font-semibold text-primary" : "font-medium text-gray-400"}`}>
+                    <span
+                      className={`text-sm ${courses.find((c) => c.id === selectedCourse) ? "font-semibold text-primary" : "font-medium text-gray-400"}`}
+                    >
                       {`${courses.find((c) => c.id === selectedCourse)?.title || "Selected Course"}`}
                     </span>
                     <span>{">"}</span>
-                    <span className={`text-sm ${chapters.length > 0 && chapters.find((ch) => ch.id === formData.chapterId) ? "font-semibold text-primary" : "font-medium text-gray-400"}`}>
+                    <span
+                      className={`text-sm ${chapters.length > 0 && chapters.find((ch) => ch.id === formData.chapterId) ? "font-semibold text-primary" : "font-medium text-gray-400"}`}
+                    >
                       {`${chapters.length > 0 ? chapters.find((ch) => ch.id === formData.chapterId)?.title || "Selected Chapter" : "Not found"}`}
                     </span>
                   </div>
@@ -454,19 +463,27 @@ function UpdateLesson() {
                       setSelectedCourse(null)
                       setChapters([])
                       clearChapterSelection()
+                      setCourseSearch("")
                     }}
                     className="cursor-pointer text-sm text-gray-400 hover:underline"
                   >
                     Clear Selection
                   </span>
                 </div>
+                <Input
+                  placeholder="Search courses..."
+                  value={courseSearch}
+                  onChange={(e) => setCourseSearch(e.target.value)}
+                  className="mb-2"
+                />
                 <div className="max-h-[6rem] overflow-y-auto overflow-x-hidden flex flex-wrap gap-3 pb-2">
-                  {courses.length > 0 ? (
-                    courses.map((course) => (
+                  {filteredCourses.length > 0 ? (
+                    filteredCourses.map((course) => (
                       <div
                         key={course.id}
-                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
-                          }`}
+                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${
+                          selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
+                        }`}
                         onClick={() => handleCourseChange(course.id)}
                       >
                         <Label className="text-primary text-sm whitespace-nowrap cursor-pointer">

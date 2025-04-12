@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { getLessonByChapterId } from "@/lib/api/lesson_api"
 import { getChapterList } from "@/lib/api/chapter_api"
@@ -12,13 +14,18 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/provider/AuthProvider"
+import { ENDPOINTS } from "@/lib/constants"
 
 function LessonList({ onNavigate }) {
   const [lessons, setLessons] = useState([])
   const [chapterId, setChapterId] = useState(null)
   const [chapters, setChapters] = useState([])
+  const [courses, setCourses] = useState([])
+  const [selectedCourse, setSelectedCourse] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [chapterSearchQuery, setChapterSearchQuery] = useState("")
+  const [courseSearchQuery, setCourseSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [itemsPerPage, setItemsPerPage] = useState(6)
   const [currentPage, setCurrentPage] = useState(0)
@@ -26,6 +33,22 @@ function LessonList({ onNavigate }) {
   const [sortOrder, setSortOrder] = useState("asc")
   const [isFilterExpanded, setIsFilterExpanded] = useState(false)
   const navigate = useNavigate()
+  const { apiCall } = useAuth()
+
+  // Fetch courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await apiCall(ENDPOINTS.GET_COURSES)
+        const data = await response.json()
+        setCourses(Array.isArray(data) ? data : [])
+      } catch (error) {
+        console.error("Error fetching courses:", error)
+        setCourses([])
+      }
+    }
+    fetchCourses()
+  }, [apiCall])
 
   // Fetch chapters for filter
   useEffect(() => {
@@ -38,13 +61,19 @@ function LessonList({ onNavigate }) {
         const data = await getChapterList()
         const chapterArray = Array.isArray(data?.content) ? data.content : []
         setChapters(chapterArray)
-        if (id && !(data.content.map(ch => ch.id).includes(Number(id)))) {
-          navigate("/lesson")
-        }
+
         if (id) {
           setChapterId(Number(id))
+          // Find the course for this chapter
+          const chapter = chapterArray.find((ch) => ch.id === Number(id))
+          if (chapter && chapter.courseId) {
+            setSelectedCourse(chapter.courseId)
+          }
         } else if (chapterArray.length > 0) {
           setChapterId(chapterArray[0].id)
+          if (chapterArray[0].courseId) {
+            setSelectedCourse(chapterArray[0].courseId)
+          }
         }
       } catch (error) {
         console.error("Error fetching chapters:", error)
@@ -53,6 +82,33 @@ function LessonList({ onNavigate }) {
     }
     fetchChapters()
   }, [])
+
+  // Fetch chapters by course
+  const fetchChaptersByCourse = async (courseId) => {
+    if (!courseId) return
+
+    try {
+      const response = await apiCall(ENDPOINTS.GET_CHAPTER_BY_COURSE_ID.replace(":id", courseId))
+      const data = await response.json()
+      const chapterArray = Array.isArray(data) ? data : []
+      setChapters(chapterArray)
+
+      // If we have chapters and no chapter is selected, select the first one
+      if (chapterArray.length > 0 && !chapterId) {
+        setChapterId(chapterArray[0].id)
+      }
+    } catch (error) {
+      console.error("Error fetching chapters for course:", error)
+      setChapters([])
+    }
+  }
+
+  // When course changes, fetch chapters for that course
+  useEffect(() => {
+    if (selectedCourse) {
+      fetchChaptersByCourse(selectedCourse)
+    }
+  }, [selectedCourse])
 
   // Fetch lessons
   useEffect(() => {
@@ -76,28 +132,28 @@ function LessonList({ onNavigate }) {
   const sortedLessons = [...lessons].sort((a, b) => {
     const order = sortOrder === "asc" ? 1 : -1
     if (sortBy === "id") return order * (a.id - b.id)
-    if (sortBy === "title") return order * (a.title.localeCompare(b.title))
+    if (sortBy === "title") return order * a.title.localeCompare(b.title)
     return 0
   })
 
   // Client-side search for lessons
   const filteredLessons = sortedLessons.filter((lesson) =>
-    lesson.title.toLowerCase().includes(searchQuery.toLowerCase())
+    lesson.title.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   // Client-side pagination
   const totalItems = filteredLessons.length
   const totalPages = Math.ceil(totalItems / itemsPerPage)
-  const paginatedLessons = filteredLessons.slice(
-    currentPage * itemsPerPage,
-    (currentPage + 1) * itemsPerPage
+  const paginatedLessons = filteredLessons.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+
+  // Filter courses based on search query
+  const filteredCourses = courses.filter((course) =>
+    (course.title || `Unnamed Course (ID: ${course.id})`).toLowerCase().includes(courseSearchQuery.toLowerCase()),
   )
 
-  // Filter chapters based on search query in the filter
+  // Filter chapters based on search query and selected course
   const filteredChapters = chapters.filter((chapter) =>
-    (chapter.title || `Unnamed Chapter (ID: ${chapter.id})`)
-      .toLowerCase()
-      .includes(chapterSearchQuery.toLowerCase())
+    (chapter.title || `Unnamed Chapter (ID: ${chapter.id})`).toLowerCase().includes(chapterSearchQuery.toLowerCase()),
   )
 
   const handleSort = (field) => {
@@ -122,13 +178,9 @@ function LessonList({ onNavigate }) {
   const getStatusBadge = (status) => {
     const statusMap = {
       ACTIVATED: "bg-green-500",
-      INACTIVATED: "bg-red-500"
+      INACTIVATED: "bg-red-500",
     }
-    return (
-      <Badge className={`${statusMap[status] || "bg-gray-500"} text-white`}>
-        {status?.toUpperCase()}
-      </Badge>
-    )
+    return <Badge className={`${statusMap[status] || "bg-gray-500"} text-white`}>{status?.toUpperCase()}</Badge>
   }
 
   // Get chapter title by chapterId
@@ -142,11 +194,26 @@ function LessonList({ onNavigate }) {
     setIsFilterExpanded(!isFilterExpanded)
   }
 
+  // Handle course selection
+  const handleCourseClick = (course) => {
+    setSelectedCourse(course.id)
+    setChapterId(null) // Reset chapter selection
+    setChapterSearchQuery("")
+  }
+
   // Handle chapter selection
   const handleChapterClick = (chapter) => {
     setChapterId(chapter.id)
     setIsFilterExpanded(false)
     setCurrentPage(0)
+    setChapterSearchQuery("")
+  }
+
+  // Clear all selections
+  const clearSelections = () => {
+    setSelectedCourse(null)
+    setChapterId(null)
+    setCourseSearchQuery("")
     setChapterSearchQuery("")
   }
 
@@ -181,9 +248,7 @@ function LessonList({ onNavigate }) {
                   <Button
                     variant="ghost"
                     onClick={handleFilterClick}
-                    className={cn(
-                      "text-primary font-bold hover:bg-primary transition hover:text-white"
-                    )}
+                    className={cn("text-primary font-bold hover:bg-primary transition hover:text-white")}
                   >
                     Filter by Chapter
                     <span className="ml-2 text-sm">{isFilterExpanded ? "▲" : "▼"}</span>
@@ -193,42 +258,82 @@ function LessonList({ onNavigate }) {
 
               {isFilterExpanded && (
                 <div className="p-4 bg-bg-card border border-border-muted rounded-lg shadow-sm animate-in fade-in duration-200">
-                  <h3 className="text-sm font-medium text-text-secondary mb-3">Filter by Chapter</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-medium text-text-secondary">Select Course</h3>
+                    <span onClick={clearSelections} className="cursor-pointer text-sm text-gray-400 hover:underline">
+                      Clear Selection
+                    </span>
+                  </div>
                   <div className="relative mb-3">
                     <Input
                       type="text"
-                      placeholder="Search chapter name..."
+                      placeholder="Search course name..."
                       className="pl-10 p-2 w-full bg-input-bg text-input-text placeholder-input-placeholder border-input-border focus:border-input-borderFocus focus:ring-input-focusRing rounded-md"
-                      value={chapterSearchQuery}
-                      onChange={(e) => setChapterSearchQuery(e.target.value)}
+                      value={courseSearchQuery}
+                      onChange={(e) => setCourseSearchQuery(e.target.value)}
                     />
                   </div>
-                  <div className="flex gap-2 flex-wrap max-h-40 overflow-y-auto">
-                    {filteredChapters.length > 0 ? (
-                      filteredChapters.map((chapter) => (
+                  <div className="flex gap-2 flex-wrap max-h-40 overflow-y-auto mb-4">
+                    {filteredCourses.length > 0 ? (
+                      filteredCourses.map((course) => (
                         <Button
-                          key={chapter.id}
-                          variant={
-                            chapterId === (chapter.id)
-                              ? "default"
-                              : "outline"
-                          }
+                          key={course.id}
+                          variant={selectedCourse === course.id ? "default" : "outline"}
                           size="sm"
-                          onClick={() => handleChapterClick(chapter)}
+                          onClick={() => handleCourseClick(course)}
                           className={cn(
                             "text-sm",
-                            chapterId === (chapter.id)
+                            selectedCourse === course.id
                               ? "bg-primary text-white hover:bg-primary/90"
-                              : "text-primary border-primary hover:bg-primary/10"
+                              : "text-primary border-primary hover:bg-primary/10",
                           )}
                         >
-                          {chapter.title || `Unnamed Chapter (ID: ${chapter.id})`}
+                          {course.title || `Unnamed Course (ID: ${course.id})`}
                         </Button>
                       ))
                     ) : (
-                      <p className="text-sm text-text-secondary">No chapters found</p>
+                      <p className="text-sm text-text-secondary">No courses found</p>
                     )}
                   </div>
+
+                  {selectedCourse && (
+                    <>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-medium text-text-secondary">Select Chapter</h3>
+                      </div>
+                      <div className="relative mb-3">
+                        <Input
+                          type="text"
+                          placeholder="Search chapter name..."
+                          className="pl-10 p-2 w-full bg-input-bg text-input-text placeholder-input-placeholder border-input-border focus:border-input-borderFocus focus:ring-input-focusRing rounded-md"
+                          value={chapterSearchQuery}
+                          onChange={(e) => setChapterSearchQuery(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex gap-2 flex-wrap max-h-40 overflow-y-auto">
+                        {filteredChapters.length > 0 ? (
+                          filteredChapters.map((chapter) => (
+                            <Button
+                              key={chapter.id}
+                              variant={chapterId === chapter.id ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleChapterClick(chapter)}
+                              className={cn(
+                                "text-sm",
+                                chapterId === chapter.id
+                                  ? "bg-primary text-white hover:bg-primary/90"
+                                  : "text-primary border-primary hover:bg-primary/10",
+                              )}
+                            >
+                              {chapter.title || `Unnamed Chapter (ID: ${chapter.id})`}
+                            </Button>
+                          ))
+                        ) : (
+                          <p className="text-sm text-text-secondary">No chapters found for this course</p>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -285,7 +390,8 @@ function LessonList({ onNavigate }) {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="cursor-pointer"
+                              <DropdownMenuItem
+                                className="cursor-pointer"
                                 onClick={() => onNavigate(`/lesson/${lesson.id}`)}
                               >
                                 <Edit className="mr-2 h-4 w-4" />
@@ -329,7 +435,9 @@ function LessonList({ onNavigate }) {
                         onClick={() => handlePageChange(index)}
                         className={cn(
                           "text-primary font-semibold transition",
-                          currentPage === index ? "bg-primary text-primary-foreground" : "bg-transparent text-primary hover:bg-primary hover:text-primary-foreground"
+                          currentPage === index
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-transparent text-primary hover:bg-primary hover:text-primary-foreground",
                         )}
                       >
                         {index + 1}
