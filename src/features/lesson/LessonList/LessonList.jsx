@@ -115,7 +115,7 @@ function LessonList({ onNavigate }) {
     const fetchLessons = async () => {
       setIsLoading(true)
       try {
-        const data = await getLessonByChapterId(chapterId)
+        const data = await getLessonByChapterId(apiCall, chapterId)
         const lessonArray = Array.isArray(data) ? data : []
         setLessons(lessonArray)
       } catch (error) {

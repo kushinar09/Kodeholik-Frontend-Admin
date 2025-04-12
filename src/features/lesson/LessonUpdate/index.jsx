@@ -29,6 +29,7 @@ import YoutubeInput from "./components/YoutubeInput"
 import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor"
 import { ENDPOINTS } from "@/lib/constants"
 import { toast } from "sonner"
+import LoadingScreen from "@/components/layout/loading"
 
 // Define the Zod schema for form validation
 const formSchema = z
@@ -357,7 +358,7 @@ function UpdateLesson() {
         body: formDataPayload
       })
 
-      if (!response.ok) throw new Error("Failed to update lesson")
+      if (!response.ok) throw new Error(response.message || "Failed to update lesson")
       setShowSuccessDialog(true)
     } catch (err) {
       toast.error("Error update lesson:", {
@@ -390,7 +391,7 @@ function UpdateLesson() {
   }
 
   if (isLoading) {
-    return <div>Loading lesson details...</div>
+    return <LoadingScreen loadingText="Updating" />
   }
 
   return (

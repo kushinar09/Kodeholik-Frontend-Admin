@@ -119,7 +119,7 @@ const ENDPOINTS = {
 
   //Image
   POST_UPLOAD_IMAGE: `${API_URL}/s3/upload`,
-  GET_IMAGE: (imageKey) => `${API_URL}/s3/presigned-url?key=${encodeURIComponent(imageKey)}`,
+  GET_IMAGE: `${API_URL}/s3/presigned-url?key=:key`,
 
   //Exam
   POST_EXAM_LIST_FOR_EXAMINER: `${API_URL}/examiner/list`,

@@ -41,7 +41,7 @@ export default function LoadingScreen({ loadingText = "Loading..." }) {
   }, [text, isDeleting])
 
   return (
-    <div className="z-20 fixed inset-0 bg-primary/50 backdrop-blur-md flex items-center justify-center">
+    <div className="z-50 fixed inset-0 bg-primary/50 backdrop-blur-md flex items-center justify-center">
       <div className="relative">
         {/* Terminal window frame */}
         <motion.div

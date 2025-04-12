@@ -13,7 +13,6 @@ function UpdateLessonVideo({
   disabled = false
 }) {
   useEffect(() => {
-    console.log(file, filePreview, existingFileUrl)
     return () => {
       if (filePreview && filePreview.startsWith("blob:")) {
         URL.revokeObjectURL(filePreview)

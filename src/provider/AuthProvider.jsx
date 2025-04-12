@@ -16,6 +16,8 @@ const noRedirectToErrorEndpoints = [
   ENDPOINTS.POST_LOGIN,
   ENDPOINTS.ROTATE_TOKEN,
   ENDPOINTS.POST_LOGOUT,
+  ENDPOINTS.CREATE_LESSON,
+  ENDPOINTS.UPDATE_LESSON,
   ENDPOINTS.DOWNLOAD_FILE_LESSON
 ]
 
@@ -145,20 +147,21 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (response.status === 400) {
+        let data = await response.json()
         toast.error("Bad request. Please again later.", {
-          description: response.message.error || response.message || "Error occurred",
+          description: data.message?.error || data.message || "Error occurred",
           duration: 3000
         })
-        return response
+        return data
       }
 
       // Check if this endpoint should skip error redirects
       const shouldSkipErrorRedirect = noRedirectToErrorEndpoints.some((endpoint) => {
         const endpointPattern = endpoint
-          .replace(/:[a-zA-Z0-9_]+/g, "[^/]+") // Replace dynamic path params like :id, :token
-          .replace(/\?/g, "\\?") // Escape "?" in query params
-          .replace(/=/g, "=") // Keep "=" as is
-          .replace(/&/g, "&") // Keep "&" as is
+          .replace(/:[a-zA-Z0-9_]+/g, "[^/]+")
+          .replace(/\?/g, "\\?")
+          .replace(/=/g, "=")
+          .replace(/&/g, "&")
 
         const regex = new RegExp(`^${endpointPattern}($|\\?.*)`)
         return regex.test(url)

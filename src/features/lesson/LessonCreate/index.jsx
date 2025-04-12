@@ -19,7 +19,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -29,6 +29,7 @@ import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor"
 import CreateLessonLab from "./components/CreateLessonLab"
 import YoutubeInput from "./components/YoutubeInput"
 import { toast } from "sonner"
+import LoadingScreen from "@/components/layout/loading"
 
 // Define the Zod schema for form validation
 const formSchema = z
@@ -44,7 +45,7 @@ const formSchema = z
     chapterId: z.number({ required_error: "A chapter must be selected" }).int().positive("A chapter must be selected"),
     displayOrder: z.number().int().min(1, "Display order must be at least 1"),
     type: z.enum(["VIDEO", "YOUTUBE", "DOCUMENT"], {
-      message: "Type must be either VIDEO, YOUTUBE, or DOCUMENT",
+      message: "Type must be either VIDEO, YOUTUBE, or DOCUMENT"
     }),
     status: z.enum(["ACTIVATED", "INACTIVATED"]),
     videoFile: z
@@ -58,7 +59,7 @@ const formSchema = z
       .instanceof(File, { message: "Attached file must be a file" })
       .nullable()
       .optional()
-      .refine((file) => !file || file.size <= 100 * 1024 * 1024, "Attached file must be less than 100 MB"),
+      .refine((file) => !file || file.size <= 100 * 1024 * 1024, "Attached file must be less than 100 MB")
   })
   .superRefine((data, ctx) => {
     // Type-specific validation
@@ -66,7 +67,7 @@ const formSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "A video file is required for VIDEO type",
-        path: ["videoFile"],
+        path: ["videoFile"]
       })
     }
 
@@ -74,7 +75,7 @@ const formSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "A YouTube URL is required for YOUTUBE type",
-        path: ["youtubeUrl"],
+        path: ["youtubeUrl"]
       })
     }
 
@@ -82,7 +83,7 @@ const formSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "A document file is required for DOCUMENT type",
-        path: ["attachedFile"],
+        path: ["attachedFile"]
       })
     }
   })
@@ -97,7 +98,7 @@ function CreateLesson() {
     chapterId: searchParams.get("chapterId") ? Number(searchParams.get("chapterId")) : null,
     displayOrder: 1,
     type: "VIDEO",
-    status: "ACTIVATED",
+    status: "ACTIVATED"
   })
   const [chapters, setChapters] = useState([])
   const [courses, setCourses] = useState([])
@@ -114,6 +115,7 @@ function CreateLesson() {
   const [message, setMessage] = useState("")
   const [selectedProblems, setSelectedProblems] = useState([])
   const [youtubeUrl, setYoutubeUrl] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     document.title = `Create Lesson - ${GLOBALS.APPLICATION_NAME}`
@@ -130,7 +132,7 @@ function CreateLesson() {
         setCourses([])
         setErrors((prev) => ({
           ...prev,
-          courses: "Failed to fetch courses",
+          courses: "Failed to fetch courses"
         }))
       }
     }
@@ -156,24 +158,24 @@ function CreateLesson() {
       setChapters([])
       setErrors((prev) => ({
         ...prev,
-        chapters: "Failed to fetch chapters for this course",
+        chapters: "Failed to fetch chapters for this course"
       }))
     }
   }
 
   const filteredCourses = courses.filter((course) =>
-    (course.title || `Unnamed Course (ID: ${course.id})`).toLowerCase().includes(courseSearch.toLowerCase()),
+    (course.title || `Unnamed Course (ID: ${course.id})`).toLowerCase().includes(courseSearch.toLowerCase())
   )
 
   const filteredChapters = chapters.filter((chapter) =>
-    (chapter.title || `Unnamed Chapter (ID: ${chapter.id})`).toLowerCase().includes(chapterSearch.toLowerCase()),
+    (chapter.title || `Unnamed Chapter (ID: ${chapter.id})`).toLowerCase().includes(chapterSearch.toLowerCase())
   )
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "displayOrder" ? Number(value) || 1 : value,
+      [name]: name === "displayOrder" ? Number(value) || 1 : value
     }))
     setErrors((prev) => ({ ...prev, [name]: null }))
   }
@@ -211,7 +213,7 @@ function CreateLesson() {
       ...formData,
       videoFile: formData.type === "VIDEO" ? videoFile : null,
       youtubeUrl: formData.type === "YOUTUBE" ? youtubeUrl : null,
-      attachedFile: docFile,
+      attachedFile: docFile
     }
 
     try {
@@ -226,7 +228,7 @@ function CreateLesson() {
         setErrors(fieldErrors)
       } else {
         toast.error("Error creating lesson:", {
-          description: error.message,
+          description: error.message
         })
       }
       return false
@@ -236,6 +238,7 @@ function CreateLesson() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrors({})
+    setIsLoading(true)
 
     if (!validateForm()) {
       return
@@ -247,7 +250,7 @@ function CreateLesson() {
       description: formData.description,
       displayOrder: Number(formData.displayOrder),
       type: formData.type === "YOUTUBE" ? "VIDEO" : formData.type,
-      status: formData.status,
+      status: formData.status
     }
 
     try {
@@ -264,7 +267,7 @@ function CreateLesson() {
         formDataPayload.append("videoFile", videoFile)
       } else if (formData.type === "YOUTUBE" && youtubeUrl) {
         const videoIdMatch = youtubeUrl.match(
-          /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube(?:-nocookie)?\.com|youtu\.be)\/(?:[\w-]+\?v=|embed\/|v\/)?([\w-]+)(?:\S+)?$/,
+          /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube(?:-nocookie)?\.com|youtu\.be)\/(?:[\w-]+\?v=|embed\/|v\/)?([\w-]+)(?:\S+)?$/
         )
         const videoId = videoIdMatch?.[1]
         if (!videoId) throw new Error("Invalid YouTube URL")
@@ -289,8 +292,10 @@ function CreateLesson() {
       setShowSuccessDialog(true)
     } catch (error) {
       toast.error("Error creating lesson:", {
-        description: error.message || "Failed to create lesson",
+        description: error.message || "Failed to create lesson"
       })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -306,13 +311,17 @@ function CreateLesson() {
   const getStatusBadge = (status) => {
     const statusMap = {
       ACTIVATED: "bg-green-500",
-      INACTIVATED: "bg-red-500",
+      INACTIVATED: "bg-red-500"
     }
     return (
       <Badge className={`${statusMap[status]} text-background hover:${statusMap[status]}`}>
         {status.toUpperCase()}
       </Badge>
     )
+  }
+
+  if (isLoading) {
+    return <LoadingScreen loadingText="Creating" />
   }
 
   return (
@@ -342,7 +351,7 @@ function CreateLesson() {
                   onCheckedChange={(checked) =>
                     setFormData((prev) => ({
                       ...prev,
-                      status: checked ? "ACTIVATED" : "INACTIVATED",
+                      status: checked ? "ACTIVATED" : "INACTIVATED"
                     }))
                   }
                 />
@@ -400,9 +409,8 @@ function CreateLesson() {
                     filteredCourses.map((course) => (
                       <div
                         key={course.id}
-                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${
-                          selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
-                        }`}
+                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
+                          }`}
                         onClick={() => handleCourseChange(course.id)}
                       >
                         <Label className="text-primary text-sm whitespace-nowrap cursor-pointer">
@@ -490,7 +498,7 @@ function CreateLesson() {
                     ...prev,
                     videoFile: null,
                     youtubeUrl: null,
-                    attachedFile: null,
+                    attachedFile: null
                   }))
                 }}
               >

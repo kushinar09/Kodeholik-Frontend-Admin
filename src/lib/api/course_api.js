@@ -57,16 +57,7 @@ export async function getTopicsWithId() {
     credentials: "include"
   })
   if (!response.ok) {
-    throw new Error("Failed to fetch topic")
-  }
-  return response.json()
-}
-
-
-export async function getCourseList() {
-  const response = await fetch(ENDPOINTS.GET_COURSES)
-  if (!response.ok) {
-    throw new Error("Failed to fetch courses")
+    throw new Error(response.message || "Failed to fetch topic")
   }
   return response.json()
 }
@@ -81,28 +72,6 @@ export async function getCourse(id) {
   }
   return response.json()
 }
-
-export async function getImage(imageKey) {
-  const imageUrl = ENDPOINTS.GET_IMAGE(imageKey)
-
-  try {
-    const response = await fetch(imageUrl, {
-      method: "GET",
-      credentials: "include"
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image. Status: ${response.status}`)
-    }
-    // 🔥 FIX: Read response as text instead of JSON
-    const url = await response.text()
-    return url
-  } catch (error) {
-    console.error("Error fetching image:", error)
-    throw error
-  }
-}
-
 
 export const createCourse = async (courseData, apiCall) => {
   if (!courseData || typeof courseData !== "object") {
