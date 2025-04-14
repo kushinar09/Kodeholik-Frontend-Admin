@@ -31,7 +31,7 @@ import { toast } from "sonner"
 function CourseDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { apiCall } = useAuth()
+  const { user, apiCall } = useAuth()
 
   // Enrolled Users State
   const [course, setCourse] = useState(null)
@@ -490,7 +490,7 @@ function CourseDetail() {
                   <div key={message.id} className="mb-6">
                     <div className="flex gap-3">
                       <Avatar className="h-9 w-9 flex-shrink-0 border border-border">
-                        <AvatarImage src={message.avatar} alt={message.user} />
+                        <AvatarImage src={message.avatar} alt={message.user} className="object-cover"/>
                         <AvatarFallback className="bg-muted text-foreground">{message.user[0]}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
@@ -529,7 +529,7 @@ function CourseDetail() {
                             {message.replies.map((reply) => (
                               <div key={reply.id} className="flex gap-3">
                                 <Avatar className="h-8 w-8 flex-shrink-0 border border-border">
-                                  <AvatarImage src={reply.avatar} alt={reply.user} />
+                                  <AvatarImage src={reply.avatar} alt={reply.user} className="object-cover"/>
                                   <AvatarFallback className="bg-muted text-foreground">{reply.user[0]}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
@@ -597,7 +597,7 @@ function CourseDetail() {
 
             <form onSubmit={handleSendMessage} className="flex items-center gap-2 w-full">
               <Avatar className="h-9 w-9 flex-shrink-0 border border-border">
-                <AvatarImage src="/placeholder.svg?height=40&width=40" alt="You" />
+                <AvatarImage src={user && user.avatar || "/placeholder.svg?height=40&width=40"} alt="You" className="object-cover" />
                 <AvatarFallback className="bg-muted text-foreground">Y</AvatarFallback>
               </Avatar>
               <div className="flex-1 flex items-center gap-2 bg-card rounded-full px-4 border border-input focus-within:border-primary transition-colors">

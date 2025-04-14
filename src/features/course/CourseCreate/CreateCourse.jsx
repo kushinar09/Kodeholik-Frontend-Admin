@@ -264,7 +264,7 @@ function CreateCourse() {
                 <h4 className="text-md font-semibold text-primary mb-4">Topics</h4>
                 <CollapsibleTrigger asChild>
                   <div
-                    className={`flex items-center justify-between w-full rounded-lg p-2 border ${fieldErrors.topicIds ? "border-red-500" : "border-gray-700"} hover:bg-gray-700/50 cursor-pointer`}
+                    className={`flex items-center justify-between w-full rounded-lg p-2 border ${fieldErrors.topicIds ? "border-red-500" : "border-gray-700"} hover:bg-gray-200/50 cursor-pointer`}
                   >
                     <span className="text-black text-sm font-medium">
                       {formData.topicIds.length > 0
@@ -296,7 +296,7 @@ function CreateCourse() {
                       filteredTopics.map((topic) => (
                         <div
                           key={topic.id}
-                          className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
+                          className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-200/50 border border-gray-700/50"
                         >
                           <Checkbox
                             id={`topic-${topic.id}`}

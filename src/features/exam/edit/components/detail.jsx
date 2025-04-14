@@ -100,7 +100,7 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
                 <img loading="lazy"
                   src={formData.createdBy.avatar}
                   alt="avatar"
-                  style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
+                  className="size-8 rounded-full mr-2 object-cover"
                 />
                 <span>{formData.createdBy.username}</span>
               </div>
@@ -119,7 +119,7 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
                 <img loading="lazy"
                   src={formData.updatedBy.avatar}
                   alt="avatar"
-                  style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
+                  className="size-8 rounded-full mr-2 object-cover"
                 />
                 <span>{formData.updatedBy.username}</span>
               </div>

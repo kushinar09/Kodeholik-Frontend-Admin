@@ -303,7 +303,7 @@ export default function ExamList({ onNavigate }) {
                     <img loading="lazy"
                       src={exam.createdBy.avatar || "/placeholder.svg"}
                       alt="avatar"
-                      style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
+                      className="size-8 rounded-full mr-2 object-cover"
                     />
                     <span>{exam.createdBy.username}</span>
                   </div>
