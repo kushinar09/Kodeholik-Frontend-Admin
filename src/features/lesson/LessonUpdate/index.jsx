@@ -361,7 +361,20 @@ function UpdateLesson() {
         body: formDataPayload
       })
 
-      if (!response.ok) throw new Error(response.message || "Failed to update lesson")
+      if (!response.ok) {
+        const errorData = await response.json()
+        let errorMessage = "Failed to update lesson"
+
+        if (Array.isArray(errorData.message)) {
+          // Extract first error message from array
+          errorMessage = errorData.message[0]?.error || errorMessage
+        } else if (typeof errorData.message === "object") {
+          errorMessage = errorData.message.error || errorMessage
+        } else if (typeof errorData.message === "string") {
+          errorMessage = errorData.message
+        }
+        throw new Error(errorMessage)
+      }
       setShowSuccessDialog(true)
     } catch (err) {
       toast.error("Error update lesson:", {
@@ -488,9 +501,8 @@ function UpdateLesson() {
                     filteredCourses.map((course) => (
                       <div
                         key={course.id}
-                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${
-                          selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
-                        }`}
+                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
+                          }`}
                         onClick={() => handleCourseChange(course.id)}
                       >
                         <Label className="text-primary text-sm whitespace-nowrap cursor-pointer">

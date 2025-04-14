@@ -286,7 +286,7 @@ export default function UserList({ onNavigate }) {
                 </TableCell>
                 <TableCell className="truncate max-w-36" title={user.fullname}>{user.fullname}</TableCell>
                 <TableCell className="truncate max-w-36" title={user.email}>
-                  {user.email}{user.email}
+                  {user.email}
                 </TableCell>
                 <TableCell>
                   {user.status === "ACTIVATED" && "Activated"}
@@ -325,20 +325,20 @@ export default function UserList({ onNavigate }) {
                             setIsBanDialogOpen(true)
                           }}
                         >
-                          <svg className="h-8 w-8 text-red-500" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">  <path stroke="none" d="M0 0h24v24H0z" />  <rect x="5" y="11" width="14" height="10" rx="2" />  <circle cx="12" cy="16" r="1" />  <path d="M8 11v-4a4 4 0 0 1 8 0v4" /></svg>
+                          <svg className="h-8 w-8" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">  <path stroke="none" d="M0 0h24v24H0z" />  <rect x="5" y="11" width="14" height="10" rx="2" />  <circle cx="12" cy="16" r="1" />  <path d="M8 11v-4a4 4 0 0 1 8 0v4" /></svg>
                           Ban
                         </DropdownMenuItem>
                       }
 
                       {user.status === "BANNED" &&
                         <DropdownMenuItem
-                          className="text-green-500 cursor-pointer hover:text-red-700 focus:text-red-700"
+                          className="text-green-500 cursor-pointer hover:text-green-700 focus:text-green-700"
                           onClick={() => {
                             setCurrentUser(user)
                             setIsUnbanDialogOpen(true)
                           }}
                         >
-                          <svg className="h-8 w-8 text-green-500" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">  <path stroke="none" d="M0 0h24v24H0z" />  <rect x="5" y="11" width="14" height="10" rx="2" />  <circle cx="12" cy="16" r="1" />  <path d="M8 11v-5a4 4 0 0 1 8 0" /></svg>
+                          <svg className="h-8 w-8" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">  <path stroke="none" d="M0 0h24v24H0z" />  <rect x="5" y="11" width="14" height="10" rx="2" />  <circle cx="12" cy="16" r="1" />  <path d="M8 11v-5a4 4 0 0 1 8 0" /></svg>
                           Unban
                         </DropdownMenuItem>
                       }

@@ -3,7 +3,18 @@ import { ENDPOINTS } from "../constants"
 export async function getLessonByChapterId(apiCall, id) {
   const response = await apiCall(ENDPOINTS.GET_LESSON_BY_CHAPTERID.replace(":id", id))
   if (!response.ok) {
-    throw new Error("Failed to fetch lesson")
+    const errorData = await response.json()
+    let errorMessage = "Failed to fetch lesson"
+
+    if (Array.isArray(errorData.message)) {
+      // Extract first error message from array
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
+    }
+    throw new Error(errorMessage)
   }
   return response.json()
 }
@@ -14,8 +25,18 @@ export async function createLesson(formData, apiCall) {
     body: formData
   })
   if (!response.ok) {
-    const errorText = await response.message
-    throw new Error(errorText || "Failed to create lesson")
+    const errorData = await response.json()
+    let errorMessage = "Failed to create lesson"
+
+    if (Array.isArray(errorData.message)) {
+      // Extract first error message from array
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
+    }
+    throw new Error(errorMessage)
   }
   return response.text()
 };
