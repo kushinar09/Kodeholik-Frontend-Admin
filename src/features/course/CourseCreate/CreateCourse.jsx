@@ -344,18 +344,6 @@ function CreateCourse() {
                       >
                         <Upload className="h-4 w-4" />
                       </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        className="h-8 w-8 rounded-full bg-red-600/80 hover:bg-red-700 text-white"
-                        onClick={() => {
-                          setImageFile(null)
-                          setImagePreview(null)
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
                     </div>
                     {imageFile && (
                       <div className="absolute bottom-0 left-0 right-0 text-xs text-black p-2 truncate">

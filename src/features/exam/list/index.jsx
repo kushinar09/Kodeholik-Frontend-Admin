@@ -345,12 +345,12 @@ export default function ExamList({ onNavigate }) {
                           </DropdownMenuItem>
                         </>
                       )}
-                      {exam.status === "IN_PROGRESS" && exam.noParticipant > 0 && (
+                      {/* {exam.status === "IN_PROGRESS" && exam.noParticipant > 0 && (
                         <DropdownMenuItem className="cursor-pointer text-red-500 hover:text-red-700 focus:text-red-700">
                           <StopCircleIcon />
                           Force End
                         </DropdownMenuItem>
-                      )}
+                      )} */}
                       {exam.status === "END" && exam.noParticipant > 0 && (
                         <>
                           <DropdownMenuItem
