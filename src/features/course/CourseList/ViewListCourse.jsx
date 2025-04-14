@@ -6,17 +6,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { GLOBALS } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { Search, Plus, Edit, MoreHorizontal, Paperclip, FileText } from "lucide-react"
+import { Plus, Edit, MoreHorizontal, FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/provider/AuthProvider"
 
 function CourseList({ onNavigate }) {
   useEffect(() => {
     document.title = `Courses List - ${GLOBALS.APPLICATION_NAME}`
   }, [])
 
+  const { apiCall } = useAuth()
   const [courses, setCourses] = useState([])
   const [topics, setTopics] = useState([])
   const [currentPage, setCurrentPage] = useState(0)
@@ -33,7 +35,7 @@ function CourseList({ onNavigate }) {
     const fetchCourses = async () => {
       setIsLoading(true)
       try {
-        const data = await getCourseSearch({
+        const data = await getCourseSearch(apiCall, {
           page: currentPage,
           size: itemsPerPage,
           sortBy,
@@ -245,7 +247,7 @@ function CourseList({ onNavigate }) {
                         className="hover:bg-bg-secondary/30 transition-colors border-t border-border-muted"
                       >
                         <TableCell className="font-medium text-text-primary">{course.id}</TableCell>
-                        <TableCell className="text-text-primary">{course.title}</TableCell>
+                        <TableCell className="text-text-primary truncate" title={course.title}>{course.title}</TableCell>
                         <TableCell className="text-text-primary">
                           {course.numberOfParticipant}
                         </TableCell>

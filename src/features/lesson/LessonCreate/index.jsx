@@ -35,14 +35,17 @@ import LoadingScreen from "@/components/layout/loading"
 const formSchema = z
   .object({
     title: z
-      .string()
+      .string().trim()
       .min(10, "Title must be at least 10 characters")
       .max(200, "Title must be less than 200 characters"),
     description: z
-      .string()
+      .string().trim()
       .min(10, "Description must be at least 10 characters")
       .max(5000, "Description must be less than 5000 characters"),
-    chapterId: z.number({ required_error: "A chapter must be selected" }).int().positive("A chapter must be selected"),
+    chapterId: z
+      .number({ invalid_type_error: "A chapter must be selected" })
+      .int()
+      .positive("A chapter must be selected"),
     displayOrder: z.number().int().min(1, "Display order must be at least 1"),
     type: z.enum(["VIDEO", "YOUTUBE", "DOCUMENT"], {
       message: "Type must be either VIDEO, YOUTUBE, or DOCUMENT"
@@ -54,7 +57,7 @@ const formSchema = z
       .optional()
       .refine((file) => !file || file.size <= 500 * 1024 * 1024, "Video file must be less than 500 MB")
       .refine((file) => !file || file.type.startsWith("video/"), "File must be a video"),
-    youtubeUrl: z.string().nullable().optional(),
+    youtubeUrl: z.string().trim().nullable().optional(),
     attachedFile: z
       .instanceof(File, { message: "Attached file must be a file" })
       .nullable()
@@ -238,11 +241,12 @@ function CreateLesson() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrors({})
-    setIsLoading(true)
 
     if (!validateForm()) {
       return
     }
+
+    setIsLoading(true)
 
     const lessonData = {
       chapterId: Number(formData.chapterId),
@@ -336,6 +340,7 @@ function CreateLesson() {
                 </Label>
                 <Input
                   name="title"
+                  className={`w-full ${errors.title ? "border-red-500" : ""}`}
                   value={formData.title}
                   onChange={handleChange}
                   placeholder="Lesson Title"
@@ -363,7 +368,9 @@ function CreateLesson() {
                 Chapter <span className="text-red-500">*</span>
               </h4>
               <CollapsibleTrigger asChild>
-                <div className="flex justify-between items-center w-full rounded-lg p-2 px-3 border border-gray-700 hover:bg-gray-200/50 cursor-pointer">
+                <div
+                  className={`flex justify-between items-center w-full rounded-lg p-2 px-3 border ${errors.chapterId ? "border-red-500" : "border-gray-700"} hover:bg-gray-200/50 cursor-pointer`}
+                >
                   <div className="flex-1 flex items-center space-x-2">
                     <span
                       className={`text-sm ${courses.find((c) => c.id === selectedCourse) ? "font-semibold text-primary" : "font-medium text-gray-400"}`}
@@ -409,8 +416,9 @@ function CreateLesson() {
                     filteredCourses.map((course) => (
                       <div
                         key={course.id}
-                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
-                          }`}
+                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${
+                          selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
+                        }`}
                         onClick={() => handleCourseChange(course.id)}
                       >
                         <Label className="text-primary text-sm whitespace-nowrap cursor-pointer">
@@ -464,6 +472,7 @@ function CreateLesson() {
               <Input
                 type="number"
                 name="displayOrder"
+                className={`${errors.displayOrder ? "border-red-500" : ""}`}
                 value={formData.displayOrder}
                 onChange={handleChange}
                 placeholder="Display Order"
@@ -587,7 +596,7 @@ function CreateLesson() {
           <h4 className="text-md font-semibold text-primary">
             Description <span className="text-red-500">*</span>
           </h4>
-          <div className="h-[400px]">
+          <div className={`h-[400px] ${errors.description ? "border border-red-500 rounded-md" : ""}`}>
             <MarkdownEditor value={formData.description} onChange={handleDescriptionChange} />
           </div>
           {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}

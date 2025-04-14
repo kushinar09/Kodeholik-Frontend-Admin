@@ -1,7 +1,7 @@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Upload, X } from "lucide-react"
+import { Loader, Upload, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useForm } from "react-hook-form"
@@ -12,16 +12,17 @@ import { useAuth } from "@/provider/AuthProvider"
 import { toast } from "sonner"
 
 const formSchema = z.object({
-  username: z.string().min(1, "Invalid username. Username must be 1-50 character long").max(50, "Invalid username. Username must be 1-50 character long"),
-  fullname: z.string().min(1, "Invalid full name. Full name must be 1-50 character long").max(50, "Invalid full name. Full name must be 1-50 character long"),
-  email: z.string().email("Wrong format email"),
-  role: z.string().min(1, "Please select a role for this user")
+  username: z.string().trim().min(1, "Invalid username. Username must be 1-50 character long").max(50, "Invalid username. Username must be 1-50 character long"),
+  fullname: z.string().trim().min(1, "Invalid full name. Full name must be 1-50 character long").max(50, "Invalid full name. Full name must be 1-50 character long"),
+  email: z.string().trim().email("Wrong format email"),
+  role: z.string().trim().min(1, "Please select a role for this user")
 })
 export default function CreateUser({ onNavigate }) {
   const [formValues, setFormValues] = useState({})
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [errorImage, setErrorImage] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [roles, setRoles] = useState([
     { key: "STUDENT", name: "Student" },
     { key: "TEACHER", name: "Teacher" },
@@ -111,6 +112,7 @@ export default function CreateUser({ onNavigate }) {
   }
 
   const handleAddUser = async (user) => {
+    setLoading(true)
     try {
       const formPayload = new FormData()
       formPayload.append("avatarFile", imageFile)
@@ -119,13 +121,15 @@ export default function CreateUser({ onNavigate }) {
       formPayload.append("email", user.email)
       formPayload.append("role", user.role)
 
-      const data = await addUser(apiCall, formPayload)
-      if (data == null) {
-        toast.success("Add user successful!", { duration: 2000 })
-        onNavigate("/user")
-      }
+      await addUser(apiCall, formPayload)
+      toast.success("Add user successful!", { duration: 2000 })
+      onNavigate("/user")
     } catch (error) {
-      console.error("Error add user:", error)
+      toast.error("Error add user:", {
+        description: error.message || "Failed to add user. Please check all the field again"
+      })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -205,18 +209,18 @@ export default function CreateUser({ onNavigate }) {
                 >
                   <Upload className="h-8 w-8 text-black mb-4" />
                   <p className="text-black text-center">
-                                        Drag and drop an image here
+                    Drag and drop an image here
                     <br />
-                                        or click to browse
+                    or click to browse
                   </p>
                   <Button type="button" variant="outline" size="sm" className="mt-4">
-                                        Select Image
+                    Select Image
                   </Button>
                 </div>
               )}
             </div>
             <div className={`text-red-500 font-medium ${errorImage ? "block" : "hidden"}`}>
-                            Please select an avatar for this user
+              Please select an avatar for this user
             </div>
           </div>
           <div className="space-y-4 w-full md:w-1/2">
@@ -291,8 +295,14 @@ export default function CreateUser({ onNavigate }) {
               )}
             />
             <div className="flex justify-end">
-              <Button type="submit" className="flex items-center">
-                                Create
+              <Button type="submit" className="flex items-center" disabled={loading}>
+                {loading ?
+                  <>
+                    <Loader className="animate-spin size-4 mr-2" />
+                    <span>Creating...</span>
+                  </>
+                  : "Create"
+                }
               </Button>
             </div>
           </div>

@@ -16,8 +16,8 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 const formSchema = z.object({
-  title: z.string().min(10, "Title must be at least 10 characters").max(200, "Title must be less than 200 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters").max(5000, "Description must be less than 5000 characters"),
+  title: z.string().trim().min(10, "Title must be at least 10 characters").max(200, "Title must be less than 200 characters"),
+  description: z.string().trim().min(10, "Description must be at least 10 characters").max(5000, "Description must be less than 5000 characters"),
   startTime: z
     .date({ required_error: "Start time is required" })
     .refine((date) => date >= new Date(), {

@@ -33,20 +33,20 @@ export async function banUser(apiCall, id) {
   if (!response.ok) {
     if (response.status == 400) {
       try {
-        const errorData = await response.json();
+        const errorData = await response.json()
         toast.error("Error", {
           description: errorData.message,
           variant: "destructive"
-        });
+        })
       } catch (error) {
-        console.error("Error parsing error response:", error);
+        console.error("Error parsing error response:", error)
       }
     }
     else if (response.status == 500) {
       toast.error("Error", {
         description: MESSAGES.MSG01,
         variant: "destructive"
-      });
+      })
     }
   }
   const text = await response.text()
@@ -68,20 +68,20 @@ export async function unbanUser(apiCall, id) {
   if (!response.ok) {
     if (response.status == 400) {
       try {
-        const errorData = await response.json();
+        const errorData = await response.json()
         toast.error("Error", {
           description: errorData.message,
           variant: "destructive"
-        });
+        })
       } catch (error) {
-        console.error("Error parsing error response:", error);
+        console.error("Error parsing error response:", error)
       }
     }
     else if (response.status == 500) {
       toast.error("Error", {
         description: MESSAGES.MSG01,
         variant: "destructive"
-      });
+      })
     }
   }
   const text = await response.text()
@@ -96,27 +96,17 @@ export async function addUser(apiCall, body) {
     body: body
   })
   if (!response.ok) {
-    if (response.status == 400) {
-      try {
-        const errorData = await response.json();
-        toast.error("Error", {
-          description: "Failed to add user. Please check all the field again",
-          variant: "destructive"
-        });
-      } catch (error) {
-        console.error("Error parsing error response:", error);
-      }
+    const errorData = await response.json()
+    let errorMessage = "Failed to add user"
+
+    if (Array.isArray(errorData.message)) {
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
     }
-    else if (response.status == 500) {
-      toast.error("Error", {
-        description: MESSAGES.MSG01,
-        variant: "destructive"
-      });
-    }
-    throw new Error("Failed to add user");
-  }
-  else {
-    return null;
+    throw new Error(errorMessage)
   }
 }
 
@@ -127,27 +117,17 @@ export async function editUser(apiCall, body, id) {
     body: body
   })
   if (!response.ok) {
-    if (response.status == 400) {
-      try {
-        const errorData = await response.json();
-        toast.error("Error", {
-          description: "Failed to add user. Please check all the field again",
-          variant: "destructive"
-        });
-      } catch (error) {
-        console.error("Error parsing error response:", error);
-      }
+    const errorData = await response.json()
+    let errorMessage = "Failed to edit user"
+
+    if (Array.isArray(errorData.message)) {
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
     }
-    else if (response.status == 500) {
-      toast.error("Error", {
-        description: MESSAGES.MSG01,
-        variant: "destructive"
-      });
-    }
-    throw new Error("Failed to add user");
-  }
-  else {
-    return null;
+    throw new Error(errorMessage)
   }
 }
 

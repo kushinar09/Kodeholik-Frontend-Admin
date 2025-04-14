@@ -24,16 +24,19 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatDistanceToNow } from "date-fns"
+import { useAuth } from "@/provider/AuthProvider"
+import LoadingScreen from "@/components/layout/loading"
+import { toast } from "sonner"
 
 function CourseDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { apiCall } = useAuth()
 
   // Enrolled Users State
   const [course, setCourse] = useState(null)
   const [enrolledUsers, setEnrolledUsers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState("enrolledAt")
   const [sortDir, setSortDir] = useState("desc")
@@ -67,14 +70,13 @@ function CourseDetail() {
         if (!courseData) throw new Error("Course not found")
         setCourse(courseData)
 
-        const usersData = await usersEnrolledCourse(id, currentPage, itemsPerPage, sortBy, sortDir, searchQuery)
+        const usersData = await usersEnrolledCourse(apiCall, id, currentPage, itemsPerPage, sortBy, sortDir, searchQuery)
         if (!usersData) throw new Error("User not found")
         setEnrolledUsers(usersData.content)
         setTotalPages(usersData.totalPages)
         setTotalElements(usersData.totalElements)
       } catch (error) {
-        console.error("Error fetching data:", error.message)
-        setError(error.message)
+        toast.error("Error fetching data:", error.message)
       } finally {
         setLoading(false)
       }
@@ -88,13 +90,13 @@ function CourseDetail() {
       if (!id) return
       try {
         setDiscussionLoading(true)
-        const discussionData = await getCourseDiscussion(id, {
+        const discussionData = await getCourseDiscussion(apiCall, id, {
           page: discussionPage,
           size: 5,
           sortBy: discussionSortBy,
           sortDirection: discussionSortDirection
         })
-        const replyPromises = discussionData.content.map((comment) => getDiscussionReply(comment.id).catch(() => []))
+        const replyPromises = discussionData.content.map((comment) => getDiscussionReply(apiCall, comment.id).catch(() => []))
         const repliesData = await Promise.all(replyPromises)
         const allReplies = repliesData.flat()
         const transformedMessages = await transformDiscussionData(discussionData.content, allReplies)
@@ -169,17 +171,17 @@ function CourseDetail() {
         courseId: Number.parseInt(id),
         commentReply: replyingTo ? Number.parseInt(replyingTo.id) : null
       }
-      await discussionCourse(data)
+      await discussionCourse(data, apiCall)
       setNewMessage("")
       setReplyingTo(null)
       // Refresh discussion data
-      const discussionData = await getCourseDiscussion(id, {
+      const discussionData = await getCourseDiscussion(apiCall, id, {
         page: discussionPage,
         size: 5,
         sortBy: discussionSortBy,
         sortDirection: discussionSortDirection
       })
-      const replyPromises = discussionData.content.map((comment) => getDiscussionReply(comment.id).catch(() => []))
+      const replyPromises = discussionData.content.map((comment) => getDiscussionReply(apiCall, comment.id).catch(() => []))
       const repliesData = await Promise.all(replyPromises)
       const allReplies = repliesData.flat()
       const transformedMessages = await transformDiscussionData(discussionData.content, allReplies)
@@ -225,9 +227,9 @@ function CourseDetail() {
       )
 
       if (!message.liked) {
-        await upvoteDiscussion(messageId)
+        await upvoteDiscussion(apiCall, messageId)
       } else {
-        await unUpvoteDiscussion(messageId)
+        await unUpvoteDiscussion(apiCall, messageId)
       }
     } catch (error) {
       setMessages((prevMessages) =>
@@ -323,13 +325,12 @@ function CourseDetail() {
     </div>
   )
 
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>Error: {error}</div>
+  if (loading) return <LoadingScreen />
   if (!course) return <div>Course not found</div>
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col">
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow">
         <Card className="border-border-muted bg-bg-card shadow-lg">
           <CardHeader className="pb-4 border-b border-border-muted">
             <div className="flex items-center justify-between">

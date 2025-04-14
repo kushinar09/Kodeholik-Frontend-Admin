@@ -19,13 +19,13 @@ import LoadingScreen from "@/components/layout/loading"
 const formSchema = z
   .object({
     password: z
-      .string()
+      .string().trim()
       .min(8, { message: "Password must be at least 8 characters long" })
       .max(20, { message: "Password must be at most 20 characters long" })
       .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
       .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
       .regex(/[\W_]/, { message: "Password must contain at least one special character" }),
-    confirmPassword: z.string()
+    confirmPassword: z.string().trim()
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],

@@ -19,7 +19,7 @@ const formSchema = z.object({
   languageSupports: z.array(z.string()).min(1, "Language support cannot be empty"),
   problems: z.array(
     z.object({
-      problemLink: z.string().min(1, "Problem link cannot be empty"),
+      problemLink: z.string().trim().min(1, "Problem link cannot be empty"),
       points: z.coerce.number().min(1, "Points must be at least 1").max(10, "Points cannot exceed 10")
     })
   )

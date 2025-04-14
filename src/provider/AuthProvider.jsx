@@ -147,12 +147,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (response.status === 400) {
-        let data = await response.json()
-        toast.error("Bad request. Please again later.", {
-          description: data.message?.error || data.message || "Error occurred",
-          duration: 3000
-        })
-        return data
+        let errorMessage = "Bad request. Waring when call api: " + url
+        console.warn(errorMessage)
+        return response
       }
 
       // Check if this endpoint should skip error redirects

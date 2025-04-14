@@ -35,14 +35,17 @@ import LoadingScreen from "@/components/layout/loading"
 const formSchema = z
   .object({
     title: z
-      .string()
+      .string().trim()
       .min(10, "Title must be at least 10 characters")
       .max(200, "Title must be less than 200 characters"),
     description: z
-      .string()
+      .string().trim()
       .min(10, "Description must be at least 10 characters")
       .max(5000, "Description must be less than 5000 characters"),
-    chapterId: z.number({ required_error: "A chapter must be selected" }).int().positive("A chapter must be selected"),
+    chapterId: z
+      .number({ invalid_type_error: "A chapter must be selected" })
+      .int()
+      .positive("A chapter must be selected"),
     displayOrder: z.number().int().min(1, "Display order must be at least 1"),
     type: z.enum(["VIDEO", "YOUTUBE", "DOCUMENT"], {
       message: "Type must be either VIDEO, YOUTUBE, or DOCUMENT"
@@ -60,8 +63,8 @@ const formSchema = z
       .nullable()
       .optional()
       .refine((file) => !file || file.size <= 100 * 1024 * 1024, "Attached file must be less than 100 MB"),
-    existingVideoUrl: z.string().nullable().optional(),
-    existingDocUrl: z.string().nullable().optional()
+    existingVideoUrl: z.string().trim().nullable().optional(),
+    existingDocUrl: z.string().trim().nullable().optional()
   })
   .superRefine((data, ctx) => {
     // Type-specific validation
@@ -406,6 +409,7 @@ function UpdateLesson() {
                 </Label>
                 <Input
                   name="title"
+                  className={`${errors.title ? "border-red-500" : ""}`}
                   value={formData.title}
                   onChange={handleChange}
                   placeholder="Lesson Title"
@@ -434,7 +438,9 @@ function UpdateLesson() {
                 Chapter <span className="text-red-500">*</span>
               </h4>
               <CollapsibleTrigger asChild>
-                <div className="flex justify-between items-center w-full rounded-lg p-2 px-3 border border-gray-700 hover:bg-gray-200/50 cursor-pointer">
+                <div
+                  className={`flex justify-between items-center w-full rounded-lg p-2 px-3 border ${errors.chapterId ? "border-red-500" : "border-gray-700"} hover:bg-gray-200/50 cursor-pointer`}
+                >
                   <div className="flex-1 flex items-center space-x-2">
                     <span
                       className={`text-sm ${courses.find((c) => c.id === selectedCourse) ? "font-semibold text-primary" : "font-medium text-gray-400"}`}
@@ -538,6 +544,7 @@ function UpdateLesson() {
               <Input
                 type="number"
                 name="displayOrder"
+                className={`${errors.displayOrder ? "border-red-500" : ""}`}
                 value={formData.displayOrder}
                 onChange={handleChange}
                 placeholder="Display Order"
@@ -641,7 +648,7 @@ function UpdateLesson() {
           <h4 className="text-md font-semibold text-primary">
             Description <span className="text-red-500">*</span>
           </h4>
-          <div className="h-[400px]">
+          <div className={`h-[400px] ${errors.description ? "border border-red-500 rounded-md" : ""}`}>
             <MarkdownEditor value={formData.description} onChange={handleDescriptionChange} />
           </div>
           {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}

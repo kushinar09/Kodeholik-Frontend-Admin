@@ -1,6 +1,4 @@
 import { ENDPOINTS } from "@/lib/constants"
-import { MESSAGES } from "../messages"
-import { toast } from "sonner"
 
 export async function getListTagForAdmin(apiCall, body) {
   const url = `${ENDPOINTS.POST_TAG_LIST_FOR_ADMIN}`
@@ -12,7 +10,17 @@ export async function getListTagForAdmin(apiCall, body) {
     body: JSON.stringify(body)
   })
   if (!response.ok) {
-    throw new Error("Failed to fetch tag list")
+    const errorData = await response.json()
+    let errorMessage = "Failed to fetch tag list"
+
+    if (Array.isArray(errorData.message)) {
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
+    }
+    throw new Error(errorMessage)
   }
   const text = await response.text()
   if (!text) return null
@@ -28,26 +36,18 @@ export async function deleteTag(apiCall, id, type) {
     }
   })
   if (!response.ok) {
-    if (response.status == 400) {
-      try {
-        const errorData = await response.json();
-        toast.error("Error", {
-          description: errorData.message,
-          variant: "destructive"
-        });
-      } catch (error) {
-        console.error("Error parsing error response:", error);
-      }
+    const errorData = await response.json()
+    let errorMessage = "Failed to delete tag"
+
+    if (Array.isArray(errorData.message)) {
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
     }
-    else if (response.status == 500) {
-      toast.error("Error", {
-        description: MESSAGES.MSG01,
-        variant: "destructive"
-      });
-    }
-    throw new Error("Error");
+    throw new Error(errorMessage)
   }
-  return null;
 }
 
 export async function addTag(apiCall, body) {
@@ -60,24 +60,17 @@ export async function addTag(apiCall, body) {
     body: JSON.stringify(body)
   })
   if (!response.ok) {
-    if (response.status == 400) {
-      try {
-        const errorData = await response.json();
-        toast.error("Error", {
-          description: errorData.message,
-          variant: "destructive"
-        });
-      } catch (error) {
-        console.error("Error parsing error response:", error);
-      }
+    const errorData = await response.json()
+    let errorMessage = "Failed to add tag"
+
+    if (Array.isArray(errorData.message)) {
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
     }
-    else if (response.status == 500) {
-      toast.error("Error", {
-        description: MESSAGES.MSG01,
-        variant: "destructive"
-      });
-    }
-    throw new Error("Error");
+    throw new Error(errorMessage)
   }
   const text = await response.text()
   if (!text) return null
@@ -94,24 +87,17 @@ export async function editTag(apiCall, body, id) {
     body: JSON.stringify(body)
   })
   if (!response.ok) {
-    if (response.status == 400) {
-      try {
-        const errorData = await response.json();
-        toast.error("Error", {
-          description: errorData.message,
-          variant: "destructive"
-        });
-      } catch (error) {
-        console.error("Error parsing error response:", error);
-      }
+    const errorData = await response.json()
+    let errorMessage = "Failed to edit tag"
+
+    if (Array.isArray(errorData.message)) {
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
     }
-    else if (response.status == 500) {
-      toast.error("Error", {
-        description: MESSAGES.MSG01,
-        variant: "destructive"
-      });
-    }
-    throw new Error("Error");
+    throw new Error(errorMessage)
   }
   const text = await response.text()
   if (!text) return null

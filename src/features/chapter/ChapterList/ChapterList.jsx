@@ -12,8 +12,10 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/provider/AuthProvider"
 
 function ChapterList({ onNavigate }) {
+  const { apiCall } = useAuth()
   const [chapters, setChapters] = useState([])
   const [courseId, setCourseId] = useState(1)
   const [courses, setCourses] = useState([])
@@ -52,7 +54,7 @@ function ChapterList({ onNavigate }) {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const data = await getCourseSearch({
+        const data = await getCourseSearch(apiCall, {
           page: 0,
           size: 100,
           sortBy: "title",
@@ -263,7 +265,7 @@ function ChapterList({ onNavigate }) {
                         className="hover:bg-bg-secondary/30 transition-colors border-t border-border-muted"
                       >
                         <TableCell className="font-medium text-text-primary">{chapter.id}</TableCell>
-                        <TableCell className="text-text-primary">{chapter.title}</TableCell>
+                        <TableCell className="text-text-primary truncate max-w-36" title={chapter.title}>{chapter.title}</TableCell>
                         <TableCell className="text-text-primary">{chapter.courseId}</TableCell>
                         <TableCell>{getStatusBadge(chapter.status)}</TableCell>
                         <TableCell>

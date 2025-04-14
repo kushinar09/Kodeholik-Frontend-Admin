@@ -14,10 +14,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "@/components/ui/alert-dialog"
-import { Plus, MoreHorizontal, Pencil, Trash, ArrowDown, ArrowUp } from "lucide-react"
-import { format } from "date-fns"
+import { Plus, MoreHorizontal, Pencil, ArrowDown, ArrowUp } from "lucide-react"
 import { useAuth } from "@/provider/AuthProvider"
-import { deleteExamForExaminer, getListExamForExaminer } from "@/lib/api/exam_api"
 import { cn } from "@/lib/utils"
 import { FilterBar } from "./components/filter-list"
 import { toast } from "sonner"
@@ -44,7 +42,7 @@ const mockUsers = [
     email: 50,
     status: "",
     role: "",
-    createdDate: Date.now() - 86400000 // Yesterday
+    createdDate: Date.now() - 86400000
   }
   // Add more mock exams as needed
 ]
@@ -281,14 +279,14 @@ export default function UserList({ onNavigate }) {
                     <img loading="lazy"
                       src={user.avatar}
                       alt="avatar"
-                      style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
+                      className="object-cover rounded-full mr-2 size-8"
                     />
                     <span>{user.username}</span>
                   </div>
                 </TableCell>
-                <TableCell>{user.fullname}</TableCell>
-                <TableCell>
-                  {user.email}
+                <TableCell className="truncate max-w-36" title={user.fullname}>{user.fullname}</TableCell>
+                <TableCell className="truncate max-w-36" title={user.email}>
+                  {user.email}{user.email}
                 </TableCell>
                 <TableCell>
                   {user.status === "ACTIVATED" && "Activated"}
