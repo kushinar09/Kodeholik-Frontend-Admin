@@ -153,8 +153,8 @@ export const AuthProvider = ({ children }) => {
         return response
       }
 
-      if (response.status === 400) {
-        let errorMessage = "Bad request. Waring when call api: " + url
+      if (response.status === 400 || response.status === 500) {
+        let errorMessage = "Error. Waring when call api: " + url
         console.warn(errorMessage)
         return response
       }
@@ -191,8 +191,8 @@ export const AuthProvider = ({ children }) => {
               case 404:
                 navigate("/404")
                 break
-              default:
-                navigate("/500")
+              // default:
+              //   navigate("/500")
             }
           }
           return response
@@ -207,10 +207,10 @@ export const AuthProvider = ({ children }) => {
             case 404:
               navigate("/404")
               break
-            default:
-              if (response.status >= 500) {
-                navigate("/500")
-              }
+            // default:
+            //   if (response.status >= 500) {
+            //     navigate("/500")
+            //   }
           }
         }
         return response

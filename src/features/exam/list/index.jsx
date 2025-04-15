@@ -303,7 +303,7 @@ export default function ExamList({ onNavigate }) {
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <Avatar className="h-8 w-8 rounded-full mr-2">
                       <AvatarImage src={exam.createdBy?.avatar} alt={exam.createdBy?.username} className="object-cover" />
-                      <AvatarFallback className="rounded-lg">
+                      <AvatarFallback className="rounded-full">
                         {exam.createdBy?.username?.slice(0, 1).toUpperCase() || "AD"}
                       </AvatarFallback>
                     </Avatar>
