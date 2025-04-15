@@ -18,7 +18,7 @@ const formSchema = z.object({
 })
 
 export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
-  const [file, setFile] = useState(null)
+  const [file, setFile] = useState(formData?.testCases?.excelFile || null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadComplete, setUploadComplete] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -38,16 +38,12 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
       setUploadProgress(0)
 
       try {
-        // Simulate file upload with progress
-        // Replace this with your actual file upload logic
-        const totalSteps = 10
-        for (let step = 1; step <= totalSteps; step++) {
-          await new Promise((resolve) => setTimeout(resolve, 200))
-          setUploadProgress(Math.floor((step / totalSteps) * 100))
-        }
-
         setFile(selectedFile)
         form.setValue("excelFile", selectedFile)
+        const transformedData = {
+          excelFile: selectedFile
+        }
+        updateFormData(transformedData, "testcases")
         setUploadComplete(true)
       } catch (error) {
         console.error("Error uploading file:", error)
@@ -74,15 +70,7 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
     setIsUploading(true)
 
     try {
-      // Simulate form submission time
-      // Replace this with your actual submission logic
       await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      const transformedData = {
-        excelFile: values.excelFile
-      }
-
-      updateFormData(transformedData, "testcases")
       onSubmit()
     } catch (error) {
       console.error("Error submitting form:", error)
@@ -202,7 +190,7 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
             <Button
               type="submit"
               className="bg-green-600 hover:bg-green-700"
-              disabled={isUploading || (file && !uploadComplete)}
+              disabled={isUploading || !file}
             >
               Create Problem
             </Button>

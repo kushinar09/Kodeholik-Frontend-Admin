@@ -294,7 +294,15 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
         onNavigate("/problem")
       } else {
         const errorData = await response.json()
-        const errorMessage = errorData.message || "An error occurred"
+        let errorMessage = "Failed to update problem: " + response.status
+
+        if (Array.isArray(errorData.message)) {
+          errorMessage = errorData.message[0]?.error || errorMessage
+        } else if (typeof errorData.message === "object") {
+          errorMessage = errorData.message.error || errorMessage
+        } else if (typeof errorData.message === "string") {
+          errorMessage = errorData.details || errorData.message
+        }
         throw new Error(errorMessage)
       }
     } catch (error) {

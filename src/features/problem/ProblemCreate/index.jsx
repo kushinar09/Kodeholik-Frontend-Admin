@@ -167,7 +167,7 @@ export default function ProblemCreator({ onNavigate }) {
         } else if (typeof errorData.message === "object") {
           errorMessage = errorData.message.error || errorMessage
         } else if (typeof errorData.message === "string") {
-          errorMessage = errorData.message
+          errorMessage = errorData.details
         }
         throw new Error(errorMessage)
       }
