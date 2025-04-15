@@ -12,7 +12,7 @@ export function MultiSelect({
   selected,
   onChange,
   placeholder = "Select items...",
-  emptyMessage = "No items found.",
+  emptyMessage = "No items found."
 }) {
   const [open, setOpen] = React.useState(false)
 

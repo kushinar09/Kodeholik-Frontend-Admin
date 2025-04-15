@@ -158,7 +158,19 @@ export default function ProblemCreator({ onNavigate }) {
       if (response.ok) {
         localStorage.setItem("toastMessage", "Create problem completely !!!")
         onNavigate("/problem")
-      } else throw new Error(response.json().message)
+      } else {
+        const errorData = await response.json()
+        let errorMessage = "Failed to create problem: " + response.status
+
+        if (Array.isArray(errorData.message)) {
+          errorMessage = errorData.message[0]?.error || errorMessage
+        } else if (typeof errorData.message === "object") {
+          errorMessage = errorData.message.error || errorMessage
+        } else if (typeof errorData.message === "string") {
+          errorMessage = errorData.message
+        }
+        throw new Error(errorMessage)
+      }
     } catch (error) {
       toast.error("Error", {
         description: error.message || "Error in creat problem. Please try again."

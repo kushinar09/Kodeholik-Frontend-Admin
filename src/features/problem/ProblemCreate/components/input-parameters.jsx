@@ -28,7 +28,7 @@ const formSchema = z.object({
           noDimension: z.number().optional()
         })
       ),
-      templateCode: z.string().trim().min(1, "Template code is required")
+      templateCode: z.string().trim()
     })
   ),
   sharedFunctionSignature: z.string().trim().min(1, "Function signature is required"),

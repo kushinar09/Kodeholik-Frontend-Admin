@@ -26,7 +26,7 @@ const formSchema = z.object({
   topics: z.array(z.string()).optional(),
   skills: z.array(z.string()).optional(),
   isActive: z.boolean(),
-  languageSupport: z.array(z.string()).min(1, "At least one language must be selected")
+  languageSupport: z.array(z.string().trim().min(1, "Not empty string")).min(1, "At least one language must be selected")
 })
 
 export function ProblemDetails({ formData, updateFormData, onNext }) {
