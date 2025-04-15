@@ -23,6 +23,7 @@ import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import ExamOverviewDialog from "./components/exam-overview-dialog"
 import { ENDPOINTS } from "@/lib/constants"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const ExamStatus = {
   DRAFT: "DRAFT",
@@ -300,11 +301,12 @@ export default function ExamList({ onNavigate }) {
 
                 <TableCell>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <img loading="lazy"
-                      src={exam.createdBy.avatar || "/placeholder.svg"}
-                      alt="avatar"
-                      className="size-8 rounded-full mr-2 object-cover"
-                    />
+                    <Avatar className="h-8 w-8 rounded-full mr-2">
+                      <AvatarImage src={exam.createdBy?.avatar} alt={exam.createdBy?.username} className="object-cover" />
+                      <AvatarFallback className="rounded-lg">
+                        {exam.createdBy?.username?.slice(0, 1).toUpperCase() || "AD"}
+                      </AvatarFallback>
+                    </Avatar>
                     <span>{exam.createdBy.username}</span>
                   </div>
                 </TableCell>

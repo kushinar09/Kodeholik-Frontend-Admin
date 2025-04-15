@@ -38,10 +38,10 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: formData.details.title || "",
-      description: formData.details.description,
-      startTime: formData.details.startTime || new Date(),
-      duration: formData.details.duration || "90" // Add this line
+      title: formData?.details?.title || "",
+      description: formData?.details?.description,
+      startTime: formData?.details?.startTime || new Date(),
+      duration: formData?.details?.duration || "90" // Add this line
     }
   })
   const watchedValues = form.watch()
@@ -90,7 +90,7 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
           <div className="flex items-center">
             <Label>Exam Code: </Label>
             <div className="ml-4">
-              {formData.code}
+              {formData?.code}
             </div>
           </div>
           <div className="flex justify-between">
@@ -98,17 +98,17 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
               <Label>Created By: </Label>
               <div className="ml-4" style={{ display: "flex", alignItems: "center" }}>
                 <img loading="lazy"
-                  src={formData.createdBy?.avatar || "#"}
+                  src={formData?.createdBy?.avatar || "#"}
                   alt="avatar"
                   className="size-8 rounded-full mr-2 object-cover"
                 />
-                <span>{formData.createdBy.username}</span>
+                <span>{formData?.createdBy.username}</span>
               </div>
             </div>
             <div className="flex items-center">
               <Label>Created At: </Label>
               <div className="ml-4">
-                {formData.createdAt}
+                {formData?.createdAt}
               </div>
             </div>
           </div>
@@ -117,17 +117,17 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
               <Label>Updated By: </Label>
               <div className="ml-4" style={{ display: "flex", alignItems: "center" }}>
                 <img loading="lazy"
-                  src={formData.updatedBy?.avatar || "#"}
+                  src={formData?.updatedBy?.avatar || "#"}
                   alt="avatar"
                   className="size-8 rounded-full mr-2 object-cover"
                 />
-                <span>{formData.updatedBy.username}</span>
+                <span>{formData?.updatedBy?.username}</span>
               </div>
             </div>
             <div className="flex items-center">
               <Label>Updated At: </Label>
               <div className="ml-4">
-                {formData.updatedAt}
+                {formData?.updatedAt}
               </div>
             </div>
           </div>
