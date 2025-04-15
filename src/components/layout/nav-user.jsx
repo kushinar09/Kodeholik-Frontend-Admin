@@ -35,7 +35,7 @@ export function NavUser() {
   const navigate = useNavigate()
 
   async function handleLogout() {
-    logout(false)
+    logout(true, false)
   }
 
   function handleLogin() {

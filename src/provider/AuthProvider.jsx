@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus()
   }, [])
 
-  const logout = async (redirect = false) => {
+  const logout = async (redirect = false, redirectPath = true) => {
     try {
       await apiCall(ENDPOINTS.POST_LOGOUT, {
         method: "POST"
@@ -67,7 +67,14 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsAuthenticated(false)
       setUser(null)
-      if (redirect) navigate("/login", { state: { loginRequire: true, redirectPath: window.location.pathname } })
+      location.state = null
+      if (redirect) {
+        if (redirectPath) {
+          navigate("/login", { state: { loginRequire: true, redirectPath: window.location.pathname } })
+        } else {
+          navigate("/login")
+        }
+      }
     }
   }
 

@@ -70,6 +70,7 @@ export default function LoginPage() {
   }
 
   const handleLoginSubmit = async (e) => {
+    console.log("handleLoginSubmit")
     e.preventDefault()
     setLoading(true)
     setErrors({})
@@ -95,7 +96,7 @@ export default function LoginPage() {
         setErrors(newErrors)
       } else {
         const result = await login(formData)
-        if (!result.status) {
+        if (!result.success) {
           if (result.error.message) {
             newErrors.general = result.error.message
           } else {
@@ -104,6 +105,7 @@ export default function LoginPage() {
         } else {
           const redirectPath = location.state?.redirectPath || "/"
           navigate(redirectPath)
+          location.state = null
         }
         setErrors(newErrors)
       }

@@ -98,7 +98,7 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
               <Label>Created By: </Label>
               <div className="ml-4" style={{ display: "flex", alignItems: "center" }}>
                 <img loading="lazy"
-                  src={formData.createdBy.avatar}
+                  src={formData.createdBy?.avatar || "#"}
                   alt="avatar"
                   className="size-8 rounded-full mr-2 object-cover"
                 />
@@ -117,7 +117,7 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
               <Label>Updated By: </Label>
               <div className="ml-4" style={{ display: "flex", alignItems: "center" }}>
                 <img loading="lazy"
-                  src={formData.updatedBy.avatar}
+                  src={formData.updatedBy?.avatar || "#"}
                   alt="avatar"
                   className="size-8 rounded-full mr-2 object-cover"
                 />
