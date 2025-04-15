@@ -21,6 +21,7 @@ import { ChevronDown, ChevronUp } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor"
 import { toast } from "sonner"
+import LoadingScreen from "@/components/layout/loading"
 
 // Define the Zod schema for form validation
 const formSchema = z.object({
@@ -181,7 +182,7 @@ function UpdateChapter() {
       setIsSuccessDialogOpen(true)
       setTimeout(() => {
         setIsSuccessDialogOpen(false)
-        navigate("/chapter")
+        navigate(`/chapter?courseId=${formData.courseId}`)
       }, 2000)
     } catch (error) {
       toast.error(error.message || "Failed to update chapter")
@@ -204,11 +205,7 @@ function UpdateChapter() {
   }
 
   if (!formData) {
-    return (
-      <div className="container py-8 px-4 sm:px-6">
-        <div>Loading...</div>
-      </div>
-    )
+    return <LoadingScreen message="Loading chapter data..." />
   }
 
   return (

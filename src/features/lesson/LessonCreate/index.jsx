@@ -2,7 +2,7 @@
 
 import { ENDPOINTS, GLOBALS } from "@/lib/constants"
 import { useState, useEffect } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { createLesson } from "@/lib/api/lesson_api"
 import { useAuth } from "@/provider/AuthProvider"
 import { Input } from "@/components/ui/input"
@@ -95,17 +95,20 @@ function CreateLesson() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { apiCall } = useAuth()
+  const location = useLocation()
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    chapterId: searchParams.get("chapterId") ? Number(searchParams.get("chapterId")) : null,
+    chapterId: location.state?.chapterId ? Number(location.state?.chapterId) : null,
     displayOrder: 1,
     type: "VIDEO",
     status: "ACTIVATED"
   })
+
   const [chapters, setChapters] = useState([])
   const [courses, setCourses] = useState([])
-  const [selectedCourse, setSelectedCourse] = useState(null)
+  const [selectedCourse, setSelectedCourse] = useState(location.state?.courseId || null)
   const [videoFile, setVideoFile] = useState(null)
   const [videoFilePreview, setVideoFilePreview] = useState(null)
   const [docFile, setDocFile] = useState(null)
@@ -122,6 +125,9 @@ function CreateLesson() {
 
   useEffect(() => {
     document.title = `Create Lesson - ${GLOBALS.APPLICATION_NAME}`
+    if (selectedCourse) {
+      fetchChapters(selectedCourse)
+    }
   }, [])
 
   useEffect(() => {
@@ -416,9 +422,8 @@ function CreateLesson() {
                     filteredCourses.map((course) => (
                       <div
                         key={course.id}
-                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${
-                          selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
-                        }`}
+                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-200/50 border ${selectedCourse === course.id ? "border-2 border-primary" : "border-gray-700/50"
+                          }`}
                         onClick={() => handleCourseChange(course.id)}
                       >
                         <Label className="text-primary text-sm whitespace-nowrap cursor-pointer">

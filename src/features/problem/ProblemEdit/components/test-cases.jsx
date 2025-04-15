@@ -86,14 +86,6 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit, urlG
     URL.revokeObjectURL(url)
   }
 
-  // Remove the selected file and revert to fetched file
-  const handleRemoveFile = () => {
-    setFile(fetchedFile)
-    form.setValue("testCase", fetchedFile)
-    updateFormData({ testCase: fetchedFile })
-    setShowFileUpload(false)
-  }
-
   const handleSubmit = (values) => {
     updateFormData({ testCase: values.testCase })
     onSubmit()
@@ -164,16 +156,6 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit, urlG
                               onClick={() => document.getElementById("file-upload").click()}
                             >
                               Change File
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="mt-2 flex items-center"
-                              onClick={handleRemoveFile}
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Remove
                             </Button>
                           </div>
                         ) : (

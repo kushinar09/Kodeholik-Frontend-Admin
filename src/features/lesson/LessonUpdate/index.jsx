@@ -2,7 +2,7 @@
 
 import { GLOBALS } from "@/lib/constants"
 import { useState, useEffect } from "react"
-import { useNavigate, useParams, useSearchParams } from "react-router-dom"
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useAuth } from "@/provider/AuthProvider"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"

@@ -2,7 +2,7 @@
 
 import { GLOBALS } from "@/lib/constants"
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { createChapter } from "@/lib/api/chapter_api"
 import { getCourseSearch } from "@/lib/api/course_api"
 import { useAuth } from "@/provider/AuthProvider"
@@ -39,6 +39,7 @@ const formSchema = z.object({
 function CreateChapter() {
   const navigate = useNavigate()
   const { apiCall } = useAuth()
+  const location = useLocation()
 
   useEffect(() => {
     document.title = `Create Chapter - ${GLOBALS.APPLICATION_NAME}`
@@ -49,7 +50,7 @@ function CreateChapter() {
     description: "",
     displayOrder: 0,
     status: "ACTIVATED",
-    courseId: null
+    courseId: location.state?.courseId ? Number(location.state?.courseId) : null
   })
   const [courses, setCourses] = useState([])
   const [isCoursesOpen, setIsCoursesOpen] = useState(false)
@@ -68,7 +69,7 @@ function CreateChapter() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const data = await getCourseSearch(apiCall,{
+        const data = await getCourseSearch(apiCall, {
           page: 0,
           size: 100,
           sortBy: "title",
@@ -168,7 +169,7 @@ function CreateChapter() {
       setIsSuccessDialogOpen(true) // Open the success dialog
       setTimeout(() => {
         setIsSuccessDialogOpen(false)
-        navigate("/chapter")
+        navigate(`/chapter?courseId=${formData.courseId}`)
       }, 2000)
     } catch (error) {
       toast.error("Error creating chapter:", {
@@ -245,7 +246,7 @@ function CreateChapter() {
                 >
                   <span className="text-black text-sm font-medium">
                     {formData.courseId
-                      ? courses.find((c) => c.id === formData.courseId)?.title || "Course Selected"
+                      ? courses.find((c) => c.id === formData.courseId)?.title || "Loading..."
                       : "Select a Course"}
                   </span>
                   {isCoursesOpen ? (
