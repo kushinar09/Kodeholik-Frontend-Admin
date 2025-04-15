@@ -115,7 +115,7 @@ export function DateTimePicker24hForm({ value, onChange }) {
                     </ScrollArea>
                     <ScrollArea className="w-64 sm:w-auto">
                       <div className="flex sm:flex-col p-2">
-                        {Array.from({ length: 12 }, (_, i) => i * 5).map((minute) => (
+                        {Array.from({ length: 60 }, (_, i) => i * 1).map((minute) => (
                           <button
                             key={minute}
                             className={cn(
