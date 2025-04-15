@@ -33,7 +33,9 @@ const formSchema = z.object({
       functionCode: z.string()
     })
   ),
-  sharedFunctionSignature: z.string().trim().min(1, "Function signature is required"),
+  sharedFunctionSignature: z.string().trim()
+    .min(1, "Function signature is required")
+    .regex(/^[^\s]+$/, "Function signature must not contain spaces"),
   sharedReturnType: z.string().trim().min(1, "Return type is required"),
   otherReturnType: z.string().nullable().optional(),
   noDimension: z.number().nullable().optional()

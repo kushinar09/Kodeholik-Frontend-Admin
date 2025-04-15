@@ -194,13 +194,14 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit, urlG
                           id="file-upload"
                           type="file"
                           className="hidden"
-                          accept=".txt,.csv,.xlsx,.xls"
+                          accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                           onChange={(e) => {
                             handleFileChange(e)
                             onChange(e.target.files[0])
                           }}
                           {...field}
                         />
+
                       </div>
                     </FormControl>
                     <FormMessage />

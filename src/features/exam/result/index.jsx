@@ -3,22 +3,13 @@
 import { useEffect, useState } from "react"
 import ParticipantList from "./participant-list"
 import { ParticipantResult } from "./participant-result"
-import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
 import { useParams } from "react-router-dom"
 import LoadingScreen from "@/components/layout/loading"
 import { getListParticipantInExam } from "@/lib/api/exam_api"
 import { useAuth } from "@/provider/AuthProvider"
 
 export function ExamResult() {
-  const [participants, setParticipants] = useState([
-    {
-      id: 1,
-      avatar: "",
-      fullname: "",
-      usename: ""
-    }
-  ])
+  const [participants, setParticipants] = useState([])
 
   const { code } = useParams()
 
