@@ -88,8 +88,10 @@ export default function ExamList({ onNavigate }) {
       requestData.status = newFilters.status
     }
     requestData.title = newFilters.search
-    requestData.start = newFilters.date.from.toISOString().slice(0, 16)
-    requestData.end = newFilters.date.to.toISOString().slice(0, 16)
+    if (newFilters.date?.from && newFilters.date?.to) {
+      requestData.start = newFilters.date.from.toISOString().slice(0, 16)
+      requestData.end = newFilters.date.to.toISOString().slice(0, 16)
+    }
     requestData.page = 0
     setCurrentPage(1)
     fetchExamList()
