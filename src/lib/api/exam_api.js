@@ -57,23 +57,23 @@ export async function deleteExamForExaminer(apiCall, code) {
   if (!response.ok) {
     if (response.status == 400) {
       try {
-        const errorData = await response.json();
+        const errorData = await response.json()
         toast.error("Error", {
           description: errorData.message,
           variant: "destructive"
-        });
+        })
       } catch (error) {
-        console.error("Error parsing error response:", error);
+        console.error("Error parsing error response:", error)
       }
     }
     else if (response.status == 500) {
       toast.error("Error", {
         description: MESSAGES.MSG01,
         variant: "destructive"
-      });
+      })
     }
   }
-  return response;
+  return response
 }
 
 export async function createExam(apiCall, body) {
@@ -86,24 +86,18 @@ export async function createExam(apiCall, body) {
     body: JSON.stringify(body)
   })
   if (!response.ok) {
-    if (response.status == 400) {
-      try {
-        const errorData = await response.json();
-        toast.error("Error", {
-          description: errorData.message,
-          variant: "destructive"
-        });
-      } catch (error) {
-        console.error("Error parsing error response:", error);
-      }
+    const errorData = await response.json()
+    let errorMessage = "Failed to create exam"
+
+    if (Array.isArray(errorData.message)) {
+      // Extract first error message from array
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
     }
-    else if (response.status == 500) {
-      toast.error("Error", {
-        description: MESSAGES.MSG01,
-        variant: "destructive"
-      });
-    }
-    return null;
+    throw new Error(errorMessage)
   }
   else {
     const text = await response.text()
@@ -124,22 +118,22 @@ export async function editExam(apiCall, body, code) {
   if (!response.ok) {
     if (response.status == 400) {
       try {
-        const errorData = await response.json();
+        const errorData = await response.json()
         toast.error("Error", {
           description: errorData.message,
           variant: "destructive"
-        });
+        })
       } catch (error) {
-        console.error("Error parsing error response:", error);
+        console.error("Error parsing error response:", error)
       }
     }
     else if (response.status == 500) {
       toast.error("Error", {
         description: MESSAGES.MSG01,
         variant: "destructive"
-      });
+      })
     }
-    return null;
+    return null
   }
   else {
     const text = await response.text()
@@ -159,22 +153,22 @@ export async function getListParticipantInExam(apiCall, code) {
   if (!response.ok) {
     if (response.status == 400) {
       try {
-        const errorData = await response.json();
+        const errorData = await response.json()
         toast.error("Error", {
           description: errorData.message,
           variant: "destructive"
-        });
+        })
       } catch (error) {
-        console.error("Error parsing error response:", error);
+        console.error("Error parsing error response:", error)
       }
     }
     else if (response.status == 500) {
       toast.error("Error", {
         description: MESSAGES.MSG01,
         variant: "destructive"
-      });
+      })
     }
-    return null;
+    return null
   }
   else {
     const text = await response.text()
@@ -194,22 +188,22 @@ export async function getParticipantResultInExam(apiCall, code, userId) {
   if (!response.ok) {
     if (response.status == 400) {
       try {
-        const errorData = await response.json();
+        const errorData = await response.json()
         toast.error("Error", {
           description: errorData.message,
           variant: "destructive"
-        });
+        })
       } catch (error) {
-        console.error("Error parsing error response:", error);
+        console.error("Error parsing error response:", error)
       }
     }
     else if (response.status == 500) {
       toast.error("Error", {
         description: MESSAGES.MSG01,
         variant: "destructive"
-      });
+      })
     }
-    return null;
+    return null
   }
   else {
     const text = await response.text()

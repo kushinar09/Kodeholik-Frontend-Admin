@@ -25,6 +25,7 @@ const formSchema = z.object({
 
 export function CreateExamDetails({ onNext, formData, updateFormData }) {
   const [durations, setDurations] = useState([
+    1, 2, 3, 4, 5,
     30,
     60,
     90,
@@ -39,10 +40,10 @@ export function CreateExamDetails({ onNext, formData, updateFormData }) {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: formData.details.title || "",
-      description: formData.details.description,
-      startTime: formData.details.startTime || new Date(),
-      duration: formData.details.duration || null // Add this line
+      title: formData?.details?.title || "",
+      description: formData?.details?.description,
+      startTime: formData?.details?.startTime || new Date(),
+      duration: formData?.details?.duration || null
     }
   })
   const watchedValues = form.watch()
@@ -169,7 +170,7 @@ export function CreateExamDetails({ onNext, formData, updateFormData }) {
         </div>
         <div className="flex justify-end">
           <Button type="submit" className="flex items-center">
-                        Next
+            Next
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

@@ -33,21 +33,21 @@ const requestData = {
 }
 
 export function CreateExam({ onNavigate }) {
-  const [activeStep, setActiveStep] = useState("details");
+  const [activeStep, setActiveStep] = useState("details")
   const [formData, setFormData] = useState({
     details: {
       title: "",
       description: "",
       startTime: new Date(),
       duration: 90
-  
+
     },
     problems: {
       languageSupports: [],
       problems: []
     }
-  });
-  const { apiCall } = useAuth();
+  })
+  const { apiCall } = useAuth()
 
   const [completedSteps, setCompletedSteps] = useState({
     details: false,
@@ -61,7 +61,7 @@ export function CreateExam({ onNavigate }) {
           description: "",
           startTime: new Date(),
           duration: 90
-      
+
         },
         problems: {
           languageSupports: [],
@@ -72,61 +72,47 @@ export function CreateExam({ onNavigate }) {
   }, [])
   const updateFormData = (stepData, step) => {
     if (step === "details") {
-      mockFormData.details = stepData;
+      mockFormData.details = stepData
     }
     else if (step === "problems") {
-      mockFormData.problems = stepData;
+      mockFormData.problems = stepData
     }
-    setFormData(mockFormData);
+    setFormData(mockFormData)
     setCompletedSteps((prev) => ({ ...prev, [step]: true }))
   }
 
   const handleNext = async () => {
-    if (activeStep === "details") setActiveStep("problems");
+    if (activeStep === "details") setActiveStep("problems")
     if (activeStep === "problems") {
-      await callCreateExam();
-      toast.success("Add exam successful!", { duration: 2000 });
-      onNavigate("/exam");
-
+      await callCreateExam()
     }
   }
 
   const callCreateExam = async () => {
     try {
-      requestData.title = formData.details.title;
-      requestData.description = formData.details.description;
-      requestData.startTime = formData.details.startTime.toISOString();
-      requestData.endTime = new Date(formData.details.startTime.getTime() + formData.details.duration * 60000).toISOString();
+      requestData.title = formData.details.title
+      requestData.description = formData.details.description
+      requestData.startTime = formData.details.startTime.toISOString()
+      requestData.endTime = new Date(formData.details.startTime.getTime() + formData.details.duration * 60000).toISOString()
       if (formData?.problems?.languageSupports) {
-        requestData.languageSupports = [...formData.problems.languageSupports];
+        requestData.languageSupports = [...formData.problems.languageSupports]
       }
 
       if (formData?.problems?.problems && Array.isArray(formData.problems.problems)) {
         // Map to ensure correct structure and types
         requestData.problemRequests = formData.problems.problems.map(problem => ({
-          problemLink: problem.problemLink || '',
-          problemPoint: typeof problem.points === 'number' ? problem.points :
+          problemLink: problem.problemLink || "",
+          problemPoint: typeof problem.points === "number" ? problem.points :
             (parseInt(problem.points, 10) || 0) // Convert to number if it's a string
-        }));
+        }))
       }
-      setFormData({
-        details: {
-          title: "",
-          description: "",
-          startTime: new Date(),
-          duration: 90
-      
-        },
-        problems: {
-          languageSupports: [],
-          problems: []
-        }
-      })
-      await createExam(apiCall, requestData);
-      
+      await createExam(apiCall, requestData)
+      toast.success("Add exam successful !!", { duration: 2000 })
+      onNavigate("/exam")
     } catch (error) {
-      console.error("Error fetching exams:", error)
-    } finally {
+      toast.error("Error fetching exams:", {
+        description: error.message
+      })
     }
   }
 
@@ -197,11 +183,11 @@ function StepIndicator({ step, label, active, completed, onClick, disabled = fal
       <div
         className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-colors
           ${active
-            ? "bg-primary text-primary-foreground"
-            : completed
-              ? "bg-green-500 text-white"
-              : "bg-muted text-muted-foreground"
-          }`}
+      ? "bg-primary text-primary-foreground"
+      : completed
+        ? "bg-green-500 text-white"
+        : "bg-muted text-muted-foreground"
+    }`}
       >
         {completed ? <Check className="h-5 w-5" /> : step.charAt(0).toUpperCase()}
       </div>

@@ -58,7 +58,6 @@ export function CreateExamProblems({ onNext, onPrevious, formData, updateFormDat
     fetchPrivateProblem()
   }, [])
 
-  const watchedValues = form.watch()
   const problemsChanged = form.watch("problems")
 
   useEffect(() => {
@@ -191,7 +190,7 @@ export function CreateExamProblems({ onNext, onPrevious, formData, updateFormDat
               </div>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-                            Add problems to the exam as questions along with their points.
+              Add problems to the exam as questions along with their points.
             </p>
           </div>
           <div className="space-y-6">
