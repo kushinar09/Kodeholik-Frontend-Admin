@@ -41,7 +41,7 @@ export function CreateExamProblems({ onNext, onPrevious, formData, updateFormDat
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: formData.problems || {
       problems: [{ problemLink: "", points: 0 }]
     }
   })
@@ -159,7 +159,7 @@ export function CreateExamProblems({ onNext, onPrevious, formData, updateFormDat
                   />
                 </FormControl>
                 <p className="text-sm text-muted-foreground mt-1">
-                                    Select languages that will be supported for this problem
+                  Select languages that will be supported for this problem
                 </p>
                 <FormMessage />
               </FormItem>
@@ -324,7 +324,7 @@ export function CreateExamProblems({ onNext, onPrevious, formData, updateFormDat
             <ChevronLeft className="mr-2 h-4 w-4" /> Previous
           </Button>
           <Button type="submit" className="flex items-center">
-                        Create
+            Create
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
