@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils"
 import { useLocation, useNavigate } from "react-router-dom"
 import { LOGO } from "@/lib/constants"
 import { MESSAGES } from "@/lib/messages"
-import { loginWithGoogle } from "@/lib/api/auth_api"
 import { useAuth } from "@/provider/AuthProvider"
 import LoadingScreen from "@/components/layout/loading"
 import { toast } from "sonner"
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google"
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(true)
@@ -22,7 +22,7 @@ export default function LoginPage() {
     password: ""
   })
 
-  const { isAuthenticated, login } = useAuth()
+  const { isAuthenticated, login, loginGoogle } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -118,8 +118,8 @@ export default function LoginPage() {
     }
   }
 
-  function handleLoginGoogle() {
-    loginWithGoogle()
+  async function handleLoginGoogle(token) {
+    loginGoogle(token)
   }
 
   return (
@@ -203,32 +203,19 @@ export default function LoginPage() {
                   </span>
                 </div>
                 <div className="grid gap-4">
-                  <Button
-                    type="button"
-                    onClick={handleLoginGoogle}
-                    variant="outline"
-                    className="w-full border-gray-300 dark:border-gray-700 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900"
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M23.5 12.2C23.5 11.42 23.43 10.68 23.32 9.96H12V14.28H18.58C18.3 15.72 17.52 16.98 16.36 17.86V20.59H20.1C22.24 18.62 23.5 15.72 23.5 12.2Z"
-                        fill="#4285F4"
-                      />
-                      <path
-                        d="M12 24C15.24 24 17.96 22.92 20.1 20.59L16.36 17.86C15.22 18.68 13.74 19.16 12 19.16C8.9 19.16 6.26 17.02 5.32 14.22H1.45V17.05C3.58 21.02 7.48 24 12 24Z"
-                        fill="#34A853"
-                      />
-                      <path
-                        d="M5.32 14.22C5.08 13.4 4.96 12.52 4.96 11.62C4.96 10.72 5.08 9.84 5.32 9.02V6.19H1.45C0.52 8.02 0 9.96 0 11.96C0 13.96 0.52 15.9 1.45 17.73L5.32 14.22Z"
-                        fill="#FBBC05"
-                      />
-                      <path
-                        d="M12 4.84C13.92 4.84 15.56 5.52 16.82 6.73L20.19 3.36C17.96 1.26 15.24 0 12 0C7.48 0 3.58 2.98 1.45 6.95L5.32 9.84C6.26 7.02 8.9 4.84 12 4.84Z"
-                        fill="#EA4335"
-                      />
-                    </svg>
-                    <span className="sr-only">Login with Google</span>
-                  </Button>
+                  <GoogleOAuthProvider clientId="873651389602-g3egfh8nipch5dad289s114sge0769n0.apps.googleusercontent.com">
+                    <GoogleLogin
+                      onSuccess={credentialResponse => {
+                        handleLoginGoogle(credentialResponse.credential)
+                      }}
+                      onError={() => {
+                        toast.error("Login Google Failed", {
+                          description: "Please try again."
+                        })
+                      }}
+                    >
+                    </GoogleLogin>
+                  </GoogleOAuthProvider>
                 </div>
               </div>
             </form>

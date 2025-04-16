@@ -96,10 +96,3 @@ export async function login(formData) {
   }
 }
 
-export const loginWithGoogle = () => {
-  window.location.href = ENDPOINTS.LOGIN_GOOGLE
-}
-
-export const loginWithGithub = () => {
-  window.location.href = ENDPOINTS.LOGIN_GITHUB
-}

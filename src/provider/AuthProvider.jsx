@@ -103,6 +103,34 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  // Add a login function to ensure both states are set properly:
+  const loginGoogle = async (credentials) => {
+    try {
+      const response = await fetch(ENDPOINTS.LOGIN_GOOGLE + "?token=" + credentials, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "http://localhost:5174",
+          "Access-Control-Allow-Credentials": "true"
+        },
+        body: JSON.stringify(credentials)
+      })
+
+      if (response.ok) {
+        // After successful login, immediately check auth status to get user data
+        await checkAuthStatus()
+        return { success: true }
+      } else {
+        return { success: false, error: await response.json() }
+      }
+    } catch (error) {
+      console.error("Login failed:", error)
+      return { success: false, error }
+    }
+  }
+
+
   const refreshAccessToken = async (redirect) => {
     if (isRefreshing) {
       return refreshPromise
@@ -238,6 +266,7 @@ export const AuthProvider = ({ children }) => {
         apiCall,
         logout,
         login,
+        loginGoogle,
         isAuthenticated,
         user,
         isLoading,

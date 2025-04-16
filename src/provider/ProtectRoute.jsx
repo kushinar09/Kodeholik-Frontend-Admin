@@ -19,10 +19,6 @@ export const ProtectedRoute = ({ allowedRoles, children }) => {
     return (
       <Navigate
         to="/login"
-        state={{
-          loginRequire: true,
-          redirectPath: location.pathname
-        }}
         replace
       />
     )
