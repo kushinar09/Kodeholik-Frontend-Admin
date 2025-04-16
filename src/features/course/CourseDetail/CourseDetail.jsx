@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { GLOBALS } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
-import { Search, Send, X, ArrowBigUp, ChevronDown, ChevronUp, MessageSquare, Clock, GraduationCap } from "lucide-react"
+import { Search, Send, X, ArrowBigUp, ChevronDown, ChevronUp, MessageSquare, Clock, GraduationCap, User } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
@@ -25,7 +25,6 @@ import { Separator } from "@/components/ui/separator"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatDistanceToNow } from "date-fns"
 import { useAuth } from "@/provider/AuthProvider"
-import LoadingScreen from "@/components/layout/loading"
 import { toast } from "sonner"
 
 function CourseDetail() {
@@ -330,7 +329,7 @@ function CourseDetail() {
     </div>
   )
 
-  if (!course) return <div>Course not found</div>
+  if (!course) return <div>Loading...</div>
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col">
@@ -396,43 +395,52 @@ function CourseDetail() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {enrolledUsers.map((enrollment) => (
-                      <TableRow key={enrollment.user.id}>
-                        <TableCell>{enrollment.user.id}</TableCell>
-                        <TableCell>{enrollment.user.username}</TableCell>
-                        <TableCell>{enrollment.enrolledAt}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="relative h-10 w-10">
-                              <svg className="h-10 w-10 -rotate-90">
-                                <circle cx="20" cy="20" r="15" strokeWidth="5" stroke="#e2e8f0" fill="none" />
-                                <circle
-                                  cx="20"
-                                  cy="20"
-                                  r="15"
-                                  strokeWidth="5"
-                                  stroke="hsl(var(--primary))"
-                                  fill="none"
-                                  strokeDasharray={2 * Math.PI * 15}
-                                  strokeDashoffset={2 * Math.PI * 15 * (1 - enrollment.progress / 100)}
-                                  strokeLinecap="round"
-                                />
-                              </svg>
-                              <div className="absolute inset-0 flex items-center justify-center text-xs font-medium">
-                                {Math.round(enrollment.progress)}%
-                              </div>
-                            </div>
-                            <Progress value={enrollment.progress} className="w-full h-2" />
+                    {enrolledUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4}>
+                          <div className="w-full flex flex-col items-center justify-center h-24 text-muted-foreground">
+                            <User className="h-10 w-10 mb-2 opacity-30" />
+                            <p>No user found!</p>
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      enrolledUsers.map((enrollment) => (
+                        <TableRow key={enrollment.user.id}>
+                          <TableCell>{enrollment.user.id}</TableCell>
+                          <TableCell>{enrollment.user.username}</TableCell>
+                          <TableCell>{enrollment.enrolledAt}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="relative h-10 w-10">
+                                <svg className="h-10 w-10 -rotate-90">
+                                  <circle cx="20" cy="20" r="15" strokeWidth="5" stroke="#e2e8f0" fill="none" />
+                                  <circle
+                                    cx="20"
+                                    cy="20"
+                                    r="15"
+                                    strokeWidth="5"
+                                    stroke="hsl(var(--primary))"
+                                    fill="none"
+                                    strokeDasharray={2 * Math.PI * 15}
+                                    strokeDashoffset={2 * Math.PI * 15 * (1 - enrollment.progress / 100)}
+                                    strokeLinecap="round"
+                                  />
+                                </svg>
+                                <div className="absolute inset-0 flex items-center justify-center text-xs font-medium">
+                                  {Math.round(enrollment.progress)}%
+                                </div>
+                              </div>
+                              <Progress value={enrollment.progress} className="w-full h-2" />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
             }
-
-
 
             {totalPages > 1 && (
               <div className="flex justify-center mt-6 gap-2 mb-6">
@@ -506,7 +514,7 @@ function CourseDetail() {
                         <AvatarImage src={message.avatar} alt={message.user} className="object-cover" />
                         <AvatarFallback className="bg-muted text-foreground">{message.user[0]}</AvatarFallback>
                       </Avatar>
-                      <div className="flex-1">
+                      <div className="flex-1 max-w-[1000px]">
                         <div className="bg-card rounded-lg p-3 border border-border shadow-sm">
                           <p className="font-medium text-sm text-card-foreground flex items-center">
                             {message.user}
@@ -514,7 +522,9 @@ function CourseDetail() {
                               <GraduationCap className="ml-1 h-3.5 w-3.5 text-primary" />
                             )}
                           </p>
-                          <p className="text-sm mt-1 text-muted-foreground whitespace-pre-wrap">{message.text}</p>
+                          <p className="max-w-full text-sm mt-1 text-muted-foreground break-words whitespace-normal overflow-wrap-anywhere">
+                            {message.text}
+                          </p>
                         </div>
                         <MessageActions message={message} />
 
@@ -542,7 +552,7 @@ function CourseDetail() {
                             {message.replies.map((reply) => (
                               <div key={reply.id} className="flex gap-3">
                                 <Avatar className="h-8 w-8 flex-shrink-0 border border-border">
-                                  <AvatarImage src={reply.avatar} alt={reply.user} className="object-cover" />
+                                  <AvatarImage src={reply.avatar || "/placeholder.svg"} alt={reply.user} className="object-cover" />
                                   <AvatarFallback className="bg-muted text-foreground">{reply.user[0]}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
@@ -553,7 +563,9 @@ function CourseDetail() {
                                         <GraduationCap className="ml-1 h-3.5 w-3.5 text-primary" />
                                       )}
                                     </p>
-                                    <p className="text-sm mt-1 text-muted-foreground whitespace-pre-wrap">{reply.text}</p>
+                                    <p className="text-sm mt-1 text-muted-foreground break-words whitespace-pre-wrap overflow-wrap-anywhere">
+                                      {reply.text}
+                                    </p>
                                   </div>
                                   <MessageActions message={reply} isReply={true} parentId={message.id} />
                                 </div>

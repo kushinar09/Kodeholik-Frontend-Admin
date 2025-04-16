@@ -267,8 +267,18 @@ export async function discussionCourse(data, apiCall) {
 
     // Check if response is ok, otherwise throw an error with response text
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Server error: ${response.status} - ${errorText}`)
+      const errorData = await response.json()
+      let errorMessage = "Failed to post comment course manager"
+
+      if (Array.isArray(errorData.message)) {
+        // Extract first error message from array
+        errorMessage = errorData.message[0]?.error || errorMessage
+      } else if (typeof errorData.message === "object") {
+        errorMessage = errorData.message.error || errorMessage
+      } else if (typeof errorData.message === "string") {
+        errorMessage = errorData.message
+      }
+      throw new Error(errorMessage)
     }
 
     // If response has content, parse it; otherwise return success
