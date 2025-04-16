@@ -32,29 +32,35 @@ function CourseList({ onNavigate }) {
   const [itemsPerPage, setItemsPerPage] = useState(6)
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      setIsLoading(true)
-      try {
-        const data = await getCourseSearch(apiCall, {
-          page: currentPage,
-          size: itemsPerPage,
-          sortBy,
-          ascending: sortOrder === "asc",
-          query: searchQuery,
-          topic: selectedTopic
-        })
-        setCourses(data.content || [])
-        setTotalPages(data.totalPages || 1)
-      } catch (error) {
-        console.error("Error fetching courses:", error)
-        setCourses([])
-        setTotalPages(1)
-      } finally {
-        setIsLoading(false)
+    const delayDebounce = setTimeout(() => {
+      const fetchCourses = async () => {
+        setIsLoading(true)
+        try {
+          const data = await getCourseSearch(apiCall, {
+            page: currentPage,
+            size: itemsPerPage,
+            sortBy,
+            ascending: sortOrder === "asc",
+            query: searchQuery,
+            topic: selectedTopic
+          })
+          setCourses(data.content || [])
+          setTotalPages(data.totalPages || 1)
+        } catch (error) {
+          console.error("Error fetching courses:", error)
+          setCourses([])
+          setTotalPages(1)
+        } finally {
+          setIsLoading(false)
+        }
       }
-    }
-    fetchCourses()
+
+      fetchCourses()
+    }, 500)
+
+    return () => clearTimeout(delayDebounce)
   }, [currentPage, itemsPerPage, sortBy, sortOrder, searchQuery, selectedTopic])
+
 
   useEffect(() => {
     const fetchTopics = async () => {
