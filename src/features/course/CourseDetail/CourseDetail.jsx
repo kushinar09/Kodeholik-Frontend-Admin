@@ -61,28 +61,33 @@ function CourseDetail() {
     document.title = `Course Detail - ${GLOBALS.APPLICATION_NAME}`
   }, [])
 
-  // Fetch Enrolled Users and Course Data
   useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true)
-        const courseData = await getCourse(id)
-        if (!courseData) throw new Error("Course not found")
-        setCourse(courseData)
+    const delayDebounce = setTimeout(() => {
+      async function fetchData() {
+        try {
+          setLoading(true)
+          const courseData = await getCourse(id)
+          if (!courseData) throw new Error("Course not found")
+          setCourse(courseData)
 
-        const usersData = await usersEnrolledCourse(apiCall, id, currentPage, itemsPerPage, sortBy, sortDir, searchQuery)
-        if (!usersData) throw new Error("User not found")
-        setEnrolledUsers(usersData.content)
-        setTotalPages(usersData.totalPages)
-        setTotalElements(usersData.totalElements)
-      } catch (error) {
-        toast.error("Error fetching data:", error.message)
-      } finally {
-        setLoading(false)
+          const usersData = await usersEnrolledCourse(apiCall, id, currentPage, itemsPerPage, sortBy, sortDir, searchQuery)
+          if (!usersData) throw new Error("User not found")
+          setEnrolledUsers(usersData.content)
+          setTotalPages(usersData.totalPages)
+          setTotalElements(usersData.totalElements)
+        } catch (error) {
+          toast.error(`Error fetching data: ${error.message}`)
+        } finally {
+          setLoading(false)
+        }
       }
-    }
-    fetchData()
+
+      fetchData()
+    }, 500)
+
+    return () => clearTimeout(delayDebounce)
   }, [id, currentPage, itemsPerPage, sortBy, sortDir, searchQuery])
+
 
   // Fetch Discussion Data
   useEffect(() => {
@@ -325,7 +330,6 @@ function CourseDetail() {
     </div>
   )
 
-  if (loading) return <LoadingScreen />
   if (!course) return <div>Course not found</div>
 
   return (
@@ -367,59 +371,68 @@ function CourseDetail() {
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border border-border-muted mb-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="cursor-pointer" onClick={() => handleSort("user.id")}>
-                      ID {sortBy === "user.id" && (sortDir === "asc" ? "▲" : "▼")}
-                    </TableHead>
-                    <TableHead className="cursor-pointer" onClick={() => handleSort("user.username")}>
-                      Username {sortBy === "user.username" && (sortDir === "asc" ? "▲" : "▼")}
-                    </TableHead>
-                    <TableHead className="cursor-pointer" onClick={() => handleSort("enrolledAt")}>
-                      Enrolled At {sortBy === "enrolledAt" && (sortDir === "asc" ? "▲" : "▼")}
-                    </TableHead>
-                    <TableHead className="cursor-pointer" onClick={() => handleSort("progress")}>
-                      Progress {sortBy === "progress" && (sortDir === "asc" ? "▲" : "▼")}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {enrolledUsers.map((enrollment) => (
-                    <TableRow key={enrollment.user.id}>
-                      <TableCell>{enrollment.user.id}</TableCell>
-                      <TableCell>{enrollment.user.username}</TableCell>
-                      <TableCell>{enrollment.enrolledAt}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="relative h-10 w-10">
-                            <svg className="h-10 w-10 -rotate-90">
-                              <circle cx="20" cy="20" r="15" strokeWidth="5" stroke="#e2e8f0" fill="none" />
-                              <circle
-                                cx="20"
-                                cy="20"
-                                r="15"
-                                strokeWidth="5"
-                                stroke="hsl(var(--primary))"
-                                fill="none"
-                                strokeDasharray={2 * Math.PI * 15}
-                                strokeDashoffset={2 * Math.PI * 15 * (1 - enrollment.progress / 100)}
-                                strokeLinecap="round"
-                              />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center text-xs font-medium">
-                              {Math.round(enrollment.progress)}%
-                            </div>
-                          </div>
-                          <Progress value={enrollment.progress} className="w-full h-2" />
-                        </div>
-                      </TableCell>
+            {loading ?
+              <div className="flex flex-col items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                <p className="text-sm text-muted-foreground mt-4">Loading discussion...</p>
+              </div>
+              :
+              <div className="overflow-x-auto rounded-lg border border-border-muted mb-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="cursor-pointer" onClick={() => handleSort("user.id")}>
+                        ID {sortBy === "user.id" && (sortDir === "asc" ? "▲" : "▼")}
+                      </TableHead>
+                      <TableHead className="cursor-pointer" onClick={() => handleSort("user.username")}>
+                        Username {sortBy === "user.username" && (sortDir === "asc" ? "▲" : "▼")}
+                      </TableHead>
+                      <TableHead className="cursor-pointer" onClick={() => handleSort("enrolledAt")}>
+                        Enrolled At {sortBy === "enrolledAt" && (sortDir === "asc" ? "▲" : "▼")}
+                      </TableHead>
+                      <TableHead className="cursor-pointer" onClick={() => handleSort("progress")}>
+                        Progress {sortBy === "progress" && (sortDir === "asc" ? "▲" : "▼")}
+                      </TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {enrolledUsers.map((enrollment) => (
+                      <TableRow key={enrollment.user.id}>
+                        <TableCell>{enrollment.user.id}</TableCell>
+                        <TableCell>{enrollment.user.username}</TableCell>
+                        <TableCell>{enrollment.enrolledAt}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="relative h-10 w-10">
+                              <svg className="h-10 w-10 -rotate-90">
+                                <circle cx="20" cy="20" r="15" strokeWidth="5" stroke="#e2e8f0" fill="none" />
+                                <circle
+                                  cx="20"
+                                  cy="20"
+                                  r="15"
+                                  strokeWidth="5"
+                                  stroke="hsl(var(--primary))"
+                                  fill="none"
+                                  strokeDasharray={2 * Math.PI * 15}
+                                  strokeDashoffset={2 * Math.PI * 15 * (1 - enrollment.progress / 100)}
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                              <div className="absolute inset-0 flex items-center justify-center text-xs font-medium">
+                                {Math.round(enrollment.progress)}%
+                              </div>
+                            </div>
+                            <Progress value={enrollment.progress} className="w-full h-2" />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            }
+
+
 
             {totalPages > 1 && (
               <div className="flex justify-center mt-6 gap-2 mb-6">
@@ -490,7 +503,7 @@ function CourseDetail() {
                   <div key={message.id} className="mb-6">
                     <div className="flex gap-3">
                       <Avatar className="h-9 w-9 flex-shrink-0 border border-border">
-                        <AvatarImage src={message.avatar} alt={message.user} className="object-cover"/>
+                        <AvatarImage src={message.avatar} alt={message.user} className="object-cover" />
                         <AvatarFallback className="bg-muted text-foreground">{message.user[0]}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
@@ -529,7 +542,7 @@ function CourseDetail() {
                             {message.replies.map((reply) => (
                               <div key={reply.id} className="flex gap-3">
                                 <Avatar className="h-8 w-8 flex-shrink-0 border border-border">
-                                  <AvatarImage src={reply.avatar} alt={reply.user} className="object-cover"/>
+                                  <AvatarImage src={reply.avatar} alt={reply.user} className="object-cover" />
                                   <AvatarFallback className="bg-muted text-foreground">{reply.user[0]}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
