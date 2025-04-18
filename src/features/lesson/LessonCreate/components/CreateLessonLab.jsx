@@ -367,9 +367,6 @@ export default function CreateLessonLab({
         {/* Display selected problems */}
         {selectedProblems.length > 0 && (
           <div className="mt-2 p-3 border rounded-md bg-muted">
-            <div className="font-medium mb-2">
-              Selected Problems ({selectedProblems.length}):
-            </div>
             <div className="flex flex-wrap gap-2">
               {selectedProblems.map((problem) => (
                 <div

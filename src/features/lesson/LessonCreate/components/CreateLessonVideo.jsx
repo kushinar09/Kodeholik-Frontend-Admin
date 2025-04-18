@@ -74,7 +74,7 @@ function CreateLessonVideo({ file, setFile, filePreview, setFilePreview }) {
             onClick={() => document.getElementById("videoUpload").click()}
           >
             <Upload className="h-8 w-8 text-black mb-4" />
-            <p className="text-black text-center text-gray-500">
+            <p className="text-center text-gray-500">
               Drag and drop a video here (&lt; 500 MB)
               <br />
               or click to browse

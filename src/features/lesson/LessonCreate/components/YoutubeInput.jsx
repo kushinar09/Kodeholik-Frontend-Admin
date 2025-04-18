@@ -32,7 +32,7 @@ function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
 
   return (
     <div className="w-full">
-      <label className="text-sm font-medium text-black mb-1 block">
+      <label className="text-sm font-medium text-black mb-2 block">
         YouTube URL
       </label>
       <input

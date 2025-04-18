@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
+function YoutubeInput({ youtubeUrl, setYoutubeUrl, disabled = false }) {
   const [inputValue, setInputValue] = useState(youtubeUrl || "")
   const [error, setError] = useState("")
 
@@ -39,6 +39,7 @@ function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
         type="text"
         placeholder="Enter YouTube URL"
         value={inputValue}
+        disabled={disabled}
         onChange={handleChange}
         onBlur={handleBlur}
         className="w-full px-3 py-2 border rounded-md border-gray-700 focus:outline-none focus:ring-none"
@@ -64,9 +65,10 @@ function YoutubeInput({ youtubeUrl, setYoutubeUrl }) {
 
 function getYoutubeVideoId(url) {
   const regExp =
-    /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
+    /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube(?:-nocookie)?\.com|youtu\.be)\/(?:.*v=|.*\/|)([\w-]{11})/
   const match = url.match(regExp)
   return match ? match[1] : null
 }
+
 
 export default YoutubeInput

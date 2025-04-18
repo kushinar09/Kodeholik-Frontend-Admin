@@ -23,3 +23,20 @@ export async function createLesson(formData, apiCall) {
   }
   return response.json()
 };
+
+export async function downloadFileLesson(apiCall, fileKey) {
+  const fileUrl = ENDPOINTS.DOWNLOAD_FILE_LESSON(fileKey)
+
+  try {
+    const response = await apiCall(fileUrl)
+
+    if (!response.ok) {
+      return { status: false, data: response.status }
+    }
+    const url = await response.text()
+    return { status: true, data: url }
+  } catch (error) {
+    console.error("Error fetching file:", error)
+    throw error
+  }
+}

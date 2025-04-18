@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Upload, X } from "lucide-react"
+import { Download, Upload, X } from "lucide-react"
+import { downloadFileLesson } from "@/lib/api/lesson_api"
+import { useAuth } from "@/provider/AuthProvider"
+import { toast } from "sonner"
 
-function UpdateLessonDocument({ file, setFile }) {
+function UpdateLessonDocument({ file, setFile, existingFileUrl, setExistingFileUrl, disabled = false }) {
   const [filePreview, setFilePreview] = useState(null)
+  const { apiCall } = useAuth()
 
   useEffect(() => {
     return () => {
@@ -49,11 +53,37 @@ function UpdateLessonDocument({ file, setFile }) {
       URL.revokeObjectURL(filePreview)
     }
     setFile(null)
+    setExistingFileUrl(null)
     setFilePreview(null)
   }
 
+  const handleDownload = async () => {
+    if (!existingFileUrl) return
+
+    try {
+      const fileUrl = await downloadFileLesson(apiCall, existingFileUrl)
+
+      if (!fileUrl.status) {
+        toast.error("Failed to download file", {
+          description: "Error status: " + fileUrl.data
+        })
+      } else {
+        const link = document.createElement("a")
+        link.href = fileUrl.data
+        link.download = existingFileUrl.includes("lessons/") ? existingFileUrl.replace("lessons/", "").split("-").pop() : existingFileUrl
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+    } catch (err) {
+      toast.error("Failed to download file", {
+        description: err.message
+      })
+    }
+  }
+
   const getDisplayName = () => {
-    if (!file) return ""
+    if (!file) return existingFileUrl.split("/").pop().split("-").pop() || existingFileUrl || "No file attached"
 
     if (typeof file === "string") {
       return file.includes("/") ? file.split("/").pop().split("-").pop() : file
@@ -69,13 +99,23 @@ function UpdateLessonDocument({ file, setFile }) {
 
   return (
     <div className="w-full">
+      <h4 className="text-sm font-medium text-black mb-2">
+        Attached File
+        {existingFileUrl &&
+          <span className="ml-2 text-xs hover:text-blue-600 hover:underline text-blue-500 cursor-pointer"
+            onClick={handleDownload}
+          >
+            Download current file
+          </span>
+        }
+      </h4>
       <input type="file" id="fileUpload" accept=".pdf,.doc,.docx,.txt" onChange={handleFileUpload} className="hidden" />
       <div
         className="w-full h-10 rounded-md border border-gray-700 overflow-hidden flex items-center px-3"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
-        {file ? (
+        {file || existingFileUrl ? (
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center overflow-hidden">
               <span className="text-sm font-medium text-black truncate max-w-[200px]">{getDisplayName()}</span>
@@ -87,6 +127,7 @@ function UpdateLessonDocument({ file, setFile }) {
                 size="icon"
                 variant="ghost"
                 className="h-8 w-8"
+                disabled={disabled}
                 onClick={() => document.getElementById("fileUpload").click()}
               >
                 <Upload className="h-3.5 w-3.5" />
@@ -95,6 +136,7 @@ function UpdateLessonDocument({ file, setFile }) {
                 type="button"
                 size="icon"
                 variant="ghost"
+                disabled={disabled}
                 className="h-8 w-8 hover:bg-red-50 hover:text-red-500"
                 onClick={handleRemoveFile}
               >
@@ -105,9 +147,9 @@ function UpdateLessonDocument({ file, setFile }) {
         ) : (
           <div
             className="flex items-center justify-between w-full cursor-pointer"
-            onClick={() => document.getElementById("fileUpload").click()}
+            onClick={() => !disabled && document.getElementById("fileUpload").click()}
           >
-            <span className="text-sm text-gray-500">Upload a file (Word, PDF, TXT - max 100 MB)</span>
+            <span className="text-sm text-gray-500">Upload a file (max 100 MB)</span>
             <Button type="button" variant="ghost" size="sm" className="h-8">
               <Upload className="h-3.5 w-3.5 mr-1" />
               Browse

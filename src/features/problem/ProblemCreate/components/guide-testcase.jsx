@@ -36,7 +36,7 @@ export default function ExcelUploadGuidePage() {
               Create separate sheets for each programming language using the format: <code>{"{language}TestCase"}</code>
             </p>
             <div className="rounded-md border overflow-hidden">
-              <img
+              <img loading="lazy"
                 src={guide1}
                 alt="Example of sheet naming showing JavaTestCase and CTestCase tabs"
                 width={400}
@@ -77,7 +77,7 @@ export default function ExcelUploadGuidePage() {
             </Table>
 
             <div className="rounded-md border overflow-hidden">
-              <img
+              <img loading="lazy"
                 src={guide2}
                 alt="Example of Excel structure with param1, param2, Expected Output, and Is Sample columns"
                 width={650}

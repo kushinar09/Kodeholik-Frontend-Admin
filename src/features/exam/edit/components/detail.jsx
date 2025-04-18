@@ -97,7 +97,7 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
             <div className="flex items-center">
               <Label>Created By: </Label>
               <div className="ml-4" style={{ display: "flex", alignItems: "center" }}>
-                <img
+                <img loading="lazy"
                   src={formData.createdBy.avatar}
                   alt="avatar"
                   style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
@@ -116,7 +116,7 @@ export function EditExamDetails({ onNext, formData, updateFormData }) {
             <div className="flex items-center">
               <Label>Updated By: </Label>
               <div className="ml-4" style={{ display: "flex", alignItems: "center" }}>
-                <img
+                <img loading="lazy"
                   src={formData.updatedBy.avatar}
                   alt="avatar"
                   style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}

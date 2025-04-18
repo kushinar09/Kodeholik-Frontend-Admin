@@ -52,7 +52,7 @@ export default function RenderMarkdown({ content, className = "" }) {
         const cachedUrl = imageUrlCache.get(key)
         const initialSrc = cachedUrl || placeholderSrc
 
-        return `<img 
+        return `<img loading="lazy" 
           id="${uniqueId}"
           src="${initialSrc}" 
           alt="${text}" 
@@ -62,7 +62,7 @@ export default function RenderMarkdown({ content, className = "" }) {
         />`
       }
 
-      return `<img src="${href.href}" alt="${text}" title="${title || ""}" />`
+      return `<img loading="lazy" src="${href.href}" alt="${text}" title="${title || ""}" />`
     }
 
     marked.use({ renderer: customRenderer })

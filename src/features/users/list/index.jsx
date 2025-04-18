@@ -278,7 +278,7 @@ export default function UserList({ onNavigate }) {
                 <TableCell>{user.id}</TableCell>
                 <TableCell>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <img
+                    <img loading="lazy"
                       src={user.avatar}
                       alt="avatar"
                       style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}

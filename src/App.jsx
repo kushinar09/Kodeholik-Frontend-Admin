@@ -11,6 +11,7 @@ import ForgotPassword from "./features/auth/forgot"
 import ResetPassword from "./features/auth/reset"
 import { Toaster } from "sonner"
 import { ProtectedRoute } from "./provider/ProtectRoute"
+import { SocketProvider } from "./provider/SocketNotificationProvider"
 
 function App() {
   return (
@@ -35,11 +36,12 @@ function App() {
               path="/*"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <SocketProvider>
+                    <Dashboard />
+                  </SocketProvider>
                 </ProtectedRoute>
               }
             />
-
             <Route path="*" element={<NotFoundError />} />
           </Routes>
         </div>
