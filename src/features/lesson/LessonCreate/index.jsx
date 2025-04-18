@@ -451,7 +451,7 @@ function CreateLesson() {
                         filteredChapters.map((chapter) => (
                           <div
                             key={chapter.id}
-                            className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
+                            className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-200/50 border border-gray-700/50"
                           >
                             <Checkbox
                               id={`chapter-${chapter.id}`}

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Upload, X } from "lucide-react"
+import { Loader, Loader2, Upload } from "lucide-react"
 
 function UpdateLessonVideo({
   file,
@@ -64,6 +64,18 @@ function UpdateLessonVideo({
 
     // Check if existingFileUrl is a regular video file
     if (existingFileUrl && !isYouTubeKey(existingFileUrl)) {
+
+      if (existingFileUrl.startsWith("uploading")) {
+        return (
+          <div className="flex items-center justify-center w-full h-full bg-gray-200">
+            <div className="flex items-center justify-center">
+              <Loader2 className="animate-spin size-10 text-gray-700" />
+              <span className="ml-2 text-gray-700">Uploading video...</span>
+            </div>
+          </div>
+        )
+      }
+
       return (
         <video
           src={existingFileUrl}
@@ -103,7 +115,7 @@ function UpdateLessonVideo({
         />
       </div>
       <div className="w-full aspect-[2/1] rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center">
-        <div className="w-full h-full">
+        <div className="w-full h-full relative">
           {(file || filePreview) ? (
             <div className="relative w-full h-full">
               {renderPreview()}

@@ -50,7 +50,7 @@ const formSchema = z
     type: z.enum(["VIDEO", "YOUTUBE", "DOCUMENT"], {
       message: "Type must be either VIDEO, YOUTUBE, or DOCUMENT"
     }),
-    status: z.enum(["ACTIVATED", "INACTIVATED"]),
+    status: z.enum(["ACTIVATED", "INACTIVATED", "IN_PROGRESS"]),
     videoFile: z
       .instanceof(File, { message: "Video must be a file" })
       .nullable()
@@ -327,25 +327,23 @@ function UpdateLesson() {
       formDataPayload.append("type", lessonData.type)
       formDataPayload.append("status", lessonData.status)
 
-      if (originalStatus !== "IN_PROGRESS") {
-        if (formData.type === "VIDEO" && videoFile) {
-          formDataPayload.append("videoType", "VIDEO_FILE")
-          formDataPayload.append("videoFile", videoFile)
-        } else if (formData.type === "YOUTUBE" && youtubeUrl) {
-          const videoIdMatch = youtubeUrl.match(
-            /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube(?:-nocookie)?\.com|youtu\.be)\/(?:[\w-]+\?v=|embed\/|v\/)?([\w-]+)(?:\S+)?$/
-          )
-          const videoId = videoIdMatch?.[1]
-          if (!videoId) throw new Error("Invalid YouTube URL")
+      if (formData.type === "VIDEO" && videoFile) {
+        formDataPayload.append("videoType", "VIDEO_FILE")
+        formDataPayload.append("videoFile", videoFile)
+      } else if (formData.type === "YOUTUBE" && youtubeUrl) {
+        const videoIdMatch = youtubeUrl.match(
+          /^(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube(?:-nocookie)?\.com|youtu\.be)\/(?:[\w-]+\?v=|embed\/|v\/)?([\w-]+)(?:\S+)?$/
+        )
+        const videoId = videoIdMatch?.[1]
+        if (!videoId) throw new Error("Invalid YouTube URL")
 
-          formDataPayload.append("videoType", "YOUTUBE")
-          formDataPayload.append("youtubeUrl", youtubeUrl)
-        }
+        formDataPayload.append("videoType", "YOUTUBE")
+        formDataPayload.append("youtubeUrl", youtubeUrl)
+      }
 
-        // Only append attachedFile if it exists and not IN_PROGRESS
-        if (docFile) {
-          formDataPayload.append("attachedFile", docFile)
-        }
+      // Only append attachedFile if it exists and not IN_PROGRESS
+      if (docFile) {
+        formDataPayload.append("attachedFile", docFile)
       }
 
       // Always allow problem selection regardless of status
@@ -501,7 +499,7 @@ function UpdateLesson() {
                     filteredCourses.map((course) => (
                       <div
                         key={course.id}
-                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border ${selectedCourse === course.id ? "border-primary" : "border-gray-700/50"
+                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-200/50 border ${selectedCourse === course.id ? "border-2 border-primary" : "border-gray-700/50"
                           }`}
                         onClick={() => handleCourseChange(course.id)}
                       >
@@ -530,7 +528,7 @@ function UpdateLesson() {
                         filteredChapters.map((chapter) => (
                           <div
                             key={chapter.id}
-                            className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
+                            className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-200/50 border border-gray-700/50"
                           >
                             <Checkbox
                               id={`chapter-${chapter.id}`}
@@ -595,7 +593,7 @@ function UpdateLesson() {
                     attachedFile: null
                   }))
                 }}
-                disabled={originalStatus === "IN_PROGRESS"}
+              // disabled={originalStatus === "IN_PROGRESS"}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Type" />
@@ -619,7 +617,7 @@ function UpdateLesson() {
                     filePreview={videoFilePreview}
                     setFilePreview={setVideoFilePreview}
                     existingFileUrl={existingVideoUrl}
-                    disabled={originalStatus === "IN_PROGRESS"}
+                  // disabled={originalStatus === "IN_PROGRESS"}
                   />
                   {errors.videoFile && <p className="text-red-500 text-sm mt-1">{errors.videoFile}</p>}
                 </div>
@@ -634,7 +632,7 @@ function UpdateLesson() {
                       setYoutubeUrl(url)
                       setErrors((prev) => ({ ...prev, youtubeUrl: null }))
                     }}
-                    disabled={originalStatus === "IN_PROGRESS"}
+                  // disabled={originalStatus === "IN_PROGRESS"}
                   />
                   {errors.youtubeUrl && <p className="text-red-500 text-sm mt-1">{errors.youtubeUrl}</p>}
                 </div>
@@ -649,7 +647,7 @@ function UpdateLesson() {
                 }}
                 existingFileUrl={existingDocUrl}
                 setExistingFileUrl={setExistingDocUrl}
-                disabled={originalStatus === "IN_PROGRESS"}
+              // disabled={originalStatus === "IN_PROGRESS"}
               />
               {errors.attachedFile && <p className="text-red-500 text-sm mt-1">{errors.attachedFile}</p>}
             </div>
