@@ -153,7 +153,12 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
       returnType: values.sharedReturnType === "OTHER" ? "UNKNOWN" : values.sharedReturnType,
       otherReturnType: values.otherReturnType,
       noDimension: values.sharedReturnType.startsWith("ARR_") ? values.noDimension : undefined,
-      parameters: param.parameters || [],
+      parameters: param.parameters.map((p) => ({
+        inputName: p.inputName,
+        inputType: p.inputType === "OTHER" ? "UNKNOWN" : p.inputType,
+        noDimension: p.inputType.startsWith("ARR_") ? p.noDimension : undefined,
+        otherInputType: p.otherInputType || undefined
+      })),
       templateCode: param.templateCode
     }))
 
