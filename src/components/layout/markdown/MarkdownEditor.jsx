@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { EditorView, basicSetup } from "codemirror"
 import { keymap } from "@codemirror/view"
-import { indentWithTab } from "@codemirror/commands"
+import { indentWithTab, insertNewline } from "@codemirror/commands"
 import { markdown } from "@codemirror/lang-markdown"
 import { EditorState } from "@codemirror/state"
 import {
@@ -110,7 +110,7 @@ const MarkdownEditor = ({ value = "", onChange = null, cookieDraft = "" }) => {
       doc: markdownContent,
       extensions: [
         basicSetup,
-        keymap.of([indentWithTab]),
+        keymap.of([indentWithTab, insertNewline]),
         markdown(),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {

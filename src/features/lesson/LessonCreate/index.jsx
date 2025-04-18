@@ -1,9 +1,8 @@
 "use client"
 
-import { GLOBALS } from "@/lib/constants"
+import { ENDPOINTS, GLOBALS } from "@/lib/constants"
 import { useState, useEffect } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
-import { getChapterList } from "@/lib/api/chapter_api"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { createLesson } from "@/lib/api/lesson_api"
 import { useAuth } from "@/provider/AuthProvider"
 import { Input } from "@/components/ui/input"
@@ -30,19 +29,23 @@ import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor"
 import CreateLessonLab from "./components/CreateLessonLab"
 import YoutubeInput from "./components/YoutubeInput"
 import { toast } from "sonner"
+import LoadingScreen from "@/components/layout/loading"
 
 // Define the Zod schema for form validation
 const formSchema = z
   .object({
     title: z
-      .string()
+      .string().trim()
       .min(10, "Title must be at least 10 characters")
       .max(200, "Title must be less than 200 characters"),
     description: z
-      .string()
+      .string().trim()
       .min(10, "Description must be at least 10 characters")
       .max(5000, "Description must be less than 5000 characters"),
-    chapterId: z.number({ required_error: "A chapter must be selected" }).int().positive("A chapter must be selected"),
+    chapterId: z
+      .number({ invalid_type_error: "A chapter must be selected" })
+      .int()
+      .positive("A chapter must be selected"),
     displayOrder: z.number().int().min(1, "Display order must be at least 1"),
     type: z.enum(["VIDEO", "YOUTUBE", "DOCUMENT"], {
       message: "Type must be either VIDEO, YOUTUBE, or DOCUMENT"
@@ -54,7 +57,7 @@ const formSchema = z
       .optional()
       .refine((file) => !file || file.size <= 500 * 1024 * 1024, "Video file must be less than 500 MB")
       .refine((file) => !file || file.type.startsWith("video/"), "File must be a video"),
-    youtubeUrl: z.string().nullable().optional(),
+    youtubeUrl: z.string().trim().nullable().optional(),
     attachedFile: z
       .instanceof(File, { message: "Attached file must be a file" })
       .nullable()
@@ -92,48 +95,58 @@ function CreateLesson() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { apiCall } = useAuth()
+  const location = useLocation()
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    chapterId: searchParams.get("chapterId") ? Number(searchParams.get("chapterId")) : null,
+    chapterId: location.state?.chapterId ? Number(location.state?.chapterId) : null,
     displayOrder: 1,
     type: "VIDEO",
     status: "ACTIVATED"
   })
+
   const [chapters, setChapters] = useState([])
+  const [courses, setCourses] = useState([])
+  const [selectedCourse, setSelectedCourse] = useState(location.state?.courseId || null)
   const [videoFile, setVideoFile] = useState(null)
   const [videoFilePreview, setVideoFilePreview] = useState(null)
   const [docFile, setDocFile] = useState(null)
   const [docFilePreview, setDocFilePreview] = useState(null)
   const [isChaptersOpen, setIsChaptersOpen] = useState(false)
   const [chapterSearch, setChapterSearch] = useState("")
+  const [courseSearch, setCourseSearch] = useState("")
   const [errors, setErrors] = useState({})
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [message, setMessage] = useState("")
   const [selectedProblems, setSelectedProblems] = useState([])
   const [youtubeUrl, setYoutubeUrl] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     document.title = `Create Lesson - ${GLOBALS.APPLICATION_NAME}`
+    if (selectedCourse) {
+      fetchChapters(selectedCourse)
+    }
   }, [])
 
   useEffect(() => {
-    const fetchChapters = async () => {
+    const fetchCourses = async () => {
       try {
-        const data = await getChapterList()
-        const chapterArray = Array.isArray(data?.content) ? data.content : []
-        setChapters(chapterArray)
+        const response = await apiCall(ENDPOINTS.GET_COURSES)
+        const data = await response.json()
+        setCourses(Array.isArray(data) ? data : [])
       } catch (error) {
-        console.error("Error fetching chapters:", error)
-        setChapters([])
+        console.error("Error fetching courses:", error)
+        setCourses([])
         setErrors((prev) => ({
           ...prev,
-          chapters: "Failed to fetch chapters"
+          courses: "Failed to fetch courses"
         }))
       }
     }
-    fetchChapters()
-  }, [])
+    fetchCourses()
+  }, [apiCall])
 
   useEffect(() => {
     return () => {
@@ -141,6 +154,27 @@ function CreateLesson() {
       if (docFilePreview) URL.revokeObjectURL(docFilePreview)
     }
   }, [videoFilePreview, docFilePreview])
+
+  const fetchChapters = async (courseId) => {
+    if (!courseId) return
+
+    try {
+      const response = await apiCall(ENDPOINTS.GET_CHAPTER_BY_COURSE_ID_LESS.replace(":id", courseId))
+      const data = await response.json()
+      setChapters(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error("Error fetching chapters:", error)
+      setChapters([])
+      setErrors((prev) => ({
+        ...prev,
+        chapters: "Failed to fetch chapters for this course"
+      }))
+    }
+  }
+
+  const filteredCourses = courses.filter((course) =>
+    (course.title || `Unnamed Course (ID: ${course.id})`).toLowerCase().includes(courseSearch.toLowerCase())
+  )
 
   const filteredChapters = chapters.filter((chapter) =>
     (chapter.title || `Unnamed Chapter (ID: ${chapter.id})`).toLowerCase().includes(chapterSearch.toLowerCase())
@@ -161,9 +195,18 @@ function CreateLesson() {
     setErrors((prev) => ({ ...prev, chapterId: null }))
   }
 
+  const handleCourseChange = (courseId) => {
+    setSelectedCourse(courseId)
+    setFormData((prev) => ({ ...prev, chapterId: null }))
+    fetchChapters(courseId)
+  }
+
   const clearChapterSelection = () => {
+    setSelectedCourse(null)
+    setChapters([])
     setFormData((prev) => ({ ...prev, chapterId: null }))
     setChapterSearch("")
+    setCourseSearch("")
   }
 
   const handleDescriptionChange = (value) => {
@@ -209,6 +252,8 @@ function CreateLesson() {
       return
     }
 
+    setIsLoading(true)
+
     const lessonData = {
       chapterId: Number(formData.chapterId),
       title: formData.title,
@@ -253,12 +298,14 @@ function CreateLesson() {
       }
 
       const response = await createLesson(formDataPayload, apiCall)
-      setMessage(response.message)
+      setMessage(response)
       setShowSuccessDialog(true)
     } catch (error) {
       toast.error("Error creating lesson:", {
         description: error.message || "Failed to create lesson"
       })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -283,6 +330,10 @@ function CreateLesson() {
     )
   }
 
+  if (isLoading) {
+    return <LoadingScreen loadingText="Creating" />
+  }
+
   return (
     <>
       <form onSubmit={handleSubmit} className="rounded-xl border bg-card text-card-foreground shadow mb-8 p-5">
@@ -295,6 +346,7 @@ function CreateLesson() {
                 </Label>
                 <Input
                   name="title"
+                  className={`w-full ${errors.title ? "border-red-500" : ""}`}
                   value={formData.title}
                   onChange={handleChange}
                   placeholder="Lesson Title"
@@ -322,11 +374,22 @@ function CreateLesson() {
                 Chapter <span className="text-red-500">*</span>
               </h4>
               <CollapsibleTrigger asChild>
-                <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-200/50 cursor-pointer">
-                  <span className="text-primary text-sm font-medium">
-                    {chapters.find((ch) => ch.id === Number.parseInt(formData.chapterId))?.title ||
-                      "Selected Chapter"}
-                  </span>
+                <div
+                  className={`flex justify-between items-center w-full rounded-lg p-2 px-3 border ${errors.chapterId ? "border-red-500" : "border-gray-700"} hover:bg-gray-200/50 cursor-pointer`}
+                >
+                  <div className="flex-1 flex items-center space-x-2">
+                    <span
+                      className={`text-sm ${courses.find((c) => c.id === selectedCourse) ? "font-semibold text-primary" : "font-medium text-gray-400"}`}
+                    >
+                      {`${courses.find((c) => c.id === selectedCourse)?.title || "Selected Course"}`}
+                    </span>
+                    <span>{">"}</span>
+                    <span
+                      className={`text-sm ${chapters.length > 0 && chapters.find((ch) => ch.id === formData.chapterId) ? "font-semibold text-primary" : "font-medium text-gray-400"}`}
+                    >
+                      {`${chapters.length > 0 ? chapters.find((ch) => ch.id === formData.chapterId)?.title || "Selected Chapter" : "Not found"}`}
+                    </span>
+                  </div>
                   {isChaptersOpen ? (
                     <ChevronUp className="h-4 w-4 text-gray-400" />
                   ) : (
@@ -337,40 +400,75 @@ function CreateLesson() {
               {errors.chapterId && <p className="text-red-500 text-sm mt-1">{errors.chapterId}</p>}
               <CollapsibleContent className="space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium text-primary">Chapters</h4>
+                  <h4 className="text-sm font-medium text-primary">Select Course</h4>
                   <span
-                    onClick={clearChapterSelection}
+                    onClick={() => {
+                      clearChapterSelection()
+                      setCourseSearch("")
+                    }}
                     className="cursor-pointer text-sm text-gray-400 hover:underline"
                   >
                     Clear Selection
                   </span>
                 </div>
                 <Input
-                  placeholder="Search chapters..."
-                  value={chapterSearch}
-                  onChange={(e) => setChapterSearch(e.target.value)}
+                  placeholder="Search courses..."
+                  value={courseSearch}
+                  onChange={(e) => setCourseSearch(e.target.value)}
+                  className="mb-2"
                 />
                 <div className="max-h-[6rem] overflow-y-auto overflow-x-hidden flex flex-wrap gap-3 pb-2">
-                  {filteredChapters.length > 0 ? (
-                    filteredChapters.map((chapter) => (
+                  {filteredCourses.length > 0 ? (
+                    filteredCourses.map((course) => (
                       <div
-                        key={chapter.id}
-                        className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
+                        key={course.id}
+                        className={`flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-200/50 border ${selectedCourse === course.id ? "border-2 border-primary" : "border-gray-700/50"
+                          }`}
+                        onClick={() => handleCourseChange(course.id)}
                       >
-                        <Checkbox
-                          id={`chapter-${chapter.id}`}
-                          checked={formData.chapterId === chapter.id}
-                          onCheckedChange={() => handleChapterChange(chapter.id)}
-                        />
-                        <Label htmlFor={`chapter-${chapter.id}`} className="text-primary text-sm whitespace-nowrap">
-                          {chapter.title || `Unnamed Chapter (ID: ${chapter.id})`}
+                        <Label className="text-primary text-sm whitespace-nowrap cursor-pointer">
+                          {course.title || `Unnamed Course (ID: ${course.id})`}
                         </Label>
                       </div>
                     ))
                   ) : (
-                    <span className="text-gray-400 text-sm">No chapters found</span>
+                    <span className="text-gray-400 text-sm">No courses found</span>
                   )}
                 </div>
+
+                {selectedCourse && (
+                  <>
+                    <div className="flex items-center justify-between mt-4">
+                      <h4 className="text-sm font-medium text-primary">Select Chapter</h4>
+                    </div>
+                    <Input
+                      placeholder="Search chapters..."
+                      value={chapterSearch}
+                      onChange={(e) => setChapterSearch(e.target.value)}
+                    />
+                    <div className="max-h-[6rem] overflow-y-auto overflow-x-hidden flex flex-wrap gap-3 pb-2">
+                      {filteredChapters.length > 0 ? (
+                        filteredChapters.map((chapter) => (
+                          <div
+                            key={chapter.id}
+                            className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
+                          >
+                            <Checkbox
+                              id={`chapter-${chapter.id}`}
+                              checked={formData.chapterId === chapter.id}
+                              onCheckedChange={() => handleChapterChange(chapter.id)}
+                            />
+                            <Label htmlFor={`chapter-${chapter.id}`} className="text-primary text-sm whitespace-nowrap">
+                              {chapter.title || `Unnamed Chapter (ID: ${chapter.id})`}
+                            </Label>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 text-sm">No chapters found for this course</span>
+                      )}
+                    </div>
+                  </>
+                )}
               </CollapsibleContent>
             </Collapsible>
 
@@ -379,6 +477,7 @@ function CreateLesson() {
               <Input
                 type="number"
                 name="displayOrder"
+                className={`${errors.displayOrder ? "border-red-500" : ""}`}
                 value={formData.displayOrder}
                 onChange={handleChange}
                 placeholder="Display Order"
@@ -499,8 +598,10 @@ function CreateLesson() {
         </div>
 
         <div className="flex flex-col gap-4 mt-4">
-          <h4 className="text-md font-semibold text-primary">Description <span className="text-red-500">*</span></h4>
-          <div className="h-[400px]">
+          <h4 className="text-md font-semibold text-primary">
+            Description <span className="text-red-500">*</span>
+          </h4>
+          <div className={`h-[400px] ${errors.description ? "border border-red-500 rounded-md" : ""}`}>
             <MarkdownEditor value={formData.description} onChange={handleDescriptionChange} />
           </div>
           {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}

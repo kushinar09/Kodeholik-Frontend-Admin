@@ -6,7 +6,17 @@ export async function getChapterList() {
     credentials: "include"
   })
   if (!response.ok) {
-    throw new Error("Failed to fetch chapter")
+    const errorData = await response.json()
+    let errorMessage = "Failed to fetch chapter"
+
+    if (Array.isArray(errorData.message)) {
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
+    }
+    throw new Error(errorMessage)
   }
   return response.json()
 }
@@ -17,7 +27,17 @@ export async function getChapterByCourseId(id) {
     credentials: "include"
   })
   if (!response.ok) {
-    throw new Error("Failed to fetch chapter")
+    const errorData = await response.json()
+    let errorMessage = "Failed to fetch chapter"
+
+    if (Array.isArray(errorData.message)) {
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
+    }
+    throw new Error(errorMessage)
   }
   return response.json()
 }
@@ -34,91 +54,84 @@ export async function getChapter(id) {
 }
 
 export async function createChapter(data, apiCall) {
-  try {
-    const response = await apiCall(ENDPOINTS.CREATE_CHAPTER, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    })
+  const response = await apiCall(ENDPOINTS.CREATE_CHAPTER, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  })
 
-    if (!response.ok) {
-      const errorResponse = await response.text() // Use text to avoid JSON parse errors on failure
-      throw new Error(`Failed to create chapter: ${errorResponse || response.statusText}`)
+  if (!response.ok) {
+    const errorData = await response.json()
+    let errorMessage = "Failed to create chapter"
+
+    if (Array.isArray(errorData.message)) {
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
     }
-
-    // // Log response details for debugging
-    // console.log("Response status:", response.status)
-    // console.log("Response headers:", Object.fromEntries(response.headers.entries()))
-
-    // Get the response as text first
-    const text = await response.text()
-
-    // Handle the known case where backend returns "1" for success
-    if (text.trim() === "1") {
-      return { success: true } // Normalize to a success object
-    }
-
-    // Attempt to parse as JSON for future-proofing
-    try {
-      const jsonData = JSON.parse(text)
-      return jsonData
-    } catch (jsonError) {
-      console.warn("Response is not JSON, treating as success:", text)
-      return { success: true, rawResponse: text } // Fallback for non-JSON success
-    }
-  } catch (error) {
-    console.error("Error in createChapter:", {
-      error: error.message,
-      requestData: data // Log the plain object instead of FormData.entries()
-    })
-    throw error
+    throw new Error(errorMessage)
   }
+
+  // Get the response as text first
+  const text = await response.text()
+
+  // Handle the known case where backend returns "1" for success
+  if (text.trim() === "1") {
+    return { success: true } // Normalize to a success object
+  }
+
+  // Attempt to parse as JSON for future-proofing
+  try {
+    const jsonData = JSON.parse(text)
+    return jsonData
+  } catch (e) {
+    console.warn("Response is not JSON, treating as success:", e.message)
+    return { success: true, rawResponse: text }
+  }
+
 }
 
 export async function updateChapter(id, data, apiCall) {
+  const response = await apiCall(ENDPOINTS.UPDATE_CHAPTER.replace(":id", id), {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    let errorMessage = `Failed to update chapter: ${response.statusText}`
+
+    if (Array.isArray(errorData.message)) {
+      errorMessage = errorData.message[0]?.error || errorMessage
+    } else if (typeof errorData.message === "object") {
+      errorMessage = errorData.message.error || errorMessage
+    } else if (typeof errorData.message === "string") {
+      errorMessage = errorData.message
+    }
+    throw new Error(errorMessage)
+  }
+
+  // Get the response as text first
+  const text = await response.text()
+
+  // Handle the known case where backend returns "1" for success
+  if (text.trim() === "1") {
+    return { success: true } // Normalize to a success object
+  }
+
+  // Attempt to parse as JSON for future-proofing
   try {
-    const response = await apiCall(ENDPOINTS.UPDATE_CHAPTER.replace(":id", id), {
-      method: "PUT",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    })
-
-    if (!response.ok) {
-      const errorResponse = await response.text() // Use text to avoid JSON parse errors on failure
-      throw new Error(`Failed to update chapter: ${errorResponse || response.statusText}`)
-    }
-
-    // // Log response details for debugging
-    // console.log("Response status:", response.status)
-    // console.log("Response headers:", Object.fromEntries(response.headers.entries()))
-
-    // Get the response as text first
-    const text = await response.text()
-
-    // Handle the known case where backend returns "1" for success
-    if (text.trim() === "1") {
-      return { success: true } // Normalize to a success object
-    }
-
-    // Attempt to parse as JSON for future-proofing
-    try {
-      const jsonData = JSON.parse(text)
-      return jsonData
-    } catch (jsonError) {
-      console.warn("Response is not JSON, treating as success:", text)
-      return { success: true, rawResponse: text } // Fallback for non-JSON success
-    }
-  } catch (error) {
-    console.error("Error in updateChapter:", {
-      error: error.message,
-      requestData: data // Log the plain object
-    })
-    throw error
+    const jsonData = JSON.parse(text)
+    return jsonData
+  } catch (jsonError) {
+    console.warn("Response is not JSON, treating as success:", text)
+    return { success: true, rawResponse: text } // Fallback for non-JSON success
   }
 }

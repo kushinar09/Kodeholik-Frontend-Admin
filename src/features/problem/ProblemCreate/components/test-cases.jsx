@@ -10,38 +10,47 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import LoadingScreen from "@/components/layout/loading"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import ExcelUploadGuidePage from "./guide-testcase"
 
 const formSchema = z.object({
-  excelFile: z.instanceof(File, { message: "Test case file is required" }).nullable(),
+  excelFile: z.instanceof(File, { message: "Test case file is required" }).nullable()
 })
 
 export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
-  const [file, setFile] = useState(null)
+  const [file, setFile] = useState(formData?.testCases?.excelFile || null)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadComplete, setUploadComplete] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      excelFile: null,
-    },
+      excelFile: null
+    }
   })
 
   const handleFileChange = async (event) => {
     const selectedFile = event.target.files[0]
     if (selectedFile) {
       setIsUploading(true)
+      setUploadComplete(false)
+      setUploadProgress(0)
 
       try {
-        // Simulate file processing time
-        // Replace this with your actual file processing logic
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-
         setFile(selectedFile)
         form.setValue("excelFile", selectedFile)
+        const transformedData = {
+          excelFile: selectedFile
+        }
+        updateFormData(transformedData, "testcases")
+        setUploadComplete(true)
       } catch (error) {
-        console.error("Error processing file:", error)
+        console.error("Error uploading file:", error)
+        form.setError("excelFile", {
+          type: "manual",
+          message: "File upload failed. Please try again."
+        })
       } finally {
         setIsUploading(false)
       }
@@ -49,18 +58,19 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
   }
 
   const handleSubmit = async (values) => {
+    if (!uploadComplete && values.excelFile) {
+      // If file exists but upload isn't complete, show error
+      form.setError("excelFile", {
+        type: "manual",
+        message: "Please wait for file upload to complete"
+      })
+      return
+    }
+
     setIsUploading(true)
 
     try {
-      // Simulate form submission time
-      // Replace this with your actual submission logic
       await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      const transformedData = {
-        excelFile: values.excelFile,
-      }
-
-      updateFormData(transformedData, "testcases")
       onSubmit()
     } catch (error) {
       console.error("Error submitting form:", error)
@@ -71,7 +81,9 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
 
   return (
     <>
-      {isUploading && <LoadingScreen loadingText="Upload file..." />}
+      {isUploading && (
+        <LoadingScreen loadingText={uploadProgress > 0 ? `Uploading file... ${uploadProgress}%` : "Processing..."} />
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -102,6 +114,7 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
                               <FileText className="h-8 w-8 text-primary mb-2" />
                               <p className="text-sm font-medium">{file.name}</p>
                               <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
+                              {uploadComplete && <p className="text-xs text-green-600 mt-1">✓ Upload complete</p>}
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -137,7 +150,8 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
                             accept=".txt,.csv,.xlsx,.xls"
                             onChange={(e) => {
                               handleFileChange(e)
-                              onChange(e.target.files[0])
+                              // Don't set the form value immediately, wait for upload to complete
+                              // The handleFileChange function will set it when upload is done
                             }}
                             disabled={isUploading}
                             {...field}
@@ -173,7 +187,11 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
             >
               <ChevronLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
-            <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isUploading}>
+            <Button
+              type="submit"
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isUploading || !file}
+            >
               Create Problem
             </Button>
           </div>
@@ -182,4 +200,3 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit }) {
     </>
   )
 }
-

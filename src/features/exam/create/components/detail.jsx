@@ -5,7 +5,6 @@ import { DateTimePicker24hForm } from "@/components/ui/datetime-picker"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ChevronRight } from "lucide-react"
@@ -15,8 +14,8 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 const formSchema = z.object({
-  title: z.string().min(10, "Title must be at least 10 characters").max(200, "Title must be less than 200 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters").max(5000, "Description must be less than 5000 characters"),
+  title: z.string().trim().min(10, "Title must be at least 10 characters").max(200, "Title must be less than 200 characters"),
+  description: z.string().trim().min(10, "Description must be at least 10 characters").max(5000, "Description must be less than 5000 characters"),
   startTime: z
     .date({ required_error: "Start time is required" })
     .refine((date) => date >= new Date(), {
@@ -26,6 +25,7 @@ const formSchema = z.object({
 
 export function CreateExamDetails({ onNext, formData, updateFormData }) {
   const [durations, setDurations] = useState([
+    1, 2, 3, 4, 5,
     30,
     60,
     90,
@@ -40,10 +40,10 @@ export function CreateExamDetails({ onNext, formData, updateFormData }) {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: formData.details.title || "",
-      description: formData.details.description,
-      startTime: formData.details.startTime || new Date(),
-      duration: formData.details.duration || null // Add this line
+      title: formData?.details?.title || "",
+      description: formData?.details?.description,
+      startTime: formData?.details?.startTime || new Date(),
+      duration: formData?.details?.duration || null
     }
   })
   const watchedValues = form.watch()
@@ -170,7 +170,7 @@ export function CreateExamDetails({ onNext, formData, updateFormData }) {
         </div>
         <div className="flex justify-end">
           <Button type="submit" className="flex items-center">
-                        Next
+            Next
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

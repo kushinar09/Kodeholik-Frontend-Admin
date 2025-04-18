@@ -33,7 +33,7 @@ export default function RenderMarkdown({ content, className = "" }) {
           requestAnimationFrame(() => {
             if (!document.getElementById(uniqueId)) return // If the image is no longer in the DOM, don't fetch
 
-            fetch(ENDPOINTS.GET_IMAGE(key))
+            fetch(ENDPOINTS.GET_IMAGE.replace(":key", encodeURIComponent(key)))
               .then((response) => response.text())
               .then((imageUrl) => {
                 imageUrlCache.set(key, imageUrl)

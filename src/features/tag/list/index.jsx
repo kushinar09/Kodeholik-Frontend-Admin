@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Plus, MoreHorizontal, Pencil, Trash, ArrowDown, ArrowUp } from "lucide-react"
 import { useAuth } from "@/provider/AuthProvider"
-import { deleteExamForExaminer, getListExamForExaminer } from "@/lib/api/exam_api"
 import { cn } from "@/lib/utils"
 import { FilterBar } from "./components/filter-list"
 import { toast } from "sonner"
@@ -57,7 +56,6 @@ export default function TagList({ onNavigate }) {
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
   const [noContent, setNoContent] = useState(false)
-  const [sortBy, setSortBy] = useState("createdAt")
   const [size, setSize] = useState("5")
   const [ascending, setAscending] = useState(false)
   const [currentType, setCurrentType] = useState("LANGUAGE")
@@ -106,7 +104,9 @@ export default function TagList({ onNavigate }) {
       setCurrentType(tag.type)
       fetchTagList()
     } catch (error) {
-      console.error("Error creating tag:", error)
+      toast.error("Error creating tag", {
+        description: error.message
+      })
     } finally {
       setIsLoading(false)
     }
@@ -130,7 +130,9 @@ export default function TagList({ onNavigate }) {
       setCurrentType(tag.type)
       fetchTagList()
     } catch (error) {
-      console.error("Error creating tag:", error)
+      toast.error("Error creating tag", {
+        description: error.message
+      })
     } finally {
       setIsLoading(false)
     }
@@ -140,18 +142,20 @@ export default function TagList({ onNavigate }) {
     setIsLoading(true)
     try {
       const data = await getListTagForAdmin(apiCall, requestData)
-      if (data == null) {
-        setNoContent(true)
-        setTotalElements(0)
-      }
-      else {
+      if (data) {
         setTags(data.content)
         setTotalPages(data.totalPages)
         setNoContent(false)
         setTotalElements(data.totalElements)
       }
+      else {
+        setNoContent(true)
+        setTotalElements(0)
+      }
     } catch (error) {
-      console.error("Error fetching exams:", error)
+      toast.error("Error fetching tags", {
+        description: error.message
+      })
     } finally {
       setIsLoading(false)
     }
@@ -185,15 +189,15 @@ export default function TagList({ onNavigate }) {
 
   const handleDeleteTag = async () => {
     try {
-      const response = await deleteTag(apiCall, currentTag.id, currentTag.type)
-      if (response == null) {
-        toast.success("Delete successful!", { duration: 2000 })
-        requestData.page = 0
-        setCurrentPage(1)
-        fetchTagList()
-      }
+      await deleteTag(apiCall, currentTag.id, currentTag.type)
+      toast.success("Delete successful!", { duration: 2000 })
+      requestData.page = 0
+      setCurrentPage(1)
+      fetchTagList()
     } catch (error) {
-      console.error("Error delete tag:", error)
+      toast.error("Error deleting tag", {
+        description: error.message
+      })
     } finally {
       setIsLoading(false)
     }
@@ -290,17 +294,15 @@ export default function TagList({ onNavigate }) {
             {!isLoading && tags.map((tag) => (
               <TableRow key={tag.id}>
                 <TableCell>{tag.id}</TableCell>
-                <TableCell><p className="truncate max-w-32">{tag.name}</p></TableCell>
+                <TableCell className="truncate max-w-36" title={tag.name}>{tag.name}</TableCell>
                 <TableCell>{tag.type}</TableCell>
-                <TableCell>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <img loading="lazy"
-                      src={tag.createdBy.avatar}
-                      alt="avatar"
-                      style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
-                    />
-                    <span>{tag.createdBy.username}</span>
-                  </div>
+                <TableCell className="flex items-center gap-2">
+                  <img loading="lazy"
+                    src={tag.createdBy.avatar}
+                    alt="avatar"
+                    className="object-cover size-8 rounded-full"
+                  />
+                  <span className="truncate max-w-36" title={tag.createdBy.username}>{tag.createdBy.username}</span>
                 </TableCell>
                 <TableCell>{tag.createdAt}</TableCell>
                 <TableCell>

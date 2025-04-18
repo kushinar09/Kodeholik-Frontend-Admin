@@ -25,7 +25,7 @@ export default function ParticipantList({ participants, selectedParticipantId, o
                     <img loading="lazy"
                       src={participant.avatar}
                       alt="avatar"
-                      style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 8 }}
+                      className="size-8 rounded-full mr-2 object-cover"
                     />
                     <span>{participant.username}</span>
                   </div>

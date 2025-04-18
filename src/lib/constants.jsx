@@ -98,6 +98,7 @@ const ENDPOINTS = {
   //Chapter
   GET_CHAPTERS: `${API_URL}/chapter/list`,
   GET_CHAPTER_BY_COURSE_ID: `${API_URL}/chapter/by-course/:id`,
+  GET_CHAPTER_BY_COURSE_ID_LESS: `${API_URL}/chapter/list-by-course/:id`,
   GET_CHAPTER_DETAIL: `${API_URL}/chapter/detail/:id`,
   CREATE_CHAPTER: `${API_URL}/chapter/add`,
   UPDATE_CHAPTER: `${API_URL}/chapter/update/:id`,
@@ -110,7 +111,7 @@ const ENDPOINTS = {
   UPDATE_LESSON: `${API_URL}/lesson/update/:id`,
 
   //DownloadFile lesson
-  DOWNLOAD_FILE_LESSON: (fileKey) => `${API_URL}/lesson/download-file?key=${encodeURIComponent(fileKey)}`,
+  DOWNLOAD_FILE_LESSON: `${API_URL}/lesson/download-file?key=:key`,
 
   //Topic
   GET_TOPIC_LIST: `${API_URL}/tag/all-topic`,
@@ -118,7 +119,7 @@ const ENDPOINTS = {
 
   //Image
   POST_UPLOAD_IMAGE: `${API_URL}/s3/upload`,
-  GET_IMAGE: (imageKey) => `${API_URL}/s3/presigned-url?key=${encodeURIComponent(imageKey)}`,
+  GET_IMAGE: `${API_URL}/s3/presigned-url?key=:key`,
 
   //Exam
   POST_EXAM_LIST_FOR_EXAMINER: `${API_URL}/examiner/list`,

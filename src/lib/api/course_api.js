@@ -1,6 +1,6 @@
 import { ENDPOINTS } from "../constants"
 
-export const getCourseSearch = async ({ page, size, sortBy = "title", ascending = true, query, topic }) => {
+export const getCourseSearch = async (apiCall, { page, size, sortBy = "title", ascending = true, query, topic }) => {
   const endpoint = ENDPOINTS.GET_COURSES_LIST
 
   const queryParams = `?page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}&sortBy=${encodeURIComponent(sortBy)}&ascending=${encodeURIComponent(ascending)}`
@@ -11,15 +11,11 @@ export const getCourseSearch = async ({ page, size, sortBy = "title", ascending 
   if (topic && topic !== "All") body.topics = [topic]
 
   try {
-    const response = await fetch(fullUrl, {
+    const response = await apiCall(fullUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify(body)
     })
-
-    // console.log("Response status:", response.status)
-    // console.log("Response headers:", Object.fromEntries(response.headers.entries()))
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -57,16 +53,7 @@ export async function getTopicsWithId() {
     credentials: "include"
   })
   if (!response.ok) {
-    throw new Error("Failed to fetch topic")
-  }
-  return response.json()
-}
-
-
-export async function getCourseList() {
-  const response = await fetch(ENDPOINTS.GET_COURSES)
-  if (!response.ok) {
-    throw new Error("Failed to fetch courses")
+    throw new Error(response.message || "Failed to fetch topic")
   }
   return response.json()
 }
@@ -81,28 +68,6 @@ export async function getCourse(id) {
   }
   return response.json()
 }
-
-export async function getImage(imageKey) {
-  const imageUrl = ENDPOINTS.GET_IMAGE(imageKey)
-
-  try {
-    const response = await fetch(imageUrl, {
-      method: "GET",
-      credentials: "include"
-    })
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image. Status: ${response.status}`)
-    }
-    // 🔥 FIX: Read response as text instead of JSON
-    const url = await response.text()
-    return url
-  } catch (error) {
-    console.error("Error fetching image:", error)
-    throw error
-  }
-}
-
 
 export const createCourse = async (courseData, apiCall) => {
   if (!courseData || typeof courseData !== "object") {
@@ -214,31 +179,7 @@ export async function updateCourse(id, courseData, apiCall) {
   }
 }
 
-
-export async function enrollCourse(id) {
-  const response = await fetch(ENDPOINTS.ENROLL_COURSE.replace(":id", id), {
-    method: "POST",
-    credentials: "include"
-  })
-  if (!response.ok) { // Corrected condition
-    const errorResponse = await response.json()
-    throw new Error(`Failed to enroll: ${JSON.stringify(errorResponse)}`)
-  }
-  return response
-}
-export async function unEnrollCourse(id) {
-  const response = await fetch(ENDPOINTS.UNENROLL_COURSE.replace(":id", id), {
-    method: "DELETE",
-    credentials: "include"
-  })
-  if (!response.ok) { // Corrected condition
-    const errorResponse = await response.json()
-    throw new Error(`Failed to unenroll: ${JSON.stringify(errorResponse)}`)
-  }
-  return response
-}
-
-export async function usersEnrolledCourse(id, page, size, sortBy = "enrolledAt", sortDir = "desc", query) {
+export async function usersEnrolledCourse(apiCall, id, page, size, sortBy = "enrolledAt", sortDir = "desc", query) {
   const url = ENDPOINTS.GET_USER_ENROLLED.replace(":id", id)
 
   const body = {
@@ -250,10 +191,9 @@ export async function usersEnrolledCourse(id, page, size, sortBy = "enrolledAt",
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await apiCall(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify(body)
     })
 
@@ -274,65 +214,11 @@ export async function usersEnrolledCourse(id, page, size, sortBy = "enrolledAt",
   }
 }
 
-export async function getRateCommentCourse(id) {
-  // Ensure id is defined and a valid number
-  if (!id || isNaN(id)) {
-    throw new Error("Invalid courseId provided")
-  }
-
-  const url = ENDPOINTS.GET_COMMENT_COURSE.replace(":id", id) // Remove comma from placeholder
-  console.log("Fetching comments from URL:", url)
-
-  try {
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include"
-    })
-    console.log("Response Status:", response.status)
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error("Server Response:", errorText)
-      throw new Error(`Failed to fetch comments: ${response.status} - ${errorText}`)
-    }
-
-    const data = await response.json()
-    console.log("Fetched Comments:", data)
-    return data
-  } catch (error) {
-    console.error("Error fetching comments:", error.message)
-    throw error
-  }
-}
-
-export async function rateCommentCourse(data, apiCall) {
-  try {
-    const responseData = await apiCall(ENDPOINTS.RATE_COMMENT_COURSE, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    })
-    console.log("rateCommentCourse Response Data:", responseData)
-    return responseData // Return the parsed data directly
-  } catch (error) {
-    console.error("rateCommentCourse Error:", error.message)
-    throw error // Propagate the error from apiCall
-  }
-}
-
-export async function getCourseDiscussion(id, { page = 0, size = 6, sortBy = "noUpvote", sortDirection = "desc" } = {}) {
+export async function getCourseDiscussion(apiCall, id, { page = 0, size = 6, sortBy = "noUpvote", sortDirection = "desc" } = {}) {
   const url = `${ENDPOINTS.GET_COURSE_DISCUSSION.replace(":id", id)}?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`
-  console.log("Fetching discussion from URL:", url)
 
   try {
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include"
-    })
-    console.log("Response Status:", response.status)
+    const response = await apiCall(url)
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -349,16 +235,11 @@ export async function getCourseDiscussion(id, { page = 0, size = 6, sortBy = "no
   }
 }
 
-export async function getDiscussionReply(id) {
+export async function getDiscussionReply(apiCall, id) {
   const url = `${ENDPOINTS.GET_DISCUSSION_REPLY.replace(":id", id)}`
-  console.log("Fetching REPLY from URL:", url)
 
   try {
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include"
-    })
-    console.log("Response Status:", response.status)
+    const response = await apiCall(url)
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -367,7 +248,6 @@ export async function getDiscussionReply(id) {
     }
 
     const data = await response.json()
-    console.log("Fetched REPLY:", data)
     return data
   } catch (error) {
     console.error("Error fetching REPLY:", error.message)
@@ -379,7 +259,6 @@ export async function discussionCourse(data, apiCall) {
   try {
     const response = await apiCall(ENDPOINTS.POST_COURSE_DISCUSSION, {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json"
       },
@@ -388,8 +267,18 @@ export async function discussionCourse(data, apiCall) {
 
     // Check if response is ok, otherwise throw an error with response text
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Server error: ${response.status} - ${errorText}`)
+      const errorData = await response.json()
+      let errorMessage = "Failed to post comment course manager"
+
+      if (Array.isArray(errorData.message)) {
+        // Extract first error message from array
+        errorMessage = errorData.message[0]?.error || errorMessage
+      } else if (typeof errorData.message === "object") {
+        errorMessage = errorData.message.error || errorMessage
+      } else if (typeof errorData.message === "string") {
+        errorMessage = errorData.message
+      }
+      throw new Error(errorMessage)
     }
 
     // If response has content, parse it; otherwise return success
@@ -404,12 +293,11 @@ export async function discussionCourse(data, apiCall) {
 }
 
 
-export async function upvoteDiscussion(id) {
+export async function upvoteDiscussion(apiCall, id) {
   const url = ENDPOINTS.UPVOTE_COURSE_DISCUSSION.replace(":id", id)
   try {
-    const response = await fetch(url, {
-      method: "PUT",
-      credentials: "include"
+    const response = await apiCall(url, {
+      method: "PUT"
     })
 
     if (!response.ok) {
@@ -419,13 +307,11 @@ export async function upvoteDiscussion(id) {
 
     // For 204 status, there won't be a response body to parse
     if (response.status === 204) {
-      console.log("upvoteDiscussion: Successfully upvoted comment", id)
       return { success: true } // Return a simple success object
     }
 
     // If the API returns content (not expected in this case, but keeping for completeness)
     const responseData = await response.json()
-    console.log("upvoteDiscussion Response Data:", responseData)
     return responseData
   } catch (error) {
     console.error("upvoteDiscussion Error:", error.message)
@@ -433,12 +319,11 @@ export async function upvoteDiscussion(id) {
   }
 }
 
-export async function unUpvoteDiscussion(id) {
+export async function unUpvoteDiscussion(apiCall, id) {
   const url = ENDPOINTS.UN_UPVOTE_COURSE_DISCUSSION.replace(":id", id)
   try {
-    const response = await fetch(url, {
-      method: "PUT",
-      credentials: "include"
+    const response = await apiCall(url, {
+      method: "PUT"
     })
 
     if (!response.ok) {
@@ -448,13 +333,11 @@ export async function unUpvoteDiscussion(id) {
 
     // For 204 status, there won't be a response body to parse
     if (response.status === 204) {
-      console.log("unUpvoteDiscussion: Successfully un-upvoted comment", id)
       return { success: true } // Return a simple success object
     }
 
     // If the API returns content (not expected in this case, but keeping for completeness)
     const responseData = await response.json()
-    console.log("unUpvoteDiscussion Response Data:", responseData)
     return responseData
   } catch (error) {
     console.error("unUpvoteDiscussion Error:", error.message)

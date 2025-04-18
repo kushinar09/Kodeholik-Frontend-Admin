@@ -6,17 +6,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { GLOBALS } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { Search, Plus, Edit, MoreHorizontal, Paperclip, FileText } from "lucide-react"
+import { Plus, Edit, MoreHorizontal, FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/provider/AuthProvider"
 
 function CourseList({ onNavigate }) {
   useEffect(() => {
     document.title = `Courses List - ${GLOBALS.APPLICATION_NAME}`
   }, [])
 
+  const { apiCall } = useAuth()
   const [courses, setCourses] = useState([])
   const [topics, setTopics] = useState([])
   const [currentPage, setCurrentPage] = useState(0)
@@ -30,29 +32,35 @@ function CourseList({ onNavigate }) {
   const [itemsPerPage, setItemsPerPage] = useState(6)
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      setIsLoading(true)
-      try {
-        const data = await getCourseSearch({
-          page: currentPage,
-          size: itemsPerPage,
-          sortBy,
-          ascending: sortOrder === "asc",
-          query: searchQuery,
-          topic: selectedTopic
-        })
-        setCourses(data.content || [])
-        setTotalPages(data.totalPages || 1)
-      } catch (error) {
-        console.error("Error fetching courses:", error)
-        setCourses([])
-        setTotalPages(1)
-      } finally {
-        setIsLoading(false)
+    const delayDebounce = setTimeout(() => {
+      const fetchCourses = async () => {
+        setIsLoading(true)
+        try {
+          const data = await getCourseSearch(apiCall, {
+            page: currentPage,
+            size: itemsPerPage,
+            sortBy,
+            ascending: sortOrder === "asc",
+            query: searchQuery,
+            topic: selectedTopic
+          })
+          setCourses(data.content || [])
+          setTotalPages(data.totalPages || 1)
+        } catch (error) {
+          console.error("Error fetching courses:", error)
+          setCourses([])
+          setTotalPages(1)
+        } finally {
+          setIsLoading(false)
+        }
       }
-    }
-    fetchCourses()
+
+      fetchCourses()
+    }, 500)
+
+    return () => clearTimeout(delayDebounce)
   }, [currentPage, itemsPerPage, sortBy, sortOrder, searchQuery, selectedTopic])
+
 
   useEffect(() => {
     const fetchTopics = async () => {
@@ -245,7 +253,7 @@ function CourseList({ onNavigate }) {
                         className="hover:bg-bg-secondary/30 transition-colors border-t border-border-muted"
                       >
                         <TableCell className="font-medium text-text-primary">{course.id}</TableCell>
-                        <TableCell className="text-text-primary">{course.title}</TableCell>
+                        <TableCell className="text-text-primary truncate" title={course.title}>{course.title}</TableCell>
                         <TableCell className="text-text-primary">
                           {course.numberOfParticipant}
                         </TableCell>

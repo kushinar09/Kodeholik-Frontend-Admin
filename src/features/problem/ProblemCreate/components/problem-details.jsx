@@ -16,17 +16,17 @@ import { ENDPOINTS } from "@/lib/constants"
 import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor"
 
 const formSchema = z.object({
-  title: z.string().min(1, "Title must be not empty").max(200, "Title must be less than 200 characters"),
+  title: z.string().trim().min(1, "Title must be not empty").max(200, "Title must be less than 200 characters"),
   difficulty: z.enum(["EASY", "MEDIUM", "HARD"]),
   description: z
-    .string()
+    .string().trim()
     .min(10, "Description must be at least 10 characters")
     .max(5000, "Description must be less than 5000 characters"),
   status: z.enum(["PUBLIC", "PRIVATE"]),
   topics: z.array(z.string()).optional(),
   skills: z.array(z.string()).optional(),
   isActive: z.boolean(),
-  languageSupport: z.array(z.string()).min(1, "At least one language must be selected")
+  languageSupport: z.array(z.string().trim().min(1, "Not empty string")).min(1, "At least one language must be selected")
 })
 
 export function ProblemDetails({ formData, updateFormData, onNext }) {

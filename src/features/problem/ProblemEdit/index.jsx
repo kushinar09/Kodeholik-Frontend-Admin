@@ -208,7 +208,7 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
         newData.testCases = { ...prev.testCases, ...stepData }
       }
 
-      // console.log(`Updated ${step}:`, newData)
+      console.log(`Updated ${step}:`, newData)
       return newData
     })
     setCompletedSteps((prev) => ({ ...prev, [step]: true }))
@@ -229,6 +229,12 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
   const handleSubmit = async () => {
     setIsLoading(true)
     try {
+      const supportedLanguages = formData.details.languageSupport
+
+      const filteredSolutionCodes = formData.editorial.editorialDto.solutionCodes.filter(
+        (solution) => supportedLanguages.includes(solution.solutionLanguage)
+      )
+
       const problemBasicAddDto = {
         title: formData.details.title,
         difficulty: formData.details.difficulty,
@@ -237,7 +243,7 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
         topics: formData.details.topics,
         skills: formData.details.skills,
         isActive: formData.details.isActive,
-        languageSupport: formData.details.languageSupport
+        languageSupport: supportedLanguages
       }
 
       const problemEditorialDto = {
@@ -245,14 +251,16 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
           editorialTitle: formData.editorial.editorialTitle,
           editorialTextSolution: formData.editorial.editorialTextSolution,
           editorialSkills: formData.editorial.editorialSkills,
-          solutionCodes: formData.editorial.solutionCodes.map((solution) => ({
+          solutionCodes: filteredSolutionCodes.map((solution) => ({
             solutionLanguage: solution.solutionLanguage,
             solutionCode: solution.solutionCode
           }))
         }
       }
 
-      const problemInputParameterDto = formData.inputParameter
+      const problemInputParameterDto = formData.inputParameter.filter(
+        (param) => supportedLanguages.includes(param.language)
+      )
 
       const formdataT = new FormData()
 
@@ -275,12 +283,13 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
         })
       )
 
-      if (!formData.testCases.excelFile) {
+      if (!formData.testCases.testCase && !formData.testCases.excelFile) {
         throw new Error("Please select a file")
       }
 
-      formdataT.append("testCaseFile", formData.testCases.excelFile)
-
+      formdataT.append("testCaseFile", formData.testCases.testCase || formData.testCases.excelFile)
+      console.log("FormData:", formData)
+      console.log("FormData:", formdataT)
       const requestOptions = {
         method: "PUT",
         body: formdataT,
@@ -294,7 +303,15 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
         onNavigate("/problem")
       } else {
         const errorData = await response.json()
-        const errorMessage = errorData.message || "An error occurred"
+        let errorMessage = "Failed to update problem: " + response.status
+
+        if (Array.isArray(errorData.message)) {
+          errorMessage = errorData.message[0]?.error || errorMessage
+        } else if (typeof errorData.message === "object") {
+          errorMessage = errorData.message.error || errorMessage
+        } else if (typeof errorData.message === "string") {
+          errorMessage = typeof errorData.details === "string" ? errorData.details : errorData.message
+        }
         throw new Error(errorMessage)
       }
     } catch (error) {

@@ -1,21 +1,25 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { getChapterByCourseId } from "@/lib/api/chapter_api"
 import { getCourseSearch } from "@/lib/api/course_api"
-import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { GLOBALS } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { Search, Plus, Edit, MoreHorizontal } from "lucide-react"
+import { Plus, Edit, MoreHorizontal } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/provider/AuthProvider"
+import { useNavigate } from "react-router-dom"
 
 function ChapterList({ onNavigate }) {
+  const { apiCall } = useAuth()
   const [chapters, setChapters] = useState([])
-  const [courseId, setCourseId] = useState(1)
+  const [courseId, setCourseId] = useState(null)
   const [courses, setCourses] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
   const [courseSearchQuery, setCourseSearchQuery] = useState("")
@@ -26,14 +30,51 @@ function ChapterList({ onNavigate }) {
   const [sortOrder, setSortOrder] = useState("asc")
   const [isFilterExpanded, setIsFilterExpanded] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     document.title = `Chapter List - ${GLOBALS.APPLICATION_NAME}`
   }, [])
 
+  // Fetch courses for filter
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const data = await getCourseSearch(apiCall, {
+          page: 0,
+          size: 100,
+          sortBy: "title",
+          ascending: true
+        })
+        setCourses(data.content || [])
+
+        // Get courseId from URL
+        const urlCourseId = new URLSearchParams(window.location.search).get("courseId")
+
+        // If courseId exists in URL, convert it to number for proper comparison
+        const numericCourseId = urlCourseId ? Number.parseInt(urlCourseId, 10) : null
+
+        // Set initial selected course based on URL courseId
+        if (numericCourseId && data?.content?.some((course) => course.id === numericCourseId)) {
+          setCourseId(numericCourseId)
+          setSelectedCourse(numericCourseId)
+        } else if (data?.content?.length > 0) {
+          // If no courseId in URL, use the first course
+          setCourseId(data.content[0].id)
+          setSelectedCourse(data.content[0].id)
+        }
+      } catch (error) {
+        console.error("Error fetching courses:", error)
+        setCourses([])
+      }
+    }
+    fetchCourses()
+  }, [])
+
   // Fetch chapters
   useEffect(() => {
     const fetchChapters = async () => {
+      console.log(courseId)
       setIsLoading(true)
       try {
         const data = await getChapterByCourseId(courseId)
@@ -45,36 +86,14 @@ function ChapterList({ onNavigate }) {
         setIsLoading(false)
       }
     }
-    if (courseId) fetchChapters() // Only fetch if courseId is set
+    if (courseId) fetchChapters()
   }, [courseId])
-
-  // Fetch courses for filter
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const data = await getCourseSearch({
-          page: 0,
-          size: 100,
-          sortBy: "title",
-          ascending: true
-        })
-        setCourses(data.content || [])
-        // Set initial selected course based on default courseId
-        const initialCourse = (data.content || []).find((course) => course.id === courseId)
-        setSelectedCourse(initialCourse?.title || `Unnamed Course (ID: ${courseId})`)
-      } catch (error) {
-        console.error("Error fetching courses:", error)
-        setCourses([])
-      }
-    }
-    fetchCourses()
-  }, [])
 
   // Client-side sorting
   const sortedChapters = [...chapters].sort((a, b) => {
     const order = sortOrder === "asc" ? 1 : -1
     if (sortBy === "id") return order * (a.id - b.id)
-    if (sortBy === "title") return order * (a.title.localeCompare(b.title))
+    if (sortBy === "title") return order * a.title.localeCompare(b.title)
     return 0
   })
 
@@ -86,16 +105,11 @@ function ChapterList({ onNavigate }) {
   // Client-side pagination
   const totalItems = filteredChapters.length
   const totalPages = Math.ceil(totalItems / itemsPerPage)
-  const paginatedChapters = filteredChapters.slice(
-    currentPage * itemsPerPage,
-    (currentPage + 1) * itemsPerPage
-  )
+  const paginatedChapters = filteredChapters.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
 
   // Filter courses based on search query in the filter
   const filteredCourses = courses.filter((course) =>
-    (course.title || `Unnamed Course (ID: ${course.id})`)
-      .toLowerCase()
-      .includes(courseSearchQuery.toLowerCase())
+    (course.title || `Unnamed Course (ID: ${course.id})`).toLowerCase().includes(courseSearchQuery.toLowerCase())
   )
 
   const handleSort = (field) => {
@@ -122,11 +136,7 @@ function ChapterList({ onNavigate }) {
       ACTIVATED: "bg-green-500",
       INACTIVATED: "bg-red-500"
     }
-    return (
-      <Badge className={`${statusMap[status] || "bg-gray-500"} text-white`}>
-        {status?.toUpperCase()}
-      </Badge>
-    )
+    return <Badge className={`${statusMap[status] || "bg-gray-500"} text-white`}>{status?.toUpperCase()}</Badge>
   }
 
   // Handle filter toggle
@@ -137,9 +147,9 @@ function ChapterList({ onNavigate }) {
   // Handle course selection
   const handleCourseClick = (course) => {
     setCourseId(course.id)
-    setSelectedCourse(course.title || `Unnamed Course (ID: ${course.id})`)
-    setIsFilterExpanded(false) // Close filter after selection
-    setCourseSearchQuery("") // Reset course search query
+    setSelectedCourse(course.id || `Unnamed Course (ID: ${course.id})`)
+    setIsFilterExpanded(false)
+    setCourseSearchQuery("")
   }
 
   return (
@@ -149,12 +159,13 @@ function ChapterList({ onNavigate }) {
           <CardHeader className="pb-4 border-b border-border-muted">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <CardTitle className="text-xl font-bold text-text-primary">Chapter List</CardTitle>
-              <Link to="/chapter/add">
-                <Button className="bg-primary text-white font-semibold hover:bg-primary/90 transition-colors text-base py-2 px-4 w-full md:w-auto">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create New Chapter
-                </Button>
-              </Link>
+              <Button
+                onClick={() => navigate("/chapter/add", { state: { courseId: courseId } })}
+                className="bg-primary text-white font-semibold hover:bg-primary/90 transition-colors text-base py-2 px-4 w-full md:w-auto"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create New Chapter
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
@@ -173,9 +184,7 @@ function ChapterList({ onNavigate }) {
                   <Button
                     variant="ghost"
                     onClick={handleFilterClick}
-                    className={cn(
-                      "text-primary font-bold transition hover:bg-primary hover:text-white"
-                    )}
+                    className={cn("text-primary font-bold transition hover:bg-primary hover:text-white")}
                   >
                     Filter by Course
                     <span className="ml-2 text-sm">{isFilterExpanded ? "▲" : "▼"}</span>
@@ -200,16 +209,12 @@ function ChapterList({ onNavigate }) {
                       filteredCourses.map((course) => (
                         <Button
                           key={course.id}
-                          variant={
-                            selectedCourse === (course.title || `Unnamed Course (ID: ${course.id})`)
-                              ? "default"
-                              : "outline"
-                          }
+                          variant={selectedCourse === course.id ? "default" : "outline"}
                           size="sm"
                           onClick={() => handleCourseClick(course)}
                           className={cn(
                             "text-sm",
-                            selectedCourse === (course.title || `Unnamed Course (ID: ${course.id})`)
+                            selectedCourse === course.id
                               ? "bg-primary text-white hover:bg-primary/90"
                               : "text-primary border-primary hover:bg-primary/10"
                           )}
@@ -263,7 +268,9 @@ function ChapterList({ onNavigate }) {
                         className="hover:bg-bg-secondary/30 transition-colors border-t border-border-muted"
                       >
                         <TableCell className="font-medium text-text-primary">{chapter.id}</TableCell>
-                        <TableCell className="text-text-primary">{chapter.title}</TableCell>
+                        <TableCell className="text-text-primary truncate max-w-36" title={chapter.title}>
+                          {chapter.title}
+                        </TableCell>
                         <TableCell className="text-text-primary">{chapter.courseId}</TableCell>
                         <TableCell>{getStatusBadge(chapter.status)}</TableCell>
                         <TableCell>
@@ -275,7 +282,8 @@ function ChapterList({ onNavigate }) {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="cursor-pointer"
+                              <DropdownMenuItem
+                                className="cursor-pointer"
                                 onClick={() => onNavigate(`/chapter/${chapter.id}`)}
                               >
                                 <Edit className="mr-2 h-4 w-4" />
@@ -319,7 +327,9 @@ function ChapterList({ onNavigate }) {
                         onClick={() => handlePageChange(index)}
                         className={cn(
                           "font-semibold transition",
-                          currentPage === index ? "bg-primary text-primary-foreground" : "text-primary bg-transparent hover:bg-primary hover:text-primary-foreground"
+                          currentPage === index
+                            ? "bg-primary text-primary-foreground"
+                            : "text-primary bg-transparent hover:bg-primary hover:text-primary-foreground"
                         )}
                       >
                         {index + 1}

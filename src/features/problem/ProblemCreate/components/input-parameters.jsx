@@ -19,21 +19,23 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 const formSchema = z.object({
   problemInputParameterDto: z.array(
     z.object({
-      language: z.string(),
+      language: z.string().trim(),
       parameters: z.array(
         z.object({
-          inputName: z.string().min(1, "Parameter name is required"),
-          inputType: z.string().min(1, "Parameter type is required"),
-          otherInputType: z.string().optional(),
+          inputName: z.string().trim().min(1, "Parameter name is required"),
+          inputType: z.string().trim().min(1, "Parameter type is required"),
+          otherInputType: z.string().trim().optional(),
           noDimension: z.number().optional()
         })
       ),
-      templateCode: z.string().min(1, "Template code is required")
+      templateCode: z.string().trim()
     })
   ),
-  sharedFunctionSignature: z.string().min(1, "Function signature is required"),
-  sharedReturnType: z.string().min(1, "Return type is required"),
-  otherReturnType: z.string().optional(),
+  sharedFunctionSignature: z.string().trim()
+    .min(1, "Function signature is required")
+    .regex(/^[^\s]+$/, "Function signature must not contain spaces"),
+  sharedReturnType: z.string().trim().min(1, "Return type is required"),
+  otherReturnType: z.string().trim().optional(),
   noDimension: z.number().optional()
 })
 

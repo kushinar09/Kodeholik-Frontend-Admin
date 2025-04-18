@@ -30,22 +30,12 @@ function CreateLessonVideo({ file, setFile, filePreview, setFilePreview }) {
     <div>
       <div className="flex items-center justify-between mb-2">
         <h4 className="text-sm font-medium text-black">Lesson Video</h4>
-        <input
-          type="file"
-          id="videoUpload"
-          accept="video/*"
-          onChange={handleFileUpload}
-          className="hidden"
-        />
+        <input type="file" id="videoUpload" accept="video/*" onChange={handleFileUpload} className="hidden" />
       </div>
       <div className="w-full aspect-[2/1] rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center">
         {file && filePreview ? (
           <div className="relative w-full h-full">
-            <video
-              src={filePreview}
-              controls
-              className="w-full h-full object-cover"
-            />
+            <video src={filePreview} controls className="w-full h-full object-cover" />
             <div className="absolute top-2 right-2 flex gap-2">
               <Button
                 type="button"
@@ -55,12 +45,7 @@ function CreateLessonVideo({ file, setFile, filePreview, setFilePreview }) {
               >
                 <Upload className="h-4 w-4" />
               </Button>
-              <Button
-                type="button"
-                size="icon"
-                variant="destructive"
-                onClick={handleRemoveFile}
-              >
+              <Button type="button" size="icon" variant="destructive" onClick={handleRemoveFile}>
                 <X className="h-4 w-4" />
               </Button>
             </div>

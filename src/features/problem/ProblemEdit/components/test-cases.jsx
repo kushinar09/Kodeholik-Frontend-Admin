@@ -86,14 +86,6 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit, urlG
     URL.revokeObjectURL(url)
   }
 
-  // Remove the selected file and revert to fetched file
-  const handleRemoveFile = () => {
-    setFile(fetchedFile)
-    form.setValue("testCase", fetchedFile)
-    updateFormData({ testCase: fetchedFile })
-    setShowFileUpload(false)
-  }
-
   const handleSubmit = (values) => {
     updateFormData({ testCase: values.testCase })
     onSubmit()
@@ -165,16 +157,6 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit, urlG
                             >
                               Change File
                             </Button>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="mt-2 flex items-center"
-                              onClick={handleRemoveFile}
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Remove
-                            </Button>
                           </div>
                         ) : (
                           <div className="flex flex-col items-center">
@@ -194,13 +176,14 @@ export function TestCases({ formData, updateFormData, onPrevious, onSubmit, urlG
                           id="file-upload"
                           type="file"
                           className="hidden"
-                          accept=".txt,.csv,.xlsx,.xls"
+                          accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                           onChange={(e) => {
                             handleFileChange(e)
                             onChange(e.target.files[0])
                           }}
                           {...field}
                         />
+
                       </div>
                     </FormControl>
                     <FormMessage />

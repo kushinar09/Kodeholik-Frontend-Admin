@@ -19,7 +19,7 @@ const formSchema = z.object({
   languageSupports: z.array(z.string()).min(1, "Language support cannot be empty"),
   problems: z.array(
     z.object({
-      problemLink: z.string().min(1, "Problem link cannot be empty"),
+      problemLink: z.string().trim().min(1, "Problem link cannot be empty"),
       points: z.coerce.number().min(1, "Points must be at least 1").max(10, "Points cannot exceed 10")
     })
   )
@@ -41,7 +41,7 @@ export function CreateExamProblems({ onNext, onPrevious, formData, updateFormDat
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: formData.problems || {
       problems: [{ problemLink: "", points: 0 }]
     }
   })
@@ -58,7 +58,6 @@ export function CreateExamProblems({ onNext, onPrevious, formData, updateFormDat
     fetchPrivateProblem()
   }, [])
 
-  const watchedValues = form.watch()
   const problemsChanged = form.watch("problems")
 
   useEffect(() => {
@@ -160,7 +159,7 @@ export function CreateExamProblems({ onNext, onPrevious, formData, updateFormDat
                   />
                 </FormControl>
                 <p className="text-sm text-muted-foreground mt-1">
-                                    Select languages that will be supported for this problem
+                  Select languages that will be supported for this problem
                 </p>
                 <FormMessage />
               </FormItem>
@@ -191,7 +190,7 @@ export function CreateExamProblems({ onNext, onPrevious, formData, updateFormDat
               </div>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-                            Add problems to the exam as questions along with their points.
+              Add problems to the exam as questions along with their points.
             </p>
           </div>
           <div className="space-y-6">
@@ -325,7 +324,7 @@ export function CreateExamProblems({ onNext, onPrevious, formData, updateFormDat
             <ChevronLeft className="mr-2 h-4 w-4" /> Previous
           </Button>
           <Button type="submit" className="flex items-center">
-                        Create
+            Create
             <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

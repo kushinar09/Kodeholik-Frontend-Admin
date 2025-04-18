@@ -13,31 +13,30 @@ import { Label } from "@/components/ui/label"
 import { z } from "zod"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, BookOpen, ArrowLeft, Save, CheckCircle } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { BookOpen, ArrowLeft, Save, CheckCircle } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import MarkdownEditor from "@/components/layout/markdown/MarkdownEditor"
+import { toast } from "sonner"
+import LoadingScreen from "@/components/layout/loading"
 
 // Define the Zod schema for form validation
 const formSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
+  title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must be less than 200 characters"),
   description: z
-    .string()
+    .string().trim()
     .min(10, "Description must be at least 10 characters")
     .max(5000, "Description must be less than 5000 characters"),
   displayOrder: z.number().min(0, "Display order must be a non-negative number"),
   status: z.enum(["ACTIVATED", "INACTIVATED"]),
-  courseId: z.number().min(1, "A course must be selected")
+  courseId: z
+    .number({
+      invalid_type_error: "Must be select a course"
+    })
+    .min(1, "A course must be selected")
 })
 
 function UpdateChapter() {
@@ -53,15 +52,20 @@ function UpdateChapter() {
   const [courses, setCourses] = useState([])
   const [isCoursesOpen, setIsCoursesOpen] = useState(false)
   const [courseSearch, setCourseSearch] = useState("")
-  const [error, setError] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState({
+    title: "",
+    description: "",
+    displayOrder: "",
+    courseId: ""
+  })
 
   // Fetch courses for selection
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const data = await getCourseSearch({
+        const data = await getCourseSearch(apiCall,{
           page: 0,
           size: 100,
           sortBy: "title",
@@ -73,9 +77,8 @@ function UpdateChapter() {
         }))
         setCourses(formattedCourses)
       } catch (error) {
-        console.error("Error fetching courses:", error)
+        console.warn("Error fetching courses:", error)
         setCourses([])
-        setError(error.message || "Failed to fetch courses")
       }
     }
     fetchCourses()
@@ -92,8 +95,7 @@ function UpdateChapter() {
 
         // Handle invalid courseId
         if (chapterCourseId === 0 || !courseExists) {
-          console.warn(`Chapter courseId ${chapterCourseId} is invalid or not in fetched courses`)
-          setError(`The chapter's course (ID: ${chapterCourseId}) is not available. Please select a valid course.`)
+          toast.error(`The chapter's course (ID: ${chapterCourseId}) is not available. Please select a valid course.`)
         }
 
         setFormData({
@@ -104,16 +106,13 @@ function UpdateChapter() {
           courseId: chapterCourseId > 0 && courseExists ? chapterCourseId : null
         })
       } catch (error) {
-        console.error("Error fetching chapter:", error)
-        setError(error.message || "Failed to fetch chapter data")
+        console.warn("Error fetching chapter:", error.message)
       }
     }
     fetchChapter()
   }, [id, courses])
 
-  const filteredCourses = courses.filter((course) =>
-    course.title.toLowerCase().includes(courseSearch.toLowerCase())
-  )
+  const filteredCourses = courses.filter((course) => course.title.toLowerCase().includes(courseSearch.toLowerCase()))
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -137,7 +136,12 @@ function UpdateChapter() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError(null)
+    setFieldErrors({
+      title: "",
+      description: "",
+      displayOrder: "",
+      courseId: ""
+    })
     setIsSubmitting(true)
 
     const dataToValidate = {
@@ -152,11 +156,15 @@ function UpdateChapter() {
       formSchema.parse(dataToValidate)
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
-        setError(validationError.errors[0].message)
+        const errors = {}
+        validationError.errors.forEach((err) => {
+          const field = err.path[0]
+          errors[field] = err.message
+        })
+        setFieldErrors(errors)
         setIsSubmitting(false)
         return
       }
-      setError("An unexpected validation error occurred")
       setIsSubmitting(false)
       return
     }
@@ -174,17 +182,16 @@ function UpdateChapter() {
       setIsSuccessDialogOpen(true)
       setTimeout(() => {
         setIsSuccessDialogOpen(false)
-        navigate("/chapter")
+        navigate(`/chapter?courseId=${formData.courseId}`)
       }, 2000)
     } catch (error) {
-      console.error("Error updating chapter:", error)
-      setError(error.message || "Failed to update chapter")
+      toast.error(error.message || "Failed to update chapter")
       setIsSubmitting(false)
     }
   }
 
   const handleDescriptionChange = (value) => {
-    setFormData((prev) => ({ ...prev, "description": value }))
+    setFormData((prev) => ({ ...prev, description: value }))
   }
 
   const getStatusBadge = (status) => {
@@ -198,11 +205,7 @@ function UpdateChapter() {
   }
 
   if (!formData) {
-    return (
-      <div className="container py-8 px-4 sm:px-6">
-        <div>Loading...</div>
-      </div>
-    )
+    return <LoadingScreen message="Loading chapter data..." />
   }
 
   return (
@@ -224,16 +227,6 @@ function UpdateChapter() {
           <CardDescription>Update the chapter details below.</CardDescription>
         </CardHeader>
 
-        {error && (
-          <div className="px-6">
-            <Alert variant="destructive" className="border-red-500/20 bg-red-500/10 text-red-500">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-6 pt-4">
             <div className="space-y-2">
@@ -246,20 +239,25 @@ function UpdateChapter() {
                 value={formData.title}
                 onChange={handleChange}
                 placeholder="Enter a descriptive title for this chapter"
-                className="border-input/40"
+                className={`border-input/40 ${fieldErrors.title ? "border-red-500" : ""}`}
                 required
                 disabled={isSubmitting || isSuccessDialogOpen} // Disable during submission or success
               />
+              {fieldErrors.title && <p className="text-sm text-red-500">{fieldErrors.title}</p>}
             </div>
 
             <Collapsible open={isCoursesOpen} onOpenChange={setIsCoursesOpen}>
-              <h4 className="text-sm font-semibold pb-2">Course <span className="text-red-500">*</span></h4>
+              <h4 className="text-sm font-semibold pb-2">
+                Course <span className="text-red-500">*</span>
+              </h4>
               <CollapsibleTrigger asChild>
-                <div className="flex items-center justify-between w-full rounded-lg p-2 border border-gray-700 hover:bg-gray-700/50 cursor-pointer">
+                <div
+                  className={`flex items-center justify-between w-full rounded-lg p-2 border ${fieldErrors.courseId ? "border-red-500" : "border-gray-700"} hover:bg-gray-200/50 cursor-pointer`}
+                >
                   <span className="text-black text-sm font-medium">
                     {formData.courseId
                       ? courses.find((c) => c.id === formData.courseId)?.title || "Course Selected"
-                      : "Select a Course (required)"}
+                      : "Select a Course"}
                   </span>
                   {isCoursesOpen ? (
                     <ChevronUp className="h-4 w-4 text-gray-400" />
@@ -268,13 +266,11 @@ function UpdateChapter() {
                   )}
                 </div>
               </CollapsibleTrigger>
+              {fieldErrors.courseId && <p className="text-sm text-red-500 mt-1">{fieldErrors.courseId}</p>}
               <CollapsibleContent className="space-y-4 border border-gray-700 rounded-lg p-4 mt-2">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium text-black">Choose a course</h4>
-                  <span
-                    onClick={clearCourseSelection}
-                    className="cursor-pointer text-sm text-gray-400 hover:underline"
-                  >
+                  <span onClick={clearCourseSelection} className="cursor-pointer text-sm text-gray-400 hover:underline">
                     Clear Selection
                   </span>
                 </div>
@@ -289,7 +285,7 @@ function UpdateChapter() {
                     filteredCourses.map((course) => (
                       <div
                         key={course.id}
-                        className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-700/50 border border-gray-700/50"
+                        className="flex-shrink-0 flex items-center space-x-2 rounded-lg p-2 hover:bg-gray-200/50 border border-gray-700/50"
                       >
                         <Checkbox
                           id={`course-${course.id}`}
@@ -297,10 +293,7 @@ function UpdateChapter() {
                           onCheckedChange={() => handleCourseChange(course.id)}
                           disabled={isSubmitting || isSuccessDialogOpen}
                         />
-                        <Label
-                          htmlFor={`course-${course.id}`}
-                          className="text-black text-sm whitespace-nowrap"
-                        >
+                        <Label htmlFor={`course-${course.id}`} className="text-black text-sm whitespace-nowrap">
                           {course.title}
                         </Label>
                       </div>
@@ -325,10 +318,11 @@ function UpdateChapter() {
                   onChange={handleChange}
                   placeholder="0"
                   min="0"
-                  className="border-input/40"
+                  className={`border-input/40 ${fieldErrors.displayOrder ? "border-red-500" : ""}`}
                   required
                   disabled={isSubmitting || isSuccessDialogOpen}
                 />
+                {fieldErrors.displayOrder && <p className="text-sm text-red-500">{fieldErrors.displayOrder}</p>}
                 <p className="text-xs text-muted-foreground">Determines the order in which chapters appear</p>
               </div>
 
@@ -365,12 +359,10 @@ function UpdateChapter() {
               <Label htmlFor="description" className="text-sm font-semibold">
                 Description <span className="text-red-500">*</span>
               </Label>
-              <div className="h-[400px]">
-                <MarkdownEditor
-                  value={formData.description}
-                  onChange={handleDescriptionChange}
-                />
+              <div className={`h-[400px] ${fieldErrors.description ? "border border-red-500 rounded-md" : ""}`}>
+                <MarkdownEditor value={formData.description} onChange={handleDescriptionChange} />
               </div>
+              {fieldErrors.description && <p className="text-sm text-red-500">{fieldErrors.description}</p>}
             </div>
           </CardContent>
 

@@ -4,6 +4,7 @@
 import { ENDPOINTS, ROLES } from "@/lib/constants"
 import { createContext, useContext, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 const AuthContext = createContext()
 
@@ -14,7 +15,10 @@ const noRedirectToErrorEndpoints = [
   ENDPOINTS.GET_INFOR,
   ENDPOINTS.POST_LOGIN,
   ENDPOINTS.ROTATE_TOKEN,
-  ENDPOINTS.POST_LOGOUT
+  ENDPOINTS.POST_LOGOUT,
+  ENDPOINTS.CREATE_LESSON,
+  ENDPOINTS.UPDATE_LESSON,
+  ENDPOINTS.DOWNLOAD_FILE_LESSON
 ]
 
 export const AuthProvider = ({ children }) => {
@@ -53,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus()
   }, [])
 
-  const logout = async (redirect = false) => {
+  const logout = async (redirect = false, redirectPath = true) => {
     try {
       await apiCall(ENDPOINTS.POST_LOGOUT, {
         method: "POST"
@@ -63,60 +67,15 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsAuthenticated(false)
       setUser(null)
-      if (redirect) navigate("/login", { state: { loginRequire: true, redirectPath: window.location.pathname } })
+      location.state = null
+      if (redirect) {
+        if (redirectPath) {
+          navigate("/login", { state: { loginRequire: true, redirectPath: window.location.pathname } })
+        } else {
+          navigate("/login")
+        }
+      }
     }
-  }
-
-  const loginGoogle = async (credentials) => {
-    try {
-      const response = await fetch(ENDPOINTS.LOGIN_GOOGLE + "?token=" + credentials, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "http://kodeholik.site",
-          "Access-Control-Allow-Credentials": "true"
-        },
-        body: JSON.stringify(credentials)
-      })
-
-      if (response.ok) {
-        // After successful login, immediately check auth status to get user data
-        await checkAuthStatus(true)
-        return { success: true }
-      } else {
-        return { success: false, error: await response.json() }
-      }
-    } catch (error) {
-      console.error("Login failed:", error)
-      return { success: false, error }
-    } 
-  }
-
-  const loginGithub = async (credentials) => {
-    try {
-      const response = await fetch(ENDPOINTS.LOGIN_GITHUB + "?code=" + credentials, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "http://kodeholik.site",
-          "Access-Control-Allow-Credentials": "true"
-        },
-        body: JSON.stringify(credentials)
-      })
-
-      if (response.ok) {
-        // After successful login, immediately check auth status to get user data
-        await checkAuthStatus(true)
-        return { success: true }
-      } else {
-        return { success: false, error: await response.json() }
-      }
-    } catch (error) {
-      console.error("Login failed:", error)
-      return { success: false, error }
-    } 
   }
 
   const login = async (credentials) => {
@@ -143,6 +102,34 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error }
     }
   }
+
+  // Add a login function to ensure both states are set properly:
+  const loginGoogle = async (credentials) => {
+    try {
+      const response = await fetch(ENDPOINTS.LOGIN_GOOGLE + "?token=" + credentials, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "http://localhost:5174",
+          "Access-Control-Allow-Credentials": "true"
+        },
+        body: JSON.stringify(credentials)
+      })
+
+      if (response.ok) {
+        // After successful login, immediately check auth status to get user data
+        await checkAuthStatus()
+        return { success: true }
+      } else {
+        return { success: false, error: await response.json() }
+      }
+    } catch (error) {
+      console.error("Login failed:", error)
+      return { success: false, error }
+    }
+  }
+
 
   const refreshAccessToken = async (redirect) => {
     if (isRefreshing) {
@@ -194,14 +181,25 @@ export const AuthProvider = ({ children }) => {
         return response
       }
 
+      if (response.status === 400 || response.status === 500) {
+        let errorMessage = "Error. Waring when call api: " + url
+        console.warn(errorMessage)
+        return response
+      }
+
       // Check if this endpoint should skip error redirects
-      const shouldSkipErrorRedirect = noRedirectToErrorEndpoints.some(
-        (endpoint) => url === endpoint || url.startsWith(endpoint)
-      )
+      const shouldSkipErrorRedirect = noRedirectToErrorEndpoints.some((endpoint) => {
+        const endpointPattern = endpoint
+          .replace(/:[a-zA-Z0-9_]+/g, "[^/]+")
+          .replace(/\?/g, "\\?")
+          .replace(/=/g, "=")
+          .replace(/&/g, "&")
+
+        const regex = new RegExp(`^${endpointPattern}($|\\?.*)`)
+        return regex.test(url)
+      })
 
       if (response.status === 401 && !notCallRotateTokenEndpoints.includes(url)) {
-        console.warn("Access token expired. Attempting refresh...")
-
         const status = await refreshAccessToken(redirect)
 
         if (status === 200) {
@@ -221,8 +219,8 @@ export const AuthProvider = ({ children }) => {
               case 404:
                 navigate("/404")
                 break
-              default:
-                navigate("/500")
+              // default:
+              //   navigate("/500")
             }
           }
           return response
@@ -237,13 +235,13 @@ export const AuthProvider = ({ children }) => {
             case 404:
               navigate("/404")
               break
-            default:
-              if (response.status >= 500) {
-                navigate("/500")
-              }
+            // default:
+            //   if (response.status >= 500) {
+            //     navigate("/500")
+            //   }
           }
         }
-        return response // Return the response
+        return response
       }
     } catch (error) {
       console.warn("API call error:", error)
@@ -269,7 +267,6 @@ export const AuthProvider = ({ children }) => {
         logout,
         login,
         loginGoogle,
-        loginGithub,
         isAuthenticated,
         user,
         isLoading,

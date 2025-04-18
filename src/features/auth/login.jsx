@@ -13,7 +13,6 @@ import { loginWithGithub, loginWithGoogle } from "@/lib/api/auth_api"
 import { useAuth } from "@/provider/AuthProvider"
 import LoadingScreen from "@/components/layout/loading"
 import { toast } from "sonner"
-import GitHubLogin from "react-github-login"
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google"
 
 export default function LoginPage() {
@@ -24,7 +23,7 @@ export default function LoginPage() {
     password: ""
   })
 
-  const { isAuthenticated, setIsAuthenticated, login, loginGoogle, loginGithub } = useAuth()
+  const { isAuthenticated, login, loginGoogle } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -72,6 +71,7 @@ export default function LoginPage() {
   }
 
   const handleLoginSubmit = async (e) => {
+    console.log("handleLoginSubmit")
     e.preventDefault()
     setLoading(true)
     setErrors({})
@@ -97,7 +97,7 @@ export default function LoginPage() {
         setErrors(newErrors)
       } else {
         const result = await login(formData)
-        if (!result.status) {
+        if (!result.success) {
           if (result.error.message) {
             newErrors.general = result.error.message
           } else {
@@ -106,6 +106,7 @@ export default function LoginPage() {
         } else {
           const redirectPath = location.state?.redirectPath || "/"
           navigate(redirectPath)
+          location.state = null
         }
         setErrors(newErrors)
       }
@@ -119,11 +120,7 @@ export default function LoginPage() {
   }
 
   async function handleLoginGoogle(token) {
-    loginGoogle(token);
-  }
-
-  async function handleLoginGithub(code) {
-    loginGithub(code)
+    loginGoogle(token)
   }
 
   return (
@@ -206,20 +203,19 @@ export default function LoginPage() {
                     Or continue with
                   </span>
                 </div>
-                <div className="flex ">
-
+                <div className="grid gap-4">
                   <GoogleOAuthProvider clientId="873651389602-g3egfh8nipch5dad289s114sge0769n0.apps.googleusercontent.com">
                     <GoogleLogin
                       onSuccess={credentialResponse => {
-                        handleLoginGoogle(credentialResponse.credential);
+                        handleLoginGoogle(credentialResponse.credential)
                       }}
                       onError={() => {
-                        console.log('Login Failed');
+                        toast.error("Login Google Failed", {
+                          description: "Please try again."
+                        })
                       }}
                     >
-
                     </GoogleLogin>
-
                   </GoogleOAuthProvider>
                 </div>
               </div>

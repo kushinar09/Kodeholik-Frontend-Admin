@@ -18,18 +18,18 @@ import CodeEditor from "@/components/layout/editor-code/CodeEditor"
 
 const formSchema = z.object({
   editorialTitle: z
-    .string()
+    .string().trim()
     .min(10, "Editorial title must be at least 10 characters")
     .max(200, "Editorial title must be less than 200 characters"),
   editorialTextSolution: z
-    .string()
+    .string().trim()
     .min(10, "Editorial solution must be at least 10 characters")
     .max(5000, "Editorial solution must be less than 5000 characters"),
   editorialSkills: z.array(z.string()).optional(),
   solutionCodes: z.array(
     z.object({
       language: z.string(),
-      solutionCode: z.string().min(1, "Solution code is required")
+      solutionCode: z.string().trim().min(1, "Solution code is required")
     })
   )
 })
