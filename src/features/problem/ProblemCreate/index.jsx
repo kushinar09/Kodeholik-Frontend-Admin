@@ -121,6 +121,9 @@ export default function ProblemCreator({ onNavigate }) {
       }))
 
       const formdataT = new FormData()
+      console.log(problemBasicAddDto)
+      console.log(problemEditorialDto)
+      console.log(problemInputParameterDto)
 
       formdataT.append(
         "problemBasicAddDto",
