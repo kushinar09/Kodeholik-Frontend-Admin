@@ -1,11 +1,14 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Upload, X } from "lucide-react"
+import { set } from "date-fns"
 
 function CreateLessonVideo({ file, setFile, filePreview, setFilePreview }) {
+  const [videoError, setVideoError] = useState(false)
   useEffect(() => {
+    setVideoError(false)
     return () => {
       if (filePreview) URL.revokeObjectURL(filePreview)
     }
@@ -35,7 +38,20 @@ function CreateLessonVideo({ file, setFile, filePreview, setFilePreview }) {
       <div className="w-full aspect-[2/1] rounded-lg border border-gray-700 overflow-hidden flex flex-col items-center justify-center">
         {file && filePreview ? (
           <div className="relative w-full h-full">
-            <video src={filePreview} controls className="w-full h-full object-cover" />
+            <>
+              {!videoError ? (
+                <video
+                  src={filePreview}
+                  controls
+                  className="w-full h-full object-cover"
+                  onError={() => setVideoError(true)}
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full bg-gray-100 text-center text-red-500 p-4">
+                  This file is not a supported video format.
+                </div>
+              )}
+            </>
             <div className="absolute top-2 right-2 flex gap-2">
               <Button
                 type="button"

@@ -113,10 +113,14 @@ export default function ProblemCreator({ onNavigate }) {
         },
         functionSignature: param.functionSignature,
         returnType: param.returnType,
+        noDimension: param.noDimension || undefined,
+        otherReturnType: param.otherReturnType || undefined,
         language: param.language,
         parameters: param.parameters.map((p) => ({
           inputName: p.inputName,
-          inputType: p.inputType
+          inputType: p.inputType,
+          noDimension: p.noDimension || undefined,
+          otherInputType: p.otherInputType || undefined
         }))
       }))
 

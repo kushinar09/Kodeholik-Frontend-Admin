@@ -54,14 +54,12 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
 
   const [activeLanguage, setActiveLanguage] = useState(initialLanguage)
   const [returnTypes] = useState([
-    "INT",
     "STRING",
-    "BOOLEAN",
-    "void",
-    "DOUBLE",
-    "float",
-    "LONG",
     "CHAR",
+    "INT",
+    "DOUBLE",
+    "LONG",
+    "BOOLEAN",
     "LIST",
     "MAP",
     "SET",
