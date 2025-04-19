@@ -2,7 +2,7 @@
 
 import { GLOBALS } from "@/lib/constants"
 import { useState, useEffect } from "react"
-import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom"
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useAuth } from "@/provider/AuthProvider"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -64,7 +64,8 @@ const formSchema = z
       .optional()
       .refine((file) => !file || file.size <= 100 * 1024 * 1024, "Attached file must be less than 100 MB"),
     existingVideoUrl: z.string().trim().nullable().optional(),
-    existingDocUrl: z.string().trim().nullable().optional()
+    existingDocUrl: z.string().trim().nullable().optional(),
+    isAttachedFileKeeped: z.boolean().nullable().optional()
   })
   .superRefine((data, ctx) => {
     // Type-specific validation
@@ -104,7 +105,8 @@ function UpdateLesson() {
     chapterId: searchParams.get("chapterId") ? Number(searchParams.get("chapterId")) : null,
     displayOrder: 1,
     type: "VIDEO",
-    status: "ACTIVATED"
+    status: "ACTIVATED",
+    isAttachedFileKeeped: true
   })
   const [chapters, setChapters] = useState([])
   const [courses, setCourses] = useState([])
@@ -147,7 +149,8 @@ function UpdateLesson() {
             : null,
         displayOrder: data.displayOrder || 1,
         type: lessonType,
-        status: data.status || "ACTIVATED"
+        status: data.status || "ACTIVATED",
+        isAttachedFileKeeped: true
       })
       setSelectedCourse(data.courseId || 1)
       if (data.courseId) {
@@ -326,6 +329,9 @@ function UpdateLesson() {
       formDataPayload.append("displayOrder", lessonData.displayOrder)
       formDataPayload.append("type", lessonData.type)
       formDataPayload.append("status", lessonData.status)
+      if (formData.isAttachedFileKeeped !== null && formData.isAttachedFileKeeped !== undefined) {
+        formDataPayload.append("isAttachedFileKeeped", formData.isAttachedFileKeeped)
+      }
 
       if (formData.type === "VIDEO" && videoFile) {
         formDataPayload.append("videoType", "VIDEO_FILE")
@@ -642,6 +648,7 @@ function UpdateLesson() {
               <UpdateLessonDocument
                 file={docFile}
                 setFile={(file) => {
+                  setFormData((prev) => ({ ...prev, isAttachedFileKeeped: false }))
                   setDocFile(file)
                   setErrors((prev) => ({ ...prev, attachedFile: null }))
                 }}
