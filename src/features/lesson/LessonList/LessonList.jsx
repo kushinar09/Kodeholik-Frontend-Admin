@@ -138,7 +138,7 @@ function LessonList({ onNavigate }) {
 
   // Client-side search for lessons
   const filteredLessons = sortedLessons.filter((lesson) =>
-    lesson.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    lesson.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   // Client-side pagination
@@ -148,12 +148,12 @@ function LessonList({ onNavigate }) {
 
   // Filter courses based on search query
   const filteredCourses = courses.filter((course) =>
-    (course.title || `Unnamed Course (ID: ${course.id})`).toLowerCase().includes(courseSearchQuery.toLowerCase()),
+    (course.title || `Unnamed Course (ID: ${course.id})`).toLowerCase().includes(courseSearchQuery.toLowerCase())
   )
 
   // Filter chapters based on search query and selected course
   const filteredChapters = chapters.filter((chapter) =>
-    (chapter.title || `Unnamed Chapter (ID: ${chapter.id})`).toLowerCase().includes(chapterSearchQuery.toLowerCase()),
+    (chapter.title || `Unnamed Chapter (ID: ${chapter.id})`).toLowerCase().includes(chapterSearchQuery.toLowerCase())
   )
 
   const handleSort = (field) => {
@@ -178,7 +178,7 @@ function LessonList({ onNavigate }) {
   const getStatusBadge = (status) => {
     const statusMap = {
       ACTIVATED: "bg-green-500",
-      INACTIVATED: "bg-red-500",
+      INACTIVATED: "bg-red-500"
     }
     return <Badge className={`${statusMap[status] || "bg-gray-500"} text-white`}>{status?.toUpperCase()}</Badge>
   }
@@ -293,7 +293,7 @@ function LessonList({ onNavigate }) {
                             "text-sm",
                             selectedCourse === course.id
                               ? "bg-primary text-white hover:bg-primary/90"
-                              : "text-primary border-primary hover:bg-primary/10",
+                              : "text-primary border-primary hover:bg-primary/10"
                           )}
                         >
                           {course.title || `Unnamed Course (ID: ${course.id})`}
@@ -330,7 +330,7 @@ function LessonList({ onNavigate }) {
                                 "text-sm",
                                 chapterId === chapter.id
                                   ? "bg-primary text-white hover:bg-primary/90"
-                                  : "text-primary border-primary hover:bg-primary/10",
+                                  : "text-primary border-primary hover:bg-primary/10"
                               )}
                             >
                               {chapter.title || `Unnamed Chapter (ID: ${chapter.id})`}
@@ -447,7 +447,7 @@ function LessonList({ onNavigate }) {
                           "text-primary font-semibold transition",
                           currentPage === index
                             ? "bg-primary text-primary-foreground"
-                            : "bg-transparent text-primary hover:bg-primary hover:text-primary-foreground",
+                            : "bg-transparent text-primary hover:bg-primary hover:text-primary-foreground"
                         )}
                       >
                         {index + 1}
