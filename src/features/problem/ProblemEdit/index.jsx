@@ -207,8 +207,6 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
       } else if (step === "testcases") {
         newData.testCases = { ...prev.testCases, ...stepData }
       }
-
-      console.log(`Updated ${step}:`, newData)
       return newData
     })
     setCompletedSteps((prev) => ({ ...prev, [step]: true }))
@@ -288,8 +286,6 @@ export default function ProblemEdit({ onNavigate, setCurrentTitleProblem }) {
       }
 
       formdataT.append("testCaseFile", formData.testCases.testCase || formData.testCases.excelFile)
-      console.log("FormData:", formData)
-      console.log("FormData:", formdataT)
       const requestOptions = {
         method: "PUT",
         body: formdataT,

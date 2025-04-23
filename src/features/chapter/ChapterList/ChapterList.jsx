@@ -74,7 +74,6 @@ function ChapterList({ onNavigate }) {
   // Fetch chapters
   useEffect(() => {
     const fetchChapters = async () => {
-      console.log(courseId)
       setIsLoading(true)
       try {
         const data = await getChapterByCourseId(courseId)

@@ -76,7 +76,6 @@ export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
 
   // Initialize form with existing data
   const getDefaultValues = () => {
-    // console.log(formData.editorial)
     if (formData.editorial) {
       const editorialData = formData.editorial
 
@@ -160,7 +159,6 @@ export function Editorial({ formData, updateFormData, onNext, onPrevious }) {
       }
     }
 
-    // console.log("Editorial submitting:", transformedData)
     updateFormData(transformedData, "editorial")
     onNext()
   }

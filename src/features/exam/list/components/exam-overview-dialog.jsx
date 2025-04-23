@@ -27,8 +27,6 @@ function ExamOverviewContent({ examCode, apiCall }) {
             ? JSON.parse(response)
             : await response.json()
 
-          // console.log("API Response:", responseData)
-
           // Use the parsed data
           const formattedData = {
             avgGrade: responseData?.avgGrade || "0.00",

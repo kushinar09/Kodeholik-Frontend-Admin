@@ -70,7 +70,6 @@ export default function LoginPage() {
   }
 
   const handleLoginSubmit = async (e) => {
-    console.log("handleLoginSubmit")
     e.preventDefault()
     setLoading(true)
     setErrors({})
