@@ -1,18 +1,10 @@
 "use client"
-import * as React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { addDays, format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
 import { useDebounce } from "@/features/users/list/components/use-debounce"
 
 export function FilterBar({ onFilterChange, currentType }) {
@@ -80,7 +72,7 @@ export function FilterBar({ onFilterChange, currentType }) {
 
       <Button variant="outline" onClick={clearFilters}>
         <X className="h-4 w-4 mr-2" />
-                Clear Filters
+        Clear Filters
       </Button>
     </div>
   )

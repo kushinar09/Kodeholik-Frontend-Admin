@@ -145,18 +145,18 @@ export default function ExcelUploadGuidePage() {
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell>hello</TableCell>
-                    <TableCell>helloolleh</TableCell>
+                    <TableCell>&quot;hello&quot;</TableCell>
+                    <TableCell>&quot;helloolleh&quot;</TableCell>
                     <TableCell>TRUE</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>abc</TableCell>
-                    <TableCell>abccba</TableCell>
+                    <TableCell>&quot;abc&quot;</TableCell>
+                    <TableCell>&quot;abccba&quot;</TableCell>
                     <TableCell>TRUE</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>test123</TableCell>
-                    <TableCell>test123321tset</TableCell>
+                    <TableCell>&quot;test123&quot;</TableCell>
+                    <TableCell>&quot;test123321tset&quot;</TableCell>
                     <TableCell>FALSE</TableCell>
                   </TableRow>
                 </TableBody>

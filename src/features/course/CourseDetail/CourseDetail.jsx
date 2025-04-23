@@ -46,7 +46,7 @@ function CourseDetail() {
 
   // Discussion State
   const [discussionLoading, setDiscussionLoading] = useState(true)
-  const [discussionError, setDiscussionError] = useState(null)
+  // const [discussionError, setDiscussionError] = useState(null)
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState("")
   const [replyingTo, setReplyingTo] = useState(null)
@@ -107,7 +107,7 @@ function CourseDetail() {
         setMessages(transformedMessages)
         setDiscussionTotalPages(discussionData.totalPages)
       } catch (error) {
-        setDiscussionError(error.message)
+        toast.error(`Failed to fetch discussion data: ${error.message}`)
       } finally {
         setDiscussionLoading(false)
       }
@@ -191,7 +191,7 @@ function CourseDetail() {
       const transformedMessages = await transformDiscussionData(discussionData.content, allReplies)
       setMessages(transformedMessages)
     } catch (error) {
-      setDiscussionError(`Failed to send message: ${error.message}`)
+      toast.error(`Failed to send message: ${error.message}`)
     } finally {
       setPosting(false)
     }
@@ -262,7 +262,7 @@ function CourseDetail() {
           return msg
         })
       )
-      setDiscussionError(`Failed to toggle like: ${error.message}`)
+      toast.error(`Failed to toggle like: ${error.message}`)
     }
   }
 
@@ -499,8 +499,6 @@ function CourseDetail() {
                   <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
                   <p className="text-sm text-muted-foreground mt-4">Loading discussion...</p>
                 </div>
-              ) : discussionError ? (
-                <div className="mb-4 p-3 bg-destructive/10 rounded-lg text-destructive text-sm">{discussionError}</div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                   <MessageSquare className="h-10 w-10 mb-2 opacity-30" />

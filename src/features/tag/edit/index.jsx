@@ -70,7 +70,6 @@ export function EditTagDialog({ open, onOpenChange, onSubmit, tag, setTag }) {
       if (error instanceof z.ZodError) {
         const fieldErrors = {}
         error.errors.forEach((err) => {
-          console.log(err.message)
           fieldErrors[err.path[0]] = err.message
         })
         setErrors(fieldErrors)
