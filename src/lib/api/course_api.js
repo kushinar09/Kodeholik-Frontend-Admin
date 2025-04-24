@@ -144,7 +144,6 @@ export async function updateCourse(id, courseData, apiCall) {
   }
 
   try {
-    console.log(formData);
     const response = await apiCall(ENDPOINTS.UPDATE_COURSE.replace(":id", id), {
       method: "PUT",
       body: formData
@@ -227,7 +226,6 @@ export async function getCourseDiscussion(apiCall, id, { page = 0, size = 6, sor
     }
 
     const data = await response.json()
-    console.log("Fetched discussion:", data)
     return data
   } catch (error) {
     console.error("Error fetching discussion:", error.message)
@@ -284,7 +282,6 @@ export async function discussionCourse(data, apiCall) {
     // If response has content, parse it; otherwise return success
     const contentLength = response.headers.get("content-length")
     const responseData = contentLength && contentLength !== "0" ? await response.json() : { success: true }
-    console.log("discussionCourse Response:", response.status, responseData)
     return responseData
   } catch (error) {
     console.error("discussionCourse Error:", error.message)
