@@ -181,6 +181,11 @@ export const AuthProvider = ({ children }) => {
         return response
       }
 
+      // if (response.status === 403) {
+      //   navigate("/403")
+      //   return
+      // }
+
       if (response.status === 400 || response.status === 500) {
         let errorMessage = "Error. Waring when call api: " + url
         console.warn(errorMessage)
