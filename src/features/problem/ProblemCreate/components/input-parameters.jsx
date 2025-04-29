@@ -148,12 +148,12 @@ export function InputParameters({ formData, updateFormData, onNext, otherType = 
     const inputParameters = values.problemInputParameterDto.map((param) => ({
       language: param.language,
       functionSignature: values.sharedFunctionSignature,
-      returnType: values.sharedReturnType === "OTHER" ? "UNKNOWN" : values.sharedReturnType,
+      returnType: values.sharedReturnType,
       otherReturnType: values.otherReturnType,
       noDimension: values.sharedReturnType.startsWith("ARR_") ? values.noDimension : undefined,
       parameters: param.parameters.map((p) => ({
         inputName: p.inputName,
-        inputType: p.inputType === "OTHER" ? "UNKNOWN" : p.inputType,
+        inputType: p.inputType,
         noDimension: p.inputType.startsWith("ARR_") ? p.noDimension : undefined,
         otherInputType: p.otherInputType || undefined
       })),

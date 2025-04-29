@@ -50,6 +50,7 @@ export default function ProblemCreator({ onNavigate }) {
   })
 
   const updateFormData = (stepData, step) => {
+    console.log(step, stepData)
     setFormData((prev) => {
       const newData = { ...prev }
 
@@ -82,6 +83,7 @@ export default function ProblemCreator({ onNavigate }) {
 
   const handleSubmit = async () => {
     setIsLoading(true)
+    console.log(formData)
     try {
       const problemBasicAddDto = {
         title: formData.details.title,
@@ -108,17 +110,17 @@ export default function ProblemCreator({ onNavigate }) {
 
       const problemInputParameterDto = formData.inputParameter.map((param) => ({
         templateCode: {
-          code: param.templateCodes,
+          code: param.templateCode,
           language: param.language
         },
         functionSignature: param.functionSignature,
-        returnType: param.returnType,
+        returnType: param.returnType === "OTHER" ? "UNKNOWN" : param.returnType,
         noDimension: param.noDimension || undefined,
         otherReturnType: param.otherReturnType || undefined,
         language: param.language,
         parameters: param.parameters.map((p) => ({
           inputName: p.inputName,
-          inputType: p.inputType,
+          inputType: p.inputType === "OTHER" ? "UNKNOWN" : p.inputType,
           noDimension: p.noDimension || undefined,
           otherInputType: p.otherInputType || undefined
         }))
